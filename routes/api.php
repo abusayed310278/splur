@@ -31,3 +31,59 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api')
 Route::post('password/email', [AuthController::class, 'sendResetOTP']);
 Route::post('password/verify-otp', [AuthController::class, 'verifyResetOTP'])->name('password.verify-otp');
 Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('password.reset');
+
+
+// //settings(backend) which is namely settings
+Route::middleware('auth:api')->group(function () {
+    Route::put('settings/password', [SettingController::class, 'storeOrUpdatePassword']);
+    Route::put('settings/info', [SettingController::class, 'storeOrUpdate']);
+    Route::get('settings/info', [SettingController::class, 'index']);
+});
+
+
+
+Route::middleware('auth:api')->group(function () {
+
+    // Videos API resource
+
+    /*shows all data as subcategory */
+
+
+    Route::get('contents/', [ContentController::class, 'index']);
+
+    //when single content is given in dashboard(edit single content)
+    Route::get('contents/{cat_id}/{sub_id}/{id}', [ContentController::class, 'index']);
+
+
+    //when all content is shown in dashboard for every subcategory
+    Route::get('contents/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategory']);
+
+
+
+
+    Route::post('contents/', [ContentController::class, 'store']);
+    Route::put('contents/{id}', [ContentController::class, 'update']);
+    Route::delete('contents/{id}', [ContentController::class, 'destroy']);
+
+
+    // Categories API resource
+    Route::apiResource('categories', CategoryController::class);
+
+    // Subcategories API resource
+    Route::apiResource('subcategories', SubCategoryController::class);
+});
+
+
+
+//get latest 4 content is shown in frontend
+Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
+
+
+// Go to Frontend and Backend API routes
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('subcategories', [SubCategoryController::class, 'index']);
+
+
+
+
+/* create by abu sayed (end)*/
