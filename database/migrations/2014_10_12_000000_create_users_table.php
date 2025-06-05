@@ -22,10 +22,10 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('country')->nullable();
             $table->string('city')->nullable();
-            $table->string('profile_pic')->nullable()->after('city');
-            $table->string('reset_otp')->nullable()->after('remember_token');
-            $table->timestamp('otp_expires_at')->nullable()->after('reset_otp');
-            $table->timestamp('otp_verified_at')->nullable()->after('otp_expires_at');
+            $table->string('profile_pic')->nullable();
+            $table->string('reset_otp')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
+            $table->timestamp('otp_verified_at')->nullable();
 
             $table->rememberToken();
             $table->timestamps();
