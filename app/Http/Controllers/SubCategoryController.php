@@ -25,7 +25,6 @@ class SubCategoryController extends Controller
     //     return response()->json($subcategories);
     // }
 
-
     /**
      * Store a newly created subcategory in storage.
      */
@@ -75,12 +74,20 @@ class SubCategoryController extends Controller
     /**
      * Remove the specified subcategory from storage.
      */
-    public function destroy(SubCategory $subcategory)
+    public function destroy($id)
     {
+        $subcategory = SubCategory::find($id);
+
+        if (!$subcategory) {
+            return response()->json([
+                'message' => 'Subcategory not found.',
+            ], 404);
+        }
+
         $subcategory->delete();
 
         return response()->json([
             'message' => 'Subcategory deleted successfully.',
-        ], 204);
+        ], 200);  // or 204 if no content is needed
     }
 }
