@@ -62,7 +62,7 @@ Route::post('/contactMessage', [ContactMessageController::class, 'store']);
 
 // //settings(backend) which is namely settings
 Route::middleware('auth:api')->group(function () {
-    Route::post('settings/password', [SettingController::class, 'storeOrUpdatePassword']);
+    Route::put('settings/password', [SettingController::class, 'storeOrUpdatePassword']);
     Route::post('settings/info', [SettingController::class, 'storeOrUpdate']);
     Route::get('settings/info', [SettingController::class, 'index']);
 });
