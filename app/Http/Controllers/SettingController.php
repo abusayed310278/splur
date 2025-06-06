@@ -4,23 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class SettingController extends Controller
 {
-
-
-
-
-
-
-
-
     // public function updateEmail(Request $request)
     // {
     //     try {
@@ -63,11 +55,6 @@ class SettingController extends Controller
     //         ], 500);
     //     }
     // }
-
-
-
-
-
 
     // public function updatePassword(Request $request)
     // {
@@ -112,8 +99,6 @@ class SettingController extends Controller
     //         ], 500);
     //     }
     // }
-
-
 
     public function storeOrUpdatePassword(Request $request)
     {
@@ -165,7 +150,55 @@ class SettingController extends Controller
         }
     }
 
+    public function storeOrUpdatePasswordForUser(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:6',
+                'confirm_new_password' => 'required|string',
+            ]);
 
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors(),
+                ], 400);
+            }
+
+            if ($request->new_password !== $request->confirm_new_password) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New password and confirmation do not match.',
+                ], 400);
+            }
+
+            $user = Auth::user();
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The current password is incorrect.',
+                ], 403);
+            }
+
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating password: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating the password.',
+            ], 500);
+        }
+    }
 
     public function index()
     {
@@ -195,16 +228,6 @@ class SettingController extends Controller
         ]);
     }
 
-
-
-
-
-
-
-
-
-
-
     public function storeOrUpdate(Request $request)
     {
         if (!Auth::check()) {
@@ -222,7 +245,7 @@ class SettingController extends Controller
                 'email' => 'nullable|email|max:255|unique:users,email,' . Auth::id(),
                 'country' => 'nullable|string|max:255',
                 'city' => 'nullable|string|max:255',
-                'profile_pic' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:10240', // 10MB
+                'profile_pic' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:10240',  // 10MB
             ]);
 
             $user = Auth::user();
@@ -280,11 +303,152 @@ class SettingController extends Controller
         }
     }
 
+    public function storeOrUpdateProfilePic(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please login first.'
+            ], 401);
+        }
 
+        try {
+            $validated = $request->validate([
+                'profile_pic' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:10240',
+            ]);
 
+            $user = Auth::user();
 
+            // Only update if a new profile picture is uploaded
+            if ($request->hasFile('profile_pic')) {
+                // Delete the old one if it exists
+                if ($user->profile_pic && file_exists(public_path('uploads/ProfilePics/' . $user->profile_pic))) {
+                    unlink(public_path('uploads/ProfilePics/' . $user->profile_pic));
+                }
 
+                // Save the new profile picture
+                $profilePic = $request->file('profile_pic');
+                $profilePicName = time() . '_profile.' . $profilePic->getClientOriginalExtension();
+                $profilePic->move(public_path('uploads/ProfilePics'), $profilePicName);
+                $user->profile_pic = $profilePicName;
 
+                $user->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $request->hasFile('profile_pic')
+                    ? 'Profile picture updated successfully.'
+                    : 'Profile picture unchanged.',
+                'profile_pic' => $user->profile_pic
+                    ? url('uploads/ProfilePics/' . $user->profile_pic)
+                    : null,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Error updating profile picture: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile picture.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function showsProfilePic(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please login first.'
+            ], 401);
+        }
+
+        $user = Auth::user();
+
+        return response()->json([
+            'success' => true,
+            'profile_pic_url' => $user->profile_pic
+                ? url('uploads/ProfilePics/' . $user->profile_pic)
+                : null,
+        ]);
+    }
+
+    public function storeOrUpdateForUser(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please login first.'
+            ], 401);
+        }
+
+        try {
+            $validated = $request->validate([
+                'first_name' => 'nullable|string|max:255',
+                'last_name' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255|unique:users,email,' . Auth::id(),
+                'country' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:255',
+                'road' => 'nullable|string|max:255',
+                'postal_code' => 'nullable|string|max:255'
+            ]);
+
+            $user = Auth::user();
+
+            // Update fields
+            $user->first_name = $validated['first_name'] ?? $user->first_name;
+            $user->last_name = $validated['last_name'] ?? $user->last_name;
+            $user->phone = $validated['phone'] ?? $user->phone;
+            $user->email = $validated['email'] ?? $user->email;
+            $user->country = $validated['country'] ?? $user->country;
+            $user->city = $validated['city'] ?? $user->city;
+
+            // Handle profile picture upload
+            if ($request->hasFile('profile_pic')) {
+                // Delete old profile picture if exists
+                if ($user->profile_pic && file_exists(public_path('uploads/ProfilePics/' . $user->profile_pic))) {
+                    unlink(public_path('uploads/ProfilePics/' . $user->profile_pic));
+                }
+
+                $profilePic = $request->file('profile_pic');
+                $profilePicName = time() . '_profile.' . $profilePic->getClientOriginalExtension();
+                $profilePic->move(public_path('uploads/ProfilePics'), $profilePicName);
+                $user->profile_pic = $profilePicName;
+
+                // Alternative using Storage (future-proof):
+                // $profilePicName = $profilePic->storeAs('profile_pics', $profilePicName, 'public');
+                // $user->profile_pic = basename($profilePicName);
+            }
+
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully.',
+                'data' => [
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
+                    'country' => $user->country,
+                    'city' => $user->city,
+                    'profile_pic' => $user->profile_pic
+                        ? url('uploads/ProfilePics/' . $user->profile_pic)
+                        : null,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating user profile: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function updateLogo(Request $request)
     {
