@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\GoogleReviewController;
@@ -48,7 +49,7 @@ Route::post('password/verify-otp', [AuthController::class, 'verifyResetOTP'])->n
 Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('password.reset');
 
 // contact message get from frontend
-Route::post('/contactMessage', [ContactMessageController::class, 'store']);
+// Route::post('/contactMessage', [ContactMessageController::class, 'store']);
 
 // //settings(backend) which is namely settings
 Route::middleware('auth:api')->group(function () {
@@ -87,5 +88,11 @@ Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
 // Go to Frontend and Backend API routes
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('subcategories', [SubCategoryController::class, 'index']);
+
+
+//for comment 
+    Route::apiResource('comment', CommentController::class);
+
+
 
 /* create by abu sayed (end) */
