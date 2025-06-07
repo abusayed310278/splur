@@ -89,17 +89,12 @@
 // Route::get('categories', [CategoryController::class, 'index']);
 // Route::get('subcategories', [SubCategoryController::class, 'index']);
 
-
-// //for comment 
+// //for comment
 // Route::apiResource('comment', CommentController::class);
-
-
 
 /* create by abu sayed (end) */
 
-/*------------------------------------------------------------*/
-
-
+/* ------------------------------------------------------------ */
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
@@ -111,10 +106,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
+ * |--------------------------------------------------------------------------
+ * | API Routes
+ * |--------------------------------------------------------------------------
+ */
 
 // Public routes (no auth required)
 Route::post('register', [AuthController::class, 'register']);
@@ -125,12 +120,8 @@ Route::post('password/email', [AuthController::class, 'sendResetOTP']);
 Route::post('password/verify-otp', [AuthController::class, 'verifyResetOTP'])->name('password.verify-otp');
 Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('password.reset');
 
-
-
-
 // Routes requiring authentication
 Route::middleware('auth:api')->group(function () {
-
     // General authenticated routes for all logged-in users
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
@@ -140,8 +131,6 @@ Route::middleware('auth:api')->group(function () {
         Route::put('password', [SettingController::class, 'storeOrUpdatePassword']);
         Route::post('info', [SettingController::class, 'storeOrUpdate']);
         Route::get('info', [SettingController::class, 'index']);
-
-
     });
 
     // Role-specific routes:
@@ -197,25 +186,24 @@ Route::middleware('auth:api')->group(function () {
         // Subscribers mostly read content, maybe comment, manage profile
         Route::apiResource('comment', CommentController::class)->only(['store', 'index']);
         // Additional user-specific routes can go here
-        // for user 
+        // for user
         Route::post('updateInfo', [SettingController::class, 'storeOrUpdateForUser']);
         Route::get('updateInfo', [SettingController::class, 'index']);
         Route::put('update-password', [SettingController::class, 'storeOrUpdatePasswordForUser']);
         Route::put('update-pic', [SettingController::class, 'storeOrUpdateProfilePic']);
         Route::get('update-pic', [SettingController::class, 'showsProfilePic']);
-
-
     });
 });
 
-
 // Public GET routes
 Route::get('contents/', [ContentController::class, 'index']);
-Route::get('contents/{cat_id}/{sub_id}/{id}', [ContentController::class, 'index']); // single content for edit
+Route::get('contents/{cat_id}/{sub_id}/{id}', [ContentController::class, 'index']);  // single content for edit
 Route::get('contents/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategory']);
 Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('subcategories', [SubCategoryController::class, 'index']);
 
-Route::apiResource('comment', CommentController::class);
+Route::middleware('auth:api')->group(function () {
+    Route::apiResource('comment', CommentController::class);
+});
