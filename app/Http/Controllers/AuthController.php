@@ -88,13 +88,54 @@ class AuthController extends Controller
     }
 
     // Register user
+    // public function register(Request $request)
+    // {
+    //     try {
+    //         $validator = Validator::make($request->all(), [
+    //             'name' => 'required|string|max:255',
+    //             'email' => 'required|email|unique:users',
+    //             'password' => 'required|string|min:6',
+    //         ]);
+
+    //         if ($validator->fails()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Validation failed.',
+    //                 'errors' => $validator->errors()
+    //             ], 400);
+    //         }
+
+    //         $user = User::create([
+    //             'name' => $request->name,
+    //             'email' => $request->email,
+    //             'password' => Hash::make($request->password),
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'User registered successfully',
+    //             'data' => $user
+    //         ], 201);
+    //     } catch (Exception $e) {
+    //         Log::error('Error registering user: ' . $e->getMessage());
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to register user.'
+    //         ], 500);
+    //     }
+    // }
+
     public function register(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users',
-                'password' => 'required|string|min:6',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'phone' => 'required|string|max:20',
+                'company_name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|string|min:6|same:confirm_password',
+                'confirm_password' => 'required|string|min:6',
             ]);
 
             if ($validator->fails()) {
@@ -106,7 +147,10 @@ class AuthController extends Controller
             }
 
             $user = User::create([
-                'name' => $request->name,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'phone' => $request->phone,
+                'company_name' => $request->company_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
@@ -164,7 +208,6 @@ class AuthController extends Controller
     //         ], 500);
     //     }
     // }
-
 
     public function login(Request $request)
     {
