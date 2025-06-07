@@ -103,6 +103,7 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubCategoryController;
+use App\Http\Controllers\SubscriberController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -212,3 +213,5 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('comment', CommentController::class);
     Route::get('comment/{content_id}', [CommentController::class, 'index']);
 });
+
+Route::post('/subscribe', [SubscriberController::class, 'store']);
