@@ -100,6 +100,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubCategoryController;
 use Illuminate\Http\Request;
@@ -149,6 +150,9 @@ Route::middleware('auth:api')->group(function () {
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
         });
+
+        // Role management
+        Route::apiResource('roles', RoleManagementController::class);
 
         // You can add more admin-specific controllers/routes here (e.g. user management)
     });
@@ -206,5 +210,5 @@ Route::get('subcategories', [SubCategoryController::class, 'index']);
 
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('comment', CommentController::class);
-    Route::get('comment/{content_id}', [CommentController::class,'index']);
+    Route::get('comment/{content_id}', [CommentController::class, 'index']);
 });
