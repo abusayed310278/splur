@@ -307,7 +307,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'email' => $user->email,
                     'role' => $user->role,
-                    'name' => $user->name,  // if you want to return the user name
+                    // 'name' => $user->name,  // if you want to return the user name
                 ],
             ]);
         } catch (Exception $e) {
