@@ -195,7 +195,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('updateInfo', [SettingController::class, 'storeOrUpdateForUser']);
         Route::get('updateInfo', [SettingController::class, 'index']);
         Route::put('update-password', [SettingController::class, 'storeOrUpdatePasswordForUser']);
-        Route::put('update-pic', [SettingController::class, 'storeOrUpdateProfilePic']);
+        Route::post('update-pic', [SettingController::class, 'storeOrUpdateProfilePic']);
         Route::get('update-pic', [SettingController::class, 'showsProfilePic']);
     });
 });

@@ -303,7 +303,59 @@ class SettingController extends Controller
         }
     }
 
-    public function storeOrUpdateProfilePic(Request $request)
+    // public function storeOrUpdateProfilePic(Request $request)
+    // {
+    //     if (!Auth::check()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Please login first.'
+    //         ], 401);
+    //     }
+
+    //     try {
+    //         $validated = $request->validate([
+    //             'profile_pic' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:10240',
+    //         ]);
+
+    //         $user = Auth::user();
+
+    //         // Only update if a new profile picture is uploaded
+    //         if ($request->hasFile('profile_pic')) {
+    //             // Delete the old one if it exists
+    //             if ($user->profile_pic && file_exists(public_path('uploads/ProfilePics/' . $user->profile_pic))) {
+    //                 unlink(public_path('uploads/ProfilePics/' . $user->profile_pic));
+    //             }
+
+    //             // Save the new profile picture
+    //             $profilePic = $request->file('profile_pic');
+    //             $profilePicName = time() . '_profile.' . $profilePic->getClientOriginalExtension();
+    //             $profilePic->move(public_path('uploads/ProfilePics'), $profilePicName);
+    //             $user->profile_pic = $profilePicName;
+
+    //             $user->save();
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $request->hasFile('profile_pic')
+    //                 ? 'Profile picture updated successfully.'
+    //                 : 'Profile picture unchanged.',
+    //             'profile_pic' => $user->profile_pic
+    //                 ? url('uploads/ProfilePics/' . $user->profile_pic)
+    //                 : null,
+    //         ]);
+    //     } catch (Exception $e) {
+    //         Log::error('Error updating profile picture: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to update profile picture.',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    public function profileUpdateOrStore(Request $request)
     {
         if (!Auth::check()) {
             return response()->json([
@@ -337,9 +389,7 @@ class SettingController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $request->hasFile('profile_pic')
-                    ? 'Profile picture updated successfully.'
-                    : 'Profile picture unchanged.',
+                'message' => 'Profile Picture has been Updated',
                 'profile_pic' => $user->profile_pic
                     ? url('uploads/ProfilePics/' . $user->profile_pic)
                     : null,
