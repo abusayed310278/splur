@@ -125,16 +125,7 @@ Route::post('password/email', [AuthController::class, 'sendResetOTP']);
 Route::post('password/verify-otp', [AuthController::class, 'verifyResetOTP'])->name('password.verify-otp');
 Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('password.reset');
 
-// Public GET routes
-Route::get('contents/', [ContentController::class, 'index']);
-Route::get('contents/{cat_id}/{sub_id}/{id}', [ContentController::class, 'index']); // single content for edit
-Route::get('contents/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategory']);
-Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
 
-Route::get('categories', [CategoryController::class, 'index'])->middleware(['api']);
-Route::get('subcategories', [SubCategoryController::class, 'index']);
-
-Route::apiResource('comment', CommentController::class);
 
 
 // Routes requiring authentication
@@ -217,3 +208,14 @@ Route::middleware('auth:api')->group(function () {
     });
 });
 
+
+// Public GET routes
+Route::get('contents/', [ContentController::class, 'index']);
+Route::get('contents/{cat_id}/{sub_id}/{id}', [ContentController::class, 'index']); // single content for edit
+Route::get('contents/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategory']);
+Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
+
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('subcategories', [SubCategoryController::class, 'index']);
+
+Route::apiResource('comment', CommentController::class);
