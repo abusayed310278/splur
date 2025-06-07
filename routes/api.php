@@ -206,4 +206,5 @@ Route::get('subcategories', [SubCategoryController::class, 'index']);
 
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('comment', CommentController::class);
+    Route::get('comment/{content_id}', [CommentController::class,'index']);
 });

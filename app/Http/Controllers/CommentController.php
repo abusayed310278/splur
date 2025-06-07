@@ -11,9 +11,22 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $request->validate([
+            'content_id' => 'required|exists:contents,id',
+        ]);
+
+        $comments = Comment::where('content_id', $request->content_id)
+            ->with('user')  // Optional: eager load user info
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Comments fetched successfully.',
+            'data' => $comments
+        ]);
     }
 
     /**
