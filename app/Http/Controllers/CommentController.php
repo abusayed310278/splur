@@ -18,9 +18,16 @@ class CommentController extends Controller
         ]);
 
         $comments = Comment::where('content_id', $request->content_id)
-            ->with('user')  // Optional: eager load user info
+            ->with(['user:id,first_name,last_name'])  // Load only needed fields
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($comment) {
+                return [
+                    'name' => $comment->user->first_name . ' ' . $comment->user->last_name,
+                    'comment' => $comment->comment,
+                    'created_at' => $comment->created_at->toDateTimeString(),
+                ];
+            });
 
         return response()->json([
             'success' => true,
