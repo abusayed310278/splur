@@ -128,7 +128,6 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        // dd($request->all());
         try {
             $validator = Validator::make($request->all(), [
                 'first_name' => 'required|string|max:255',
@@ -157,16 +156,21 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
+            // Generate JWT token
+            $token = JWTAuth::fromUser($user);
+
             return response()->json([
                 'success' => true,
                 'message' => 'User registered successfully',
+                'token' => $token,
                 'data' => $user
             ], 201);
         } catch (Exception $e) {
             Log::error('Error registering user: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to register user.'
+                'message' => 'Failed to register user.',
+                'error' => $e->getMessage()  // For debugging; remove in production
             ], 500);
         }
     }
