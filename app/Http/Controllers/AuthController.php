@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
 
@@ -127,7 +128,6 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-
         // dd($request->all());
         try {
             $validator = Validator::make($request->all(), [
@@ -260,10 +260,11 @@ class AuthController extends Controller
                 ],
             ]);
         } catch (Exception $e) {
-            Log::error('Login error: ' . $e->getMessage());
+            Log::error('Error registering user: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Login failed.'
+                'message' => 'Failed to register user.',
+                'error' => $e->getMessage()  // <== This will show you the actual reason
             ], 500);
         }
     }
