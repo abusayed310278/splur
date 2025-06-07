@@ -147,9 +147,12 @@ class AuthController extends Controller
                 ], 400);
             }
 
+            $fullName = $request->first_name . ' ' . $request->last_name;
+
             $user = User::create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
+                'name' => $fullName, // store full name
                 'phone' => $request->phone,
                 'company_name' => $request->company_name,
                 'email' => $request->email,
