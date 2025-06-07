@@ -21,7 +21,7 @@ class CommentController extends Controller
      */
     public function store(Request $request)
     {
-        // Ensure user is authenticated
+        // Check if user is authenticated
         if (!auth()->check()) {
             return response()->json([
                 'success' => false,
@@ -29,6 +29,7 @@ class CommentController extends Controller
             ], 401);
         }
 
+        // Validate input
         $validator = Validator::make($request->all(), [
             'content_id' => 'required|exists:contents,id',
             'comment' => 'required|string',
@@ -42,8 +43,9 @@ class CommentController extends Controller
             ], 400);
         }
 
+        // Create the comment
         $comment = Comment::create([
-            'user_id' => auth()->id(),  // ✅ Safe, logged-in user ID
+            'user_id' => auth()->id(),
             'content_id' => $request->content_id,
             'comment' => $request->comment,
         ]);
