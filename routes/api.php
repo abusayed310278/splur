@@ -214,4 +214,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('comment/{content_id}', [CommentController::class, 'index']);
 });
 
+
+
 Route::post('/subscribe', [SubscriberController::class, 'store']);
