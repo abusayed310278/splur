@@ -11,31 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ContentController extends Controller
 {
-    // public function indexFrontend($cat_id)
-    // {
-    //     try {
-    //         // Get all contents where category_id matches
-    //         $contents = Content::with(['category', 'subcategory'])
-    //             ->where('category_id', $cat_id)
-    //             ->latest()
-    //             ->take(4)
-    //             ->get();
 
-    //         return response()->json([
-    //             'status' => true,
-    //             'message' => 'Contents fetched successfully.',
-    //             'data' => $contents,
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error('Fetching contents failed: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Failed to fetch contents.',
-    //             'error' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
 
     public function indexFrontend($cat_id)
     {
@@ -70,29 +46,7 @@ class ContentController extends Controller
         }
     }
 
-    // public function index($cat_id, $sub_id, $id)
-    // {
-    //     try {
-    //         $content = Content::where('category_id', $cat_id)
-    //             ->where('subcategory_id', $sub_id)
-    //             ->where('id', $id)
-    //             ->firstOrFail();
 
-    //         return response()->json([
-    //             'status' => true,
-    //             'message' => 'Content fetched successfully.',
-    //             'data' => $content,
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error('Content fetch failed: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Failed to fetch content.',
-    //             'error' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
 
     public function index($cat_id, $sub_id, $id)
     {
@@ -122,35 +76,7 @@ class ContentController extends Controller
         }
     }
 
-    // public function indexForSubCategory($cat_id, $sub_id)
-    // {
-    //     try {
-    //         // Fetch paginated content
-    //         $contents = Content::where('category_id', $cat_id)
-    //             ->where('subcategory_id', $sub_id)
-    //             ->orderBy('date', 'desc')
-    //             ->paginate(10); // paginate with 10 items per page
 
-    //         return response()->json([
-    //             'status' => true,
-    //             'data' => $contents->items(),
-    //             'meta' => [
-    //                 'current_page' => $contents->currentPage(),
-    //                 'per_page' => $contents->perPage(),
-    //                 'total_items' => $contents->total(),
-    //                 'total_pages' => $contents->lastPage(),
-    //             ]
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error('Fetching contents by category and subcategory failed: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Failed to fetch contents.',
-    //             'error' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
 
     public function indexForSubCategory($cat_id, $sub_id)
     {
