@@ -140,19 +140,19 @@ Route::middleware('auth:api')->group(function () {
     // -------------------
     // Admin-only routes
     // -------------------
-    Route::middleware(['auth:api','role:admin','admin'])->group(function () {
+    Route::middleware(['role:admin'])->group(function () {
         // Full management of categories & subcategories
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('subcategories', SubCategoryController::class);
 
         // // Content management
-        // Route::prefix('contents')->group(function () {
-        //     Route::post('/', [ContentController::class, 'store']);
-        //     Route::put('/{id}', [ContentController::class, 'update']);
-        //     Route::delete('/{id}', [ContentController::class, 'destroy']);
-        // });
+        Route::prefix('contents')->group(function () {
+            Route::post('/', [ContentController::class, 'store']);
+            Route::put('/{id}', [ContentController::class, 'update']);
+            Route::delete('/{id}', [ContentController::class, 'destroy']);
+        });
 
-        Route::apiResource('contents', ContentController::class);
+        // Route::apiResource('contents', ContentController::class);
 
         // Role management
         Route::apiResource('roles', RoleManagementController::class);
