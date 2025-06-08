@@ -140,7 +140,7 @@ Route::middleware('auth:api')->group(function () {
     // -------------------
     // Admin-only routes
     // -------------------
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['auth:api', 'role:admin'])->group(function () {
         // Full management of categories & subcategories
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('subcategories', SubCategoryController::class);
@@ -154,7 +154,7 @@ Route::middleware('auth:api')->group(function () {
 
         Route::apiResource('contents', ContentController::class)->only([
             'store', 'update', 'destroy'
-        ])->middleware('auth:api');
+        ]);
 
         // Role management
         Route::apiResource('roles', RoleManagementController::class);
