@@ -146,7 +146,7 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('subcategories', SubCategoryController::class);
 
         // // Content management
-        Route::prefix('contents')->group(function () {
+        Route::middleware('role:admin')->prefix('contents')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
