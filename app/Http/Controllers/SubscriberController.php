@@ -24,7 +24,7 @@ class SubscriberController extends Controller
             ], 400);
         }
 
-        $subscriber = User::create([
+        $subscriber = Subscriber::create([
             'email' => $request->email,
             'subscriber'=>true
         ]);

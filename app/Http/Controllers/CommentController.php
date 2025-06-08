@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Subscriber;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;  // ✅ Import Validator
 
@@ -36,23 +38,18 @@ class CommentController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /** Store a newly created resource in storage. */
+
+
     public function store(Request $request)
     {
-        // Check if user is authenticated
-        if (!auth()->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Please log in to comment.'
-            ], 401);
-        }
+        $user = auth()->user();
 
         // Validate input
         $validator = Validator::make($request->all(), [
             'content_id' => 'required|exists:contents,id',
             'comment' => 'required|string',
+            'email' => 'nullable|email',
         ]);
 
         if ($validator->fails()) {
@@ -63,12 +60,31 @@ class CommentController extends Controller
             ], 400);
         }
 
-        // Create the comment
-        $comment = Comment::create([
-            'user_id' => auth()->id(),
-            'content_id' => $request->content_id,
-            'comment' => $request->comment,
-        ]);
+        // Case 1: Authenticated user
+        if ($user) {
+            $comment = Comment::create([
+                'user_id' => $user->id,  // Use real user ID
+                'content_id' => $request->content_id,
+                'comment' => $request->comment,
+            ]);
+        }
+        // Case 2: Guest subscriber (not authenticated)
+        else if ($request->filled('email') && Subscriber::where('email', $request->email)->exists()) {
+            $fakeUserId = User::max('id') + 1;
+
+            $comment = Comment::create([
+                'user_id' => $fakeUserId,  // Use incremented user ID
+                'content_id' => $request->content_id,
+                'comment' => $request->comment,
+            ]);
+        }
+        // Case 3: Not allowed
+        else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only logged-in users or subscribers can comment.'
+            ], 403);
+        }
 
         return response()->json([
             'success' => true,
