@@ -228,6 +228,33 @@ class SettingController extends Controller
         ]);
     }
 
+    public function showsForUser()
+    {
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Please login first.'
+            ], 401);
+        }
+
+        $user = auth()->user();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User settings fetched successfully.',
+            'data' => [
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'country' => $user->country,
+                'city' => $user->city,
+                'road' => $user->road,
+                'postal_code' => $user->postal_code,
+            ]
+        ]);
+    }
+
     public function storeOrUpdate(Request $request)
     {
         if (!Auth::check()) {

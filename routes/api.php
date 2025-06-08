@@ -193,7 +193,7 @@ Route::middleware('auth:api')->group(function () {
         // Additional user-specific routes can go here
         // for user
         Route::post('updateInfo', [SettingController::class, 'storeOrUpdateForUser']);
-        Route::get('updateInfo', [SettingController::class, 'index']);
+        Route::get('updateInfo', [SettingController::class, 'ShowsForUser']);
         Route::put('update-password', [SettingController::class, 'storeOrUpdatePasswordForUser']);
         Route::post('update-pic', [SettingController::class, 'profileUpdateOrStore']);
         Route::get('update-pic', [SettingController::class, 'showsProfilePic']);
