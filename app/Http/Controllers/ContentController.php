@@ -255,78 +255,7 @@ class ContentController extends Controller
 
 
 
-    public function store(Request $request)
-    {
-        $user = Auth::user();
-
-        // Check if user has one of the allowed roles
-        if (!$user || !$user->hasAnyRole(['admin', 'author', 'editor'])) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Unauthorized. You do not have permission to post content.',
-            ], 403);
-        }
-
-        // Validate everything except tags (which we'll handle separately)
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'required|exists:sub_categories,id',
-            'heading' => 'nullable|string',
-            'author' => 'nullable|string',
-            'date' => 'nullable|date',
-            'sub_heading' => 'nullable|string',
-            'body1' => 'nullable|string',
-            'image1' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            'advertising_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-        ]);
-
-        try {
-            // Handle image1 upload
-            if ($request->hasFile('image1')) {
-                $file = $request->file('image1');
-                $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $image1Name);
-                $validated['image1'] = 'uploads/Blogs/' . $image1Name;
-            }
-
-            // Handle advertising_image upload
-            if ($request->hasFile('advertising_image')) {
-                $file = $request->file('advertising_image');
-                $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $advertisingImageName);
-                $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
-            }
-
-            // Handle tags
-            $tagsInput = $request->input('tags');
-
-            if (is_string($tagsInput)) {
-                $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
-            } elseif (is_array($tagsInput)) {
-                $tagsArray = $tagsInput;
-            } else {
-                $tagsArray = null;
-            }
-
-            $validated['tags'] = $tagsArray;
-
-            $content = Content::create($validated);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Content created successfully.',
-                'data' => $content,
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Content creation failed: ' . $e->getMessage());
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Failed to create content.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
+    
 
     public function update(Request $request, $id)
     {
