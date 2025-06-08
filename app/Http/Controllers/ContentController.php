@@ -4,15 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Content;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File; // Add this at the top of your controller
-
-
+use Illuminate\Support\Facades\Auth;
 
 class ContentController extends Controller
 {
-
     // public function indexFrontend($cat_id)
     // {
     //     try {
@@ -72,9 +70,6 @@ class ContentController extends Controller
         }
     }
 
-
-
-
     // public function index($cat_id, $sub_id, $id)
     // {
     //     try {
@@ -126,11 +121,6 @@ class ContentController extends Controller
             ], 500);
         }
     }
-
-
-
-
-
 
     // public function indexForSubCategory($cat_id, $sub_id)
     // {
@@ -198,12 +188,85 @@ class ContentController extends Controller
         }
     }
 
+    // public function store(Request $request)
+    // {
+    //     // Validate everything except tags (which we'll handle separately)
+    //     $validated = $request->validate([
+    //         'category_id' => 'required|exists:categories,id',
+    //         'subcategory_id' => 'required|exists:sub_categories,id',
+    //         'heading' => 'nullable|string',
+    //         'author' => 'nullable|string',
+    //         'date' => 'nullable|date',
+    //         'sub_heading' => 'nullable|string',
+    //         'body1' => 'nullable|string',
+    //         'image1' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //         'advertising_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //         // omit tags here intentionally
+    //     ]);
 
+    //     try {
+    //         // Handle image1 upload
+    //         if ($request->hasFile('image1')) {
+    //             $file = $request->file('image1');
+    //             $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $image1Name);
+    //             $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+    //         }
+
+    //         // Handle advertising_image upload
+    //         if ($request->hasFile('advertising_image')) {
+    //             $file = $request->file('advertising_image');
+    //             $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $advertisingImageName);
+    //             $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
+    //         }
+
+    //         // Handle tags separately outside validation
+    //         $tagsInput = $request->input('tags');
+
+    //         if (is_string($tagsInput)) {
+    //             // if tags come as a comma-separated string, convert to array
+    //             $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
+    //         } elseif (is_array($tagsInput)) {
+    //             $tagsArray = $tagsInput;
+    //         } else {
+    //             $tagsArray = null;
+    //         }
+
+    //         $validated['tags'] = $tagsArray;
+
+    //         $content = Content::create($validated);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content created successfully.',
+    //             'data' => $content,
+    //         ], 201);
+    //     } catch (\Exception $e) {
+    //         Log::error('Content creation failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to create content.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
 
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        // Check if user has one of the allowed roles
+        if (!$user || !$user->hasAnyRole(['admin', 'author', 'editor'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized. You do not have permission to post content.',
+            ], 403);
+        }
+
         // Validate everything except tags (which we'll handle separately)
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
@@ -215,7 +278,6 @@ class ContentController extends Controller
             'body1' => 'nullable|string',
             'image1' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
             'advertising_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            // omit tags here intentionally
         ]);
 
         try {
@@ -235,11 +297,10 @@ class ContentController extends Controller
                 $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
             }
 
-            // Handle tags separately outside validation
+            // Handle tags
             $tagsInput = $request->input('tags');
 
             if (is_string($tagsInput)) {
-                // if tags come as a comma-separated string, convert to array
                 $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
             } elseif (is_array($tagsInput)) {
                 $tagsArray = $tagsInput;
@@ -340,9 +401,6 @@ class ContentController extends Controller
             ], 500);
         }
     }
-
-
-
 
     public function destroy($id)
     {

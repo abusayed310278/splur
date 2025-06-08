@@ -146,11 +146,11 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('subcategories', SubCategoryController::class);
 
         // Content management
-        // Route::prefix('contents')->group(function () {
-            Route::post('/contents', [ContentController::class, 'store']);
-            Route::put('/contents/{id}', [ContentController::class, 'update']);
-            Route::delete('/contents/{id}', [ContentController::class, 'destroy']);
-        // });
+        Route::prefix('contents')->group(function () {
+            Route::post('/', [ContentController::class, 'store']);
+            Route::put('/{id}', [ContentController::class, 'update']);
+            Route::delete('/{id}', [ContentController::class, 'destroy']);
+        });
 
         // Role management
         Route::apiResource('roles', RoleManagementController::class);
