@@ -152,9 +152,7 @@ Route::middleware('auth:api')->group(function () {
         //     Route::delete('/{id}', [ContentController::class, 'destroy']);
         // });
 
-        Route::apiResource('contents', ContentController::class)->only([
-            'store', 'update', 'destroy'
-        ]);
+        Route::apiResource('contents', ContentController::class);
 
         // Role management
         Route::apiResource('roles', RoleManagementController::class);
