@@ -163,6 +163,7 @@ Route::middleware('auth:api')->group(function () {
     // Editor-only routes
     // -------------------
     Route::middleware('role:editor')->group(function () {
+
         // Editors can create and update content, but maybe not delete or categories
         Route::prefix('contents')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
@@ -176,7 +177,7 @@ Route::middleware('auth:api')->group(function () {
     // -------------------
     // Author-only routes
     // -------------------
-    Route::middleware('role:author')->group(function () {
+    Route::middleware('role:author,admin,editor')->group(function () {
         // Authors can create content but only update/delete their own content (check in controller)
         Route::prefix('contents')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
