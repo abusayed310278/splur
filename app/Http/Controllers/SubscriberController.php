@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class SubscriberController extends Controller
 {
-    use App\Models\User;
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\Validator;
 
     public function store(Request $request)
     {
