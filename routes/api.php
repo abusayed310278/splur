@@ -145,11 +145,13 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('subcategories', SubCategoryController::class);
 
-        Route::post('contents/', [ContentController::class, 'store']);
+        Route::prefix('contents')->group(function () {
+            Route::post('/', [ContentController::class, 'store']);
+            Route::put('/{id}', [ContentController::class, 'update']);
+            Route::delete('/{id}', [ContentController::class, 'destroy']);
 
-        // Content management
-        Route::put('/contents/{id}', [ContentController::class, 'update']);
-        Route::delete('/contents/{id}', [ContentController::class, 'destroy']);
+            // No delete route for editors
+        });
 
         // Role management
         Route::apiResource('roles', RoleManagementController::class);
