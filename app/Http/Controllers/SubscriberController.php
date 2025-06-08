@@ -9,11 +9,15 @@ use Illuminate\Support\Facades\Validator;
 
 class SubscriberController extends Controller
 {
+    use App\Models\User;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Validator;
+
     public function store(Request $request)
     {
-        // Validate only email
+        // Validate only the email
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:subscribers,email',
+            'email' => 'required|email|unique:users,email',
         ]);
 
         if ($validator->fails()) {
@@ -24,9 +28,11 @@ class SubscriberController extends Controller
             ], 400);
         }
 
-        $subscriber = Subscriber::create([
+        // Create user with subscriber flag, and default values for required fields
+        $subscriber = User::create([
             'email' => $request->email,
-            'subscriber'=>true
+            'subscriber' => true,
+            'password' => bcrypt(''),  // required by the users table
         ]);
 
         return response()->json([
