@@ -17,17 +17,10 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-            $role = $user->role;  // Assuming 'role' is a property of the User model
-
-            // Check if the user has the required role
-            if ($role !== 'admin') {
-                return response()->json(['error' => 'Unauthorized'], 403);
-            }
-        } else {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return $next($request);
         }
-        return $next($request);
+
+        return response()->json(['message' => 'Unauthorized. Admins only.'], 403);
     }
 }
