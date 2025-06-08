@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Subscriber;
 use Illuminate\Support\Facades\Validator;
 
 class SubscriberController extends Controller
@@ -23,8 +23,9 @@ class SubscriberController extends Controller
             ], 400);
         }
 
-        $subscriber = Subscriber::create([
+        $subscriber = User::create([
             'email' => $request->email,
+            'subscriber'=>true
         ]);
 
         return response()->json([
