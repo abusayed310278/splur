@@ -23,12 +23,18 @@ class CommentController extends Controller
     //         ], 404);
     //     }
     //     $comments = Comment::where('content_id', $content_id)
-    //         ->with(['user:id,first_name,last_name'])
+    //         ->with(['user:id,first_name,last_name,email'])
     //         ->latest()
     //         ->get()
     //         ->map(function ($comment) {
+    //             $first = $comment->user->first_name;
+    //             $last = $comment->user->last_name;
+    //             $name = trim("$first $last");
+    //             if (empty($name)) {
+    //                 $name = $comment->user->email;
+    //             }
     //             return [
-    //                 'name' => $comment->user->first_name . ' ' . $comment->user->last_name,
+    //                 'name' => $name,
     //                 'comment' => $comment->comment,
     //                 'created_at' => $comment->created_at->toDateTimeString(),
     //             ];
@@ -54,12 +60,13 @@ class CommentController extends Controller
             ->latest()
             ->get()
             ->map(function ($comment) {
-                $first = $comment->user->first_name;
-                $last = $comment->user->last_name;
+                $first = trim($comment->user->first_name);
+                $last = trim($comment->user->last_name);
                 $name = trim("$first $last");
 
                 if (empty($name)) {
-                    $name = $comment->user->email;
+                    $email = $comment->user->email;
+                    $name = ucfirst(str_replace('.', ' ', strstr($email, '@', true)));
                 }
 
                 return [
