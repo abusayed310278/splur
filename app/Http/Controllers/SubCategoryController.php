@@ -16,18 +16,6 @@ class SubCategoryController extends Controller
         return response()->json($subcategories);
     }
 
-    // public function index()
-    // {
-    //     $subcategories = SubCategory::with('category:id,id,category_name') // eager load only needed fields
-    //         ->select('id', 'category_id', 'name')
-    //         ->paginate(10);
-
-    //     return response()->json($subcategories);
-    // }
-
-    /**
-     * Store a newly created subcategory in storage.
-     */
     public function store(Request $request)
     {
         try {
@@ -106,18 +94,28 @@ class SubCategoryController extends Controller
      */
     public function destroy($id)
     {
-        $subcategory = SubCategory::find($id);
+        try {
+            $subcategory = SubCategory::find($id);
 
-        if (!$subcategory) {
+            if (!$subcategory) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Subcategory not found.',
+                ], 404);
+            }
+
+            $subcategory->delete();
+
             return response()->json([
-                'message' => 'Subcategory not found.',
-            ], 404);
+                'success' => true,
+                'message' => 'Subcategory deleted successfully.',
+            ], 200);  // You can use 204 if no message is needed
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete subcategory.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $subcategory->delete();
-
-        return response()->json([
-            'message' => 'Subcategory deleted successfully.',
-        ], 200);  // or 204 if no content is needed
     }
 }
