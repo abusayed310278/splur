@@ -142,6 +142,9 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('subcategories', SubCategoryController::class);
         Route::post('change-color', [SettingController::class, 'storeOrUpdateColor']);
 
+        Route::apiResource('comment', CommentController::class)->only(['index','store','update', 'destroy']);
+
+
         Route::prefix('contents')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
             Route::put('/{id}', [ContentController::class, 'update']);
@@ -165,7 +168,6 @@ Route::middleware('auth:api')->group(function () {
             // No delete route for editors
         });
         // Maybe editors can also manage comments?
-        Route::apiResource('comment', CommentController::class)->only(['index', 'update', 'destroy']);
     });
 
     // Author-only routes
@@ -176,6 +178,8 @@ Route::middleware('auth:api')->group(function () {
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
         });
+        Route::apiResource('comment', CommentController::class)->only(['store']);
+
     });
 
     // Subscriber/User-only routes
@@ -189,6 +193,9 @@ Route::middleware('auth:api')->group(function () {
         Route::put('update-password', [SettingController::class, 'storeOrUpdatePasswordForUser']);
         Route::post('update-pic', [SettingController::class, 'profileUpdateOrStore']);
         Route::get('update-pic', [SettingController::class, 'showsProfilePic']);
+
+        Route::apiResource('comment', CommentController::class)->only(['store']);
+
     });
 });
 
@@ -209,5 +216,5 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
-Route::post('/comment', [CommentController::class, 'store']);
+// Route::post('/comment', [CommentController::class, 'store']);
 Route::get('change-color', [SettingController::class, 'showColor']);

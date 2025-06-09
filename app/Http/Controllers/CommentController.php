@@ -63,26 +63,35 @@ class CommentController extends Controller
         // Case 1: Authenticated user
         if ($user) {
             $comment = Comment::create([
-                'user_id' => $user->id,  // Use real user ID
+                'user_id' => $user->id,
                 'content_id' => $request->content_id,
                 'comment' => $request->comment,
             ]);
         }
-        // Case 2: Guest subscriber (not authenticated)
-        else if ($request->filled('email') && Subscriber::where('email', $request->email)->exists()) {
-            $fakeUserId = User::max('id') + 1;
+        // Case 2: Subscriber (user with email and subscriber = true)
+        else if ($request->filled('email')) {
+            $subscriberUser = User::where('email', $request->email)
+                ->where('subscriber', true)
+                ->first();
 
-            $comment = Comment::create([
-                'user_id' => $fakeUserId,  // Use incremented user ID
-                'content_id' => $request->content_id,
-                'comment' => $request->comment,
-            ]);
+            if ($subscriberUser) {
+                $comment = Comment::create([
+                    'user_id' => $subscriberUser->id,
+                    'content_id' => $request->content_id,
+                    'comment' => $request->comment,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only logged-in users or users marked as subscribers can comment.'
+                ], 403);
+            }
         }
         // Case 3: Not allowed
         else {
             return response()->json([
                 'success' => false,
-                'message' => 'Only logged-in users or subscribers can comment.'
+                'message' => 'Only logged-in users or users marked as subscribers can comment.'
             ], 403);
         }
 
