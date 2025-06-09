@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers;
 
@@ -10,7 +10,10 @@ class RoleManagementController extends Controller
     // List all users with role info
     public function index()
     {
-        $users = User::select('id', 'first_name', 'last_name', 'email', 'phone', 'role')->get();
+        $users = User::select('id', 'first_name', 'last_name', 'email', 'phone', 'role')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
 
         $users = $users->map(function ($user) {
             return [
@@ -78,6 +81,4 @@ class RoleManagementController extends Controller
             'message' => 'User deleted successfully.'
         ]);
     }
-
-
 }
