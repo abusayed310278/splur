@@ -142,8 +142,7 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('subcategories', SubCategoryController::class);
         Route::post('change-color', [SettingController::class, 'storeOrUpdateColor']);
 
-        Route::apiResource('comment', CommentController::class)->only(['index','store','update', 'destroy']);
-
+        Route::apiResource('comment', CommentController::class)->only(['index', 'store', 'update', 'destroy']);
 
         Route::prefix('contents')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
@@ -179,7 +178,11 @@ Route::middleware('auth:api')->group(function () {
             Route::delete('/{id}', [ContentController::class, 'destroy']);
         });
         Route::apiResource('comment', CommentController::class)->only(['store']);
+    });
 
+    Route::middleware('role:user,author,editor,admin')->group(function () {
+        Route::patch('upvote', [ContentController::class, 'vote']);
+        Route::patch('downvote', [ContentController::class, 'vote']);
     });
 
     // Subscriber/User-only routes
@@ -195,7 +198,6 @@ Route::middleware('auth:api')->group(function () {
         Route::get('update-pic', [SettingController::class, 'showsProfilePic']);
 
         Route::apiResource('comment', CommentController::class)->only(['store']);
-
     });
 });
 
@@ -219,7 +221,5 @@ Route::post('/subscribe', [SubscriberController::class, 'store']);
 // Route::post('/comment', [CommentController::class, 'store']);
 Route::get('change-color', [SettingController::class, 'showColor']);
 
-Route::post('upvote/{content_id}', [ContentController::class, 'upvote']);
-Route::post('downvote/{content_id}', [ContentController::class, 'downvote']);
-Route::get('upvote/{content_id}', [ContentController::class, 'getUpvotes']);
-Route::get('downvote/{content_id}', [ContentController::class, 'getDownvotes']);
+Route::get('upvote', [ContentController::class, 'getUpvotes']);
+Route::get('downvote', [ContentController::class, 'getDownvotes']);

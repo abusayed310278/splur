@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\CommentVote;
 use App\Models\Content;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -421,5 +423,27 @@ class ContentController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function vote(Request $request, $commentId)
+    {
+        $request->validate([
+            'vote' => 'required|in:1,-1',
+        ]);
+
+        $vote = CommentVote::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'comment_id' => $commentId,
+            ],
+            [
+                'vote' => $request->vote,
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Vote saved',
+            'vote' => $vote,
+        ]);
     }
 }

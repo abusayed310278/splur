@@ -29,4 +29,24 @@ class Comment extends Model
     {
         return $this->belongsTo(Content::class);
     }
+
+    public function votes()
+    {
+        return $this->hasMany(CommentVote::class);
+    }
+
+    public function upvotesCount()
+    {
+        return $this->votes()->where('vote', 1)->count();
+    }
+
+    public function downvotesCount()
+    {
+        return $this->votes()->where('vote', -1)->count();
+    }
+
+    public function voteByUser($userId)
+    {
+        return $this->votes()->where('user_id', $userId)->value('vote');
+    }
 }
