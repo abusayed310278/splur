@@ -91,19 +91,65 @@ class ContentController extends Controller
         }
     }
 
+    // public function indexForSubCategory($cat_id, $sub_id)
+    // {
+    //     try {
+    //         $contents = Content::where('category_id', $cat_id)
+    //             ->where('subcategory_id', $sub_id)
+    //             ->orderBy('date', 'desc')
+    //             ->paginate(10);
+
+    //         // Map over items to add full URLs to image fields
+    //         $data = $contents->getCollection()->transform(function ($item) {
+    //             $item->image1_url = $item->image1 ? url($item->image1) : null;
+    //             $item->advertising_image_url = $item->advertising_image ? url($item->advertising_image) : null;
+    //             return $item;
+    //         });
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'data' => $data,
+    //             'meta' => [
+    //                 'current_page' => $contents->currentPage(),
+    //                 'per_page' => $contents->perPage(),
+    //                 'total_items' => $contents->total(),
+    //                 'total_pages' => $contents->lastPage(),
+    //             ]
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Fetching contents by category and subcategory failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to fetch contents.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function indexForSubCategory($cat_id, $sub_id)
     {
         try {
-            $contents = Content::where('category_id', $cat_id)
+            $contents = Content::with(['category', 'subcategory'])
+                ->where('category_id', $cat_id)
                 ->where('subcategory_id', $sub_id)
                 ->orderBy('date', 'desc')
                 ->paginate(10);
 
-            // Map over items to add full URLs to image fields
             $data = $contents->getCollection()->transform(function ($item) {
-                $item->image1_url = $item->image1 ? url($item->image1) : null;
-                $item->advertising_image_url = $item->advertising_image ? url($item->advertising_image) : null;
-                return $item;
+                return [
+                    'id' => $item->id,
+                    'heading' => $item->heading,
+                    'sub_heading' => $item->sub_heading,
+                    'author' => $item->author,
+                    'date' => $item->date,
+                    'body1' => $item->body1,
+                    'tags' => $item->tags,
+                    'category_name' => optional($item->category)->name,
+                    'sub_category_name' => optional($item->subcategory)->name,
+                    'image1_url' => $item->image1 ? url($item->image1) : null,
+                    'advertising_image_url' => $item->advertising_image ? url($item->advertising_image) : null,
+                ];
             });
 
             return response()->json([
@@ -150,8 +196,8 @@ class ContentController extends Controller
                 $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $image1Name);
                 $validated['image1'] = 'uploads/Blogs/' . $image1Name;
-            }else{
-                $validated['image1'] = null; // Ensure image1 is set to null if not provided
+            } else {
+                $validated['image1'] = null;  // Ensure image1 is set to null if not provided
             }
 
             // Handle advertising_image upload
@@ -160,8 +206,8 @@ class ContentController extends Controller
                 $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $advertisingImageName);
                 $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
-            }else{
-                $validated['advertising_image'] = null; // Ensure advertising_image is set to null if not provided
+            } else {
+                $validated['advertising_image'] = null;  // Ensure advertising_image is set to null if not provided
             }
 
             // Handle tags separately outside validation
