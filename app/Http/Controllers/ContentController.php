@@ -145,7 +145,7 @@ class ContentController extends Controller
                     'date' => $item->date,
                     'body1' => $item->body1,
                     'tags' => $item->tags,
-                    'category_name' => optional($item->category)->name,
+                    'category_name' => optional($item->category)->category->name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1_url' => $item->image1 ? url($item->image1) : null,
                     'advertising_image_url' => $item->advertising_image ? url($item->advertising_image) : null,

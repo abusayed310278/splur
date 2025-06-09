@@ -218,3 +218,8 @@ Route::middleware('auth:api')->group(function () {
 Route::post('/subscribe', [SubscriberController::class, 'store']);
 // Route::post('/comment', [CommentController::class, 'store']);
 Route::get('change-color', [SettingController::class, 'showColor']);
+
+Route::post('upvote/{content_id}', [ContentController::class, 'upvote']);
+Route::post('downvote/{content_id}', [ContentController::class, 'downvote']);
+Route::get('upvote/{content_id}', [ContentController::class, 'getUpvotes']);
+Route::get('downvote/{content_id}', [ContentController::class, 'getDownvotes']);
