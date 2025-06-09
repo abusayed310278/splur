@@ -11,6 +11,19 @@ use Illuminate\Support\Facades\Storage;
 
 class ContentController extends Controller
 {
+    public function shows()
+    {
+        $contents = Content::latest()  // orders by created_at descending
+            ->take(10)  // limits to 10 results
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Latest 10 contents fetched successfully.',
+            'data' => $contents,
+        ]);
+    }
+
     public function indexFrontend($cat_id)
     {
         try {

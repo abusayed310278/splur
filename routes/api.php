@@ -180,6 +180,7 @@ Route::middleware('auth:api')->group(function () {
     Route::middleware('role:author,admin,editor')->group(function () {
         // Authors can create content but only update/delete their own content (check in controller)
         Route::prefix('contents')->group(function () {
+            Route::get('/shows', [ContentController::class, 'showContents']); // List all content
             Route::post('/', [ContentController::class, 'store']);
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
