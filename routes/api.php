@@ -149,7 +149,6 @@ Route::middleware('auth:api')->group(function () {
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
 
-            // No delete route for editors
         });
 
         // Role management

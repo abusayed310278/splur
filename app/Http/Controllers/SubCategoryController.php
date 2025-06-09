@@ -56,19 +56,46 @@ class SubCategoryController extends Controller
     /**
      * Update the specified subcategory in storage.
      */
+    // public function update(Request $request, SubCategory $subcategory)
+    // {
+    //     $validated = $request->validate([
+    //         'category_id' => 'sometimes|exists:categories,id',
+    //         'name' => 'sometimes|string|max:255',
+    //     ]);
+    //     $subcategory->update($validated);
+    //     return response()->json([
+    //         'message' => 'Subcategory updated successfully.',
+    //         'data' => $subcategory,
+    //     ]);
+    // }
     public function update(Request $request, SubCategory $subcategory)
     {
-        $validated = $request->validate([
-            'category_id' => 'sometimes|exists:categories,id',
-            'name' => 'sometimes|string|max:255',
-        ]);
+        try {
+            $validated = $request->validate([
+                'category_id' => 'sometimes|exists:categories,id',
+                'name' => 'sometimes|string|max:255',
+            ]);
 
-        $subcategory->update($validated);
+            $subcategory->update($validated);
 
-        return response()->json([
-            'message' => 'Subcategory updated successfully.',
-            'data' => $subcategory,
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Subcategory updated successfully.',
+                'data' => $subcategory,
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Subcategory update failed.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
