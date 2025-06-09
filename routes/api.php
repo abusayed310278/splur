@@ -180,9 +180,9 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('comment', CommentController::class)->only(['store']);
     });
 
-    Route::middleware('role:user,author,editor,admin')->group(function () {
-        Route::post('/upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
-    });
+    // Route::middleware('role:user,author,editor,admin')->group(function () {
+    //     Route::post('/upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
+    // });
 
     // Subscriber/User-only routes
     Route::middleware('role:user')->group(function () {
@@ -213,11 +213,12 @@ Route::get('subcategories', [SubCategoryController::class, 'index']);
 
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('comment', CommentController::class);
-    Route::get('comment/{content_id}', [CommentController::class, 'index']);
 });
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
 // Route::post('/comment', [CommentController::class, 'store']);
 Route::get('change-color', [SettingController::class, 'showColor']);
+Route::post('/upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 
 Route::get('upvote-downvote', [ContentController::class, 'getVotes']);
+Route::get('comment/{content_id}', [CommentController::class, 'index']);
