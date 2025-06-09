@@ -38,9 +38,9 @@ class CommentController extends Controller
         ]);
     }
 
-    /** Store a newly created resource in storage. */
-
-
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -115,5 +115,39 @@ class CommentController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function storeUserCommentViaEmail(Request $request)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'content_id' => 'required|exists:contents,id',
+            'comment' => 'required|string',
+            'email' => 'required|email|exists:users,email',  // Validate directly against users table
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        // Fetch the user using email
+        $user = User::where('email', $request->email)->first();
+
+        // Create comment using the authenticated user
+        $comment = Comment::create([
+            'user_id' => $user->id,
+            'content_id' => $request->content_id,
+            'comment' => $request->comment,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Comment posted successfully.',
+            'data' => $comment,
+        ], 201);
     }
 }
