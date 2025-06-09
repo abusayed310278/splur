@@ -10,12 +10,14 @@ class RoleManagementController extends Controller
     // List all users with role info
     public function index()
     {
+        $perPage = 10;
+
         $users = User::select('id', 'first_name', 'last_name', 'email', 'phone', 'role')
             ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get();
+            ->paginate($perPage);
 
-        $users = $users->map(function ($user) {
+        // Transform each user item
+        $users->getCollection()->transform(function ($user) {
             return [
                 'id' => $user->id,
                 'full_name' => $user->first_name . ' ' . $user->last_name,
@@ -28,7 +30,13 @@ class RoleManagementController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Users fetched successfully.',
-            'data' => $users,
+            'data' => $users->items(),  // transformed items
+            'meta' => [
+                'current_page' => $users->currentPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
+                'last_page' => $users->lastPage(),
+            ]
         ]);
     }
 
