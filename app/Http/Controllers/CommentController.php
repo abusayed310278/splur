@@ -13,13 +13,17 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // public function index(Request $request)
+    // public function index($content_id)
     // {
-    //     $request->validate([
-    //         'content_id' => 'required|exists:contents,id',
-    //     ]);
-    //     $comments = Comment::where('content_id', $request->content_id)
-    //         ->with(['user:id,first_name,last_name'])  // Load only needed fields
+    //     // Validate content_id exists
+    //     if (!\App\Models\Content::where('id', $content_id)->exists()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Invalid content ID.',
+    //         ], 404);
+    //     }
+    //     $comments = Comment::where('content_id', $content_id)
+    //         ->with(['user:id,first_name,last_name'])
     //         ->latest()
     //         ->get()
     //         ->map(function ($comment) {
@@ -46,12 +50,20 @@ class CommentController extends Controller
         }
 
         $comments = Comment::where('content_id', $content_id)
-            ->with(['user:id,first_name,last_name'])
+            ->with(['user:id,first_name,last_name,email'])
             ->latest()
             ->get()
             ->map(function ($comment) {
+                $first = $comment->user->first_name;
+                $last = $comment->user->last_name;
+                $name = trim("$first $last");
+
+                if (empty($name)) {
+                    $name = $comment->user->email;
+                }
+
                 return [
-                    'name' => $comment->user->first_name . ' ' . $comment->user->last_name,
+                    'name' => $name,
                     'comment' => $comment->comment,
                     'created_at' => $comment->created_at->toDateTimeString(),
                 ];
