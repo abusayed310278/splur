@@ -135,15 +135,12 @@ Route::middleware('auth:api')->group(function () {
         Route::get('info', [SettingController::class, 'index']);
     });
 
-    // Role-specific routes:
-
-    // -------------------
     // Admin-only routes
-    // -------------------
     Route::middleware(['role:admin'])->group(function () {
         // Full management of categories & subcategories
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('subcategories', SubCategoryController::class);
+        Route::post('change-color', [SettingController::class, 'storeOrUpdateColor']);
 
         Route::prefix('contents')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
@@ -155,8 +152,6 @@ Route::middleware('auth:api')->group(function () {
 
         // Role management
         Route::apiResource('roles', RoleManagementController::class);
-
-        // You can add more admin-specific controllers/routes here (e.g. user management)
     });
 
     // -------------------
@@ -173,9 +168,7 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('comment', CommentController::class)->only(['index', 'update', 'destroy']);
     });
 
-    // -------------------
     // Author-only routes
-    // -------------------
     Route::middleware('role:author,admin,editor')->group(function () {
         // Authors can create content but only update/delete their own content (check in controller)
         Route::prefix('contents')->group(function () {
@@ -185,9 +178,7 @@ Route::middleware('auth:api')->group(function () {
         });
     });
 
-    // -------------------
     // Subscriber/User-only routes
-    // -------------------
     Route::middleware('role:user')->group(function () {
         // Subscribers mostly read content, maybe comment, manage profile
         Route::apiResource('comment', CommentController::class)->only(['store', 'index']);
@@ -218,4 +209,5 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
-Route::post('/comment', [CommentController::class,'store']);
+Route::post('/comment', [CommentController::class, 'store']);
+Route::get('change-color', [SettingController::class, 'showColor']);

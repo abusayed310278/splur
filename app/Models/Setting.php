@@ -11,5 +11,6 @@ class Setting extends Model
     protected $fillable = [
         'logo',
         'profile_pic',
+        'color'
     ];
 }

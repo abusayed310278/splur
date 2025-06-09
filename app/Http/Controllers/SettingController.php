@@ -100,6 +100,48 @@ class SettingController extends Controller
     //     }
     // }
 
+    public function storeOrUpdateColor(Request $request)
+    {
+        $request->validate([
+            'color' => 'required|string|max:255',
+        ]);
+
+        // Assuming you are storing color as a column directly in the settings table
+        $setting = Setting::first();  // Or use updateOrCreate for specific setting row
+
+        if (!$setting) {
+            $setting = new Setting();
+        }
+
+        $setting->color = $request->color;
+        $setting->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color updated successfully.',
+            'color' => $setting->color,
+        ]);
+    }
+
+    public function showColor()
+    {
+        $color = Setting::first()?->color;
+
+        if (!$color) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No color setting found.',
+                'color' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color fetched successfully.',
+            'color' => $color,
+        ]);
+    }
+
     public function storeOrUpdatePassword(Request $request)
     {
         try {
