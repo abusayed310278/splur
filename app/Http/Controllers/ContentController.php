@@ -4,15 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Content;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
 
 class ContentController extends Controller
 {
-
-
     public function indexFrontend($cat_id)
     {
         try {
@@ -46,8 +44,6 @@ class ContentController extends Controller
         }
     }
 
-
-
     public function index($cat_id, $sub_id, $id)
     {
         try {
@@ -75,8 +71,6 @@ class ContentController extends Controller
             ], 500);
         }
     }
-
-
 
     public function indexForSubCategory($cat_id, $sub_id)
     {
@@ -179,14 +173,92 @@ class ContentController extends Controller
         }
     }
 
+    // public function update(Request $request, $id)
+    // {
+    //     // Find the content or fail
+    //     $content = Content::findOrFail($id);
 
+    //     // Validate all except tags
+    //     $validated = $request->validate([
+    //         'category_id' => 'required|exists:categories,id',
+    //         'subcategory_id' => 'required|exists:sub_categories,id',
+    //         'heading' => 'nullable|string',
+    //         'author' => 'nullable|string',
+    //         'date' => 'nullable|date',
+    //         'sub_heading' => 'nullable|string',
+    //         'body1' => 'nullable|string',
+    //         'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //         'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //         // omit tags intentionally
+    //     ]);
 
-    
+    //     try {
+    //         // Handle image1 upload
+    //         if ($request->hasFile('image1')) {
+    //             $file = $request->file('image1');
+    //             $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $image1Name);
+    //             $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+
+    //             // Optionally delete old image
+    //             // if ($content->image1) File::delete(public_path($content->image1));
+    //         }
+
+    //         // Handle advertising_image upload
+    //         if ($request->hasFile('advertising_image')) {
+    //             $file = $request->file('advertising_image');
+    //             $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $advertisingImageName);
+    //             $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
+
+    //             // Optionally delete old image
+    //             // if ($content->advertising_image) File::delete(public_path($content->advertising_image));
+    //         }
+
+    //         // Handle tags separately outside validation
+    //         $tagsInput = $request->input('tags');
+
+    //         if (is_string($tagsInput)) {
+    //             $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
+    //         } elseif (is_array($tagsInput)) {
+    //             $tagsArray = $tagsInput;
+    //         } else {
+    //             $tagsArray = null;
+    //         }
+
+    //         $validated['tags'] = $tagsArray;
+
+    //         // Update the content with validated data
+    //         $content->update($validated);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content updated successfully.',
+    //             'data' => $content,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         \Log::error('Content update failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to update content.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     public function update(Request $request, $id)
     {
-        // Find the content or fail
-        $content = Content::findOrFail($id);
+        // Find the content by ID
+        $content = Content::find($id);
+
+        // If content is not found, return custom message
+        if (!$content) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No Available Content Found.',
+            ], 404);
+        }
 
         // Validate all except tags
         $validated = $request->validate([
@@ -199,7 +271,6 @@ class ContentController extends Controller
             'body1' => 'nullable|string',
             'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
             'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            // omit tags intentionally
         ]);
 
         try {
@@ -209,9 +280,6 @@ class ContentController extends Controller
                 $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $image1Name);
                 $validated['image1'] = 'uploads/Blogs/' . $image1Name;
-
-                // Optionally delete old image
-                // if ($content->image1) File::delete(public_path($content->image1));
             }
 
             // Handle advertising_image upload
@@ -220,14 +288,10 @@ class ContentController extends Controller
                 $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $advertisingImageName);
                 $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
-
-                // Optionally delete old image
-                // if ($content->advertising_image) File::delete(public_path($content->advertising_image));
             }
 
-            // Handle tags separately outside validation
+            // Handle tags
             $tagsInput = $request->input('tags');
-
             if (is_string($tagsInput)) {
                 $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
             } elseif (is_array($tagsInput)) {
@@ -238,7 +302,7 @@ class ContentController extends Controller
 
             $validated['tags'] = $tagsArray;
 
-            // Update the content with validated data
+            // Update content
             $content->update($validated);
 
             return response()->json([
