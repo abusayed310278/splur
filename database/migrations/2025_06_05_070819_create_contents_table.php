@@ -21,8 +21,8 @@ return new class extends Migration
             $table->date('date');
             $table->longText('sub_heading')->nullable();
             $table->longText('body1');
-            $table->string('image1');
-            $table->string('advertising_image');
+            $table->string('image1')->nullable();
+            $table->string('advertising_image')->nullable();
             $table->json('tags')->nullable();
             $table->timestamps();
         });
