@@ -218,4 +218,4 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
-Route::post('subscriber-comment', [CommentController::class,'storeForSubscriber']);
+Route::post('/comment', [CommentController::class,'store']);
