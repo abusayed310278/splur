@@ -13,14 +13,20 @@ class ContentController extends Controller
 {
     public function showContents()
     {
-        $contents = Content::latest()  // orders by created_at descending
-            ->take(10)  // limits to 10 results
-            ->get();
+        $perPage = 10;
+
+        $contents = Content::latest()->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'message' => 'Latest 10 contents fetched successfully.',
-            'data' => $contents,
+            'message' => 'Latest contents fetched successfully.',
+            'data' => $contents->items(),
+            'meta' => [
+                'current_page' => $contents->currentPage(),
+                'per_page' => $contents->perPage(),
+                'total' => $contents->total(),
+                'last_page' => $contents->lastPage(),
+            ]
         ]);
     }
 
