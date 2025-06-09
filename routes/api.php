@@ -220,5 +220,4 @@ Route::post('/subscribe', [SubscriberController::class, 'store']);
 // Route::post('/comment', [CommentController::class, 'store']);
 Route::get('change-color', [SettingController::class, 'showColor']);
 
-Route::get('upvote', [ContentController::class, 'getUpvotes']);
-Route::get('downvote', [ContentController::class, 'getDownvotes']);
+Route::get('upvote-downvote', [ContentController::class, 'getVotes']);
