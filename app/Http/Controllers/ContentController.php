@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ContentController extends Controller
 {
-    public function shows()
+    public function showContents()
     {
         $contents = Content::latest()  // orders by created_at descending
             ->take(10)  // limits to 10 results
