@@ -150,6 +150,8 @@ class ContentController extends Controller
                 $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $image1Name);
                 $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+            }else{
+                $validated['image1'] = null; // Ensure image1 is set to null if not provided
             }
 
             // Handle advertising_image upload
@@ -158,6 +160,8 @@ class ContentController extends Controller
                 $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $advertisingImageName);
                 $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
+            }else{
+                $validated['advertising_image'] = null; // Ensure advertising_image is set to null if not provided
             }
 
             // Handle tags separately outside validation
