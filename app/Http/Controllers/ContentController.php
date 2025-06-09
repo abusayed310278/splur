@@ -446,4 +446,16 @@ class ContentController extends Controller
             'vote' => $vote,
         ]);
     }
+
+    public function getVotes(Comment $comment)
+    {
+        return response()->json([
+            'comment_id' => $comment->id,
+            'upvotes' => $comment->votes()->where('vote', 1)->count(),
+            'downvotes' => $comment->votes()->where('vote', -1)->count(),
+            'user_vote' => auth()->check()
+                ? $comment->votes()->where('user_id', auth()->id())->value('vote')
+                : null
+        ]);
+    }
 }

@@ -181,8 +181,7 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::middleware('role:user,author,editor,admin')->group(function () {
-        Route::patch('upvote', [ContentController::class, 'vote']);
-        Route::patch('downvote', [ContentController::class, 'vote']);
+        Route::patch('upvote-downvote', [ContentController::class, 'vote']);
     });
 
     // Subscriber/User-only routes
