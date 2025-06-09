@@ -117,7 +117,7 @@ class CommentController extends Controller
         //
     }
 
-    public function storeUserCommentViaEmail(Request $request)
+    public function storeForSubscriber(Request $request)
     {
         // Validate input
         $validator = Validator::make($request->all(), [
