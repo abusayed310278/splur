@@ -220,4 +220,5 @@ Route::get('change-color', [SettingController::class, 'showColor']);
 Route::post('/upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 
 Route::get('upvote-downvote', [ContentController::class, 'getVotes']);
-Route::get('comment/{content_id}', [CommentController::class, 'index']);
+// Route::get('comment/{content_id}', [CommentController::class, 'index']);
+Route::get('comment/content/{content_id}', [CommentController::class, 'index']);
