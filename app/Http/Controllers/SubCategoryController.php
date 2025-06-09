@@ -30,17 +30,32 @@ class SubCategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-        ]);
+        try {
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+                'name' => 'required|string|max:255',
+            ]);
 
-        $subcategory = SubCategory::create($validated);
+            $subcategory = SubCategory::create($validated);
 
-        return response()->json([
-            'message' => 'Subcategory created successfully.',
-            'data' => $subcategory,
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Subcategory created successfully.',
+                'data' => $subcategory,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create subcategory.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -56,18 +71,6 @@ class SubCategoryController extends Controller
     /**
      * Update the specified subcategory in storage.
      */
-    // public function update(Request $request, SubCategory $subcategory)
-    // {
-    //     $validated = $request->validate([
-    //         'category_id' => 'sometimes|exists:categories,id',
-    //         'name' => 'sometimes|string|max:255',
-    //     ]);
-    //     $subcategory->update($validated);
-    //     return response()->json([
-    //         'message' => 'Subcategory updated successfully.',
-    //         'data' => $subcategory,
-    //     ]);
-    // }
     public function update(Request $request, SubCategory $subcategory)
     {
         try {
