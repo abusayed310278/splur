@@ -42,6 +42,15 @@ class ContentController extends Controller
                 ->take(4)
                 ->get();
 
+            // Check if contents are empty
+            if ($contents->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No Content Found.',
+                    'data' => [],
+                ], 404);
+            }
+
             // Add full image URLs to each content
             $contents->transform(function ($content) {
                 $content->image1_url = $content->image1 ? url($content->image1) : null;
