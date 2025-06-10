@@ -82,6 +82,15 @@ class ContentController extends Controller
                 ->where('id', $id)
                 ->firstOrFail();
 
+            // If content not found
+            if (!$content) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No Content Found.',
+                    'data' => null,
+                ], 404);
+            }
+
             // Add full URLs for images
             $content->image1_url = $content->image1 ? url($content->image1) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
