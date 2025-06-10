@@ -390,10 +390,8 @@ class ContentController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Find the content by ID
         $content = Content::find($id);
 
-        // If content is not found, return custom message
         if (!$content) {
             return response()->json([
                 'status' => false,
@@ -401,7 +399,6 @@ class ContentController extends Controller
             ], 404);
         }
 
-        // Validate all except tags
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'subcategory_id' => 'required|exists:sub_categories,id',
@@ -412,11 +409,17 @@ class ContentController extends Controller
             'body1' => 'nullable|string',
             'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
             'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+            'imageLink' => 'nullable|string',
+            'advertisingLink' => 'nullable|string',
         ]);
 
         try {
             // Handle image1 upload
             if ($request->hasFile('image1')) {
+                if ($content->image1 && File::exists(public_path($content->image1))) {
+                    File::delete(public_path($content->image1));
+                }
+
                 $file = $request->file('image1');
                 $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $image1Name);
@@ -425,6 +428,10 @@ class ContentController extends Controller
 
             // Handle advertising_image upload
             if ($request->hasFile('advertising_image')) {
+                if ($content->advertising_image && File::exists(public_path($content->advertising_image))) {
+                    File::delete(public_path($content->advertising_image));
+                }
+
                 $file = $request->file('advertising_image');
                 $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $advertisingImageName);
@@ -443,7 +450,11 @@ class ContentController extends Controller
 
             $validated['tags'] = $tagsArray;
 
-            // Update content
+            // Map camelCase to snake_case for DB fields
+            $validated['image_link'] = $validated['imageLink'] ?? $content->image_link;
+            $validated['advertising_link'] = $validated['advertisingLink'] ?? $content->advertising_link;
+            unset($validated['imageLink'], $validated['advertisingLink']);
+
             $content->update($validated);
 
             return response()->json([
@@ -467,17 +478,17 @@ class ContentController extends Controller
         try {
             $content = Content::findOrFail($id);
 
-            // Delete image1 from public path if exists
+            // Delete image1 if exists
             if ($content->image1 && File::exists(public_path($content->image1))) {
                 File::delete(public_path($content->image1));
             }
 
-            // Delete advertising_image from public path if exists
+            // Delete advertising_image if exists
             if ($content->advertising_image && File::exists(public_path($content->advertising_image))) {
                 File::delete(public_path($content->advertising_image));
             }
 
-            // Delete content from DB
+            // Delete content
             $content->delete();
 
             return response()->json([
@@ -494,6 +505,113 @@ class ContentController extends Controller
             ], 500);
         }
     }
+
+    // public function update(Request $request, $id)
+    // {
+    //     // Find the content by ID
+    //     $content = Content::find($id);
+
+    //     // If content is not found, return custom message
+    //     if (!$content) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'No Available Content Found.',
+    //         ], 404);
+    //     }
+
+    //     // Validate all except tags
+    //     $validated = $request->validate([
+    //         'category_id' => 'required|exists:categories,id',
+    //         'subcategory_id' => 'required|exists:sub_categories,id',
+    //         'heading' => 'nullable|string',
+    //         'author' => 'nullable|string',
+    //         'date' => 'nullable|date',
+    //         'sub_heading' => 'nullable|string',
+    //         'body1' => 'nullable|string',
+    //         'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //         'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //     ]);
+
+    //     try {
+    //         // Handle image1 upload
+    //         if ($request->hasFile('image1')) {
+    //             $file = $request->file('image1');
+    //             $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $image1Name);
+    //             $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+    //         }
+
+    //         // Handle advertising_image upload
+    //         if ($request->hasFile('advertising_image')) {
+    //             $file = $request->file('advertising_image');
+    //             $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $advertisingImageName);
+    //             $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
+    //         }
+
+    //         // Handle tags
+    //         $tagsInput = $request->input('tags');
+    //         if (is_string($tagsInput)) {
+    //             $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
+    //         } elseif (is_array($tagsInput)) {
+    //             $tagsArray = $tagsInput;
+    //         } else {
+    //             $tagsArray = null;
+    //         }
+
+    //         $validated['tags'] = $tagsArray;
+
+    //         // Update content
+    //         $content->update($validated);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content updated successfully.',
+    //             'data' => $content,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         \Log::error('Content update failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to update content.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+    // public function destroy($id)
+    // {
+    //     try {
+    //         $content = Content::findOrFail($id);
+
+    //         // Delete image1 from public path if exists
+    //         if ($content->image1 && File::exists(public_path($content->image1))) {
+    //             File::delete(public_path($content->image1));
+    //         }
+
+    //         // Delete advertising_image from public path if exists
+    //         if ($content->advertising_image && File::exists(public_path($content->advertising_image))) {
+    //             File::delete(public_path($content->advertising_image));
+    //         }
+
+    //         // Delete content from DB
+    //         $content->delete();
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content deleted successfully.',
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Content deletion failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to delete content.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     public function vote(Request $request, $commentId)
     {
