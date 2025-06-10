@@ -175,74 +175,74 @@ class ContentController extends Controller
         }
     }
 
-    public function store(Request $request)
-    {
-        // Validate everything except tags (which we'll handle separately)
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'required|exists:sub_categories,id',
-            'heading' => 'nullable|string',
-            'author' => 'nullable|string',
-            'date' => 'nullable|date',
-            'sub_heading' => 'nullable|string',
-            'body1' => 'nullable|string',
-            'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            // omit tags here intentionally
-        ]);
+    // public function store(Request $request)
+    // {
+    //     // Validate everything except tags (which we'll handle separately)
+    //     $validated = $request->validate([
+    //         'category_id' => 'required|exists:categories,id',
+    //         'subcategory_id' => 'required|exists:sub_categories,id',
+    //         'heading' => 'nullable|string',
+    //         'author' => 'nullable|string',
+    //         'date' => 'nullable|date',
+    //         'sub_heading' => 'nullable|string',
+    //         'body1' => 'nullable|string',
+    //         'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //         'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+    //         // omit tags here intentionally
+    //     ]);
 
-        try {
-            // Handle image1 upload
-            if ($request->hasFile('image1')) {
-                $file = $request->file('image1');
-                $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $image1Name);
-                $validated['image1'] = 'uploads/Blogs/' . $image1Name;
-            } else {
-                $validated['image1'] = null;  // Ensure image1 is set to null if not provided
-            }
+    //     try {
+    //         // Handle image1 upload
+    //         if ($request->hasFile('image1')) {
+    //             $file = $request->file('image1');
+    //             $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $image1Name);
+    //             $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+    //         } else {
+    //             $validated['image1'] = null;  // Ensure image1 is set to null if not provided
+    //         }
 
-            // Handle advertising_image upload
-            if ($request->hasFile('advertising_image')) {
-                $file = $request->file('advertising_image');
-                $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $advertisingImageName);
-                $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
-            } else {
-                $validated['advertising_image'] = null;  // Ensure advertising_image is set to null if not provided
-            }
+    //         // Handle advertising_image upload
+    //         if ($request->hasFile('advertising_image')) {
+    //             $file = $request->file('advertising_image');
+    //             $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+    //             $file->move(public_path('uploads/Blogs'), $advertisingImageName);
+    //             $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
+    //         } else {
+    //             $validated['advertising_image'] = null;  // Ensure advertising_image is set to null if not provided
+    //         }
 
-            // Handle tags separately outside validation
-            $tagsInput = $request->input('tags');
+    //         // Handle tags separately outside validation
+    //         $tagsInput = $request->input('tags');
 
-            if (is_string($tagsInput)) {
-                // if tags come as a comma-separated string, convert to array
-                $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
-            } elseif (is_array($tagsInput)) {
-                $tagsArray = $tagsInput;
-            } else {
-                $tagsArray = null;
-            }
+    //         if (is_string($tagsInput)) {
+    //             // if tags come as a comma-separated string, convert to array
+    //             $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
+    //         } elseif (is_array($tagsInput)) {
+    //             $tagsArray = $tagsInput;
+    //         } else {
+    //             $tagsArray = null;
+    //         }
 
-            $validated['tags'] = $tagsArray;
+    //         $validated['tags'] = $tagsArray;
 
-            $content = Content::create($validated);
+    //         $content = Content::create($validated);
 
-            return response()->json([
-                'status' => true,
-                'message' => 'Content created successfully.',
-                'data' => $content,
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Content creation failed: ' . $e->getMessage());
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content created successfully.',
+    //             'data' => $content,
+    //         ], 201);
+    //     } catch (\Exception $e) {
+    //         Log::error('Content creation failed: ' . $e->getMessage());
 
-            return response()->json([
-                'status' => false,
-                'message' => 'Failed to create content.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to create content.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     // public function update(Request $request, $id)
     // {
@@ -317,6 +317,76 @@ class ContentController extends Controller
     //         ], 500);
     //     }
     // }
+
+    public function store(Request $request)
+    {
+        // Validate everything except tags (which we'll handle separately)
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'subcategory_id' => 'required|exists:sub_categories,id',
+            'heading' => 'nullable|string',
+            'author' => 'nullable|string',
+            'date' => 'nullable|date',
+            'sub_heading' => 'nullable|string',
+            'body1' => 'nullable|string',
+            'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+            'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+            'image_link' => 'nullable|string',  // ✅ added
+            'advertising_link' => 'nullable|string',  // ✅ added
+            // omit tags here intentionally
+        ]);
+
+        try {
+            // Handle image1 upload
+            if ($request->hasFile('image1')) {
+                $file = $request->file('image1');
+                $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/Blogs'), $image1Name);
+                $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+            } else {
+                $validated['image1'] = null;
+            }
+
+            // Handle advertising_image upload
+            if ($request->hasFile('advertising_image')) {
+                $file = $request->file('advertising_image');
+                $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/Blogs'), $advertisingImageName);
+                $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
+            } else {
+                $validated['advertising_image'] = null;
+            }
+
+            // Handle tags separately
+            $tagsInput = $request->input('tags');
+
+            if (is_string($tagsInput)) {
+                $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
+            } elseif (is_array($tagsInput)) {
+                $tagsArray = $tagsInput;
+            } else {
+                $tagsArray = null;
+            }
+
+            $validated['tags'] = $tagsArray;
+
+            $content = Content::create($validated);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Content created successfully.',
+                'data' => $content,
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Content creation failed: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to create content.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function update(Request $request, $id)
     {

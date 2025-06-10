@@ -20,6 +20,8 @@ class Content extends Model
         'image1',
         'advertising_image',
         'tags',
+        'image_link',
+        'advertising_link',
     ];
 
     protected $casts = [
