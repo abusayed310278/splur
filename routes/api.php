@@ -1,7 +1,5 @@
 <?php
 
-
-
 /* ------------------------------------------------------------ */
 
 use App\Http\Controllers\AuthController;
@@ -32,7 +30,6 @@ Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('p
 
 // Routes requiring authentication
 Route::middleware('auth:api')->group(function () {
-
     // General authenticated routes for all logged-in users
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
@@ -45,36 +42,39 @@ Route::middleware('auth:api')->group(function () {
     });
 
     // Admin-only routes
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['role:admin,editor,author'])->group(function () {
         // Full management of categories & subcategories
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('subcategories', SubCategoryController::class);
         Route::post('change-color', [SettingController::class, 'storeOrUpdateColor']);
 
-        Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
+        Route::apiResource('comment', CommentController::class)->only(['store']);
 
-        Route::prefix('contents')->group(function () {
-            Route::post('/', [ContentController::class, 'store']);
-            Route::put('/{id}', [ContentController::class, 'update']);
-            Route::delete('/{id}', [ContentController::class, 'destroy']);
+        // Route::prefix('contents')->group(function () {
+        //     Route::post('/', [ContentController::class, 'store']);
+        //     Route::put('/{id}', [ContentController::class, 'update']);
+        //     Route::delete('/{id}', [ContentController::class, 'destroy']);
 
+        // });
+
+        Route::middleware('role:admin')->group(function () {
+            // Role management
+            Route::apiResource('roles', RoleManagementController::class);
+            Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
         });
-
-        // Role management
-        Route::apiResource('roles', RoleManagementController::class);
     });
 
     // -------------------
     // Editor-only routes
     // -------------------
-    Route::middleware('role:editor')->group(function () {
-        // Editors can create and update content, but maybe not delete or categories
-        Route::prefix('contents')->group(function () {
-            Route::post('/', [ContentController::class, 'store']);
-            Route::put('/{id}', [ContentController::class, 'update']);
-            // No delete route for editors
-        });
-    });
+    // Route::middleware('role:editor')->group(function () {
+    //     // Editors can create and update content, but maybe not delete or categories
+    //     Route::prefix('contents')->group(function () {
+    //         Route::post('/', [ContentController::class, 'store']);
+    //         Route::put('/{id}', [ContentController::class, 'update']);
+    //         // No delete route for editors
+    //     });
+    // });
 
     // Author-only routes
     Route::middleware('role:author,admin,editor')->group(function () {
@@ -118,8 +118,7 @@ Route::get('subcategories', [SubCategoryController::class, 'index']);
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('comment', CommentController::class)->only([
         'store', 'update', 'destroy'
-    ]);
-;
+    ]);;
 });
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
