@@ -149,8 +149,10 @@ class ContentController extends Controller
                     'tags' => $item->tags,
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
-                    'image1_url' => $item->image1 ? url($item->image1) : null,
-                    'advertising_image_url' => $item->advertising_image ? url($item->advertising_image) : null,
+                    'image1' => $item->image1 ? url($item->image1) : null,
+                    'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
+                    'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
+                    'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                 ];
             });
 
