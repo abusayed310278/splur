@@ -80,7 +80,7 @@ class ContentController extends Controller
             $content = Content::where('category_id', $cat_id)
                 ->where('subcategory_id', $sub_id)
                 ->where('id', $id)
-                ->firstOrFail();
+                ->first();
 
             // If content not found
             if (!$content) {

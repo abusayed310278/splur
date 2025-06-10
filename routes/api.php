@@ -107,7 +107,7 @@ Route::middleware('auth:api')->group(function () {
 // Public GET routes
 Route::get('/shows', [ContentController::class, 'showContents']);  // List all content
 
-Route::get('contents/', [ContentController::class, 'index']);
+// Route::get('contents/', [ContentController::class, 'index']);
 Route::get('contents/{cat_id}/{sub_id}/{id}', [ContentController::class, 'index']);  // single content for edit
 Route::get('contents/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategory']);
 Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
