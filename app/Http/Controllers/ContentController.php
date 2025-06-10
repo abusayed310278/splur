@@ -350,8 +350,8 @@ class ContentController extends Controller
             'date' => 'nullable|date',
             'sub_heading' => 'nullable|string',
             'body1' => 'nullable|string',
-            'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+            'image1' => 'nullable',
+            'advertising_image' => 'nullable',
             'imageLink' => 'nullable|string',  // ✅ added
             'advertisingLink' => 'nullable|string',  // ✅ added
             // omit tags here intentionally
@@ -428,8 +428,8 @@ class ContentController extends Controller
             'date' => 'nullable|date',
             'sub_heading' => 'nullable|string',
             'body1' => 'nullable|string',
-            'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
+            'image1' => 'nullable',
+            'advertising_image' => 'nullable',
             'imageLink' => 'nullable|string',
             'advertisingLink' => 'nullable|string',
         ]);
