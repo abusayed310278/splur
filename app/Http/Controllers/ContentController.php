@@ -331,8 +331,8 @@ class ContentController extends Controller
             'body1' => 'nullable|string',
             'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
             'advertising_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10248',
-            'image_link' => 'nullable|string',  // ✅ added
-            'advertising_link' => 'nullable|string',  // ✅ added
+            'imageLink' => 'nullable|string',  // ✅ added
+            'advertisingLink' => 'nullable|string',  // ✅ added
             // omit tags here intentionally
         ]);
 
