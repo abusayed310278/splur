@@ -135,7 +135,8 @@ class ContentController extends Controller
             $contents = Content::with(['category', 'subcategory'])
                 ->where('category_id', $cat_id)
                 ->where('subcategory_id', $sub_id)
-                ->orderBy('date', 'desc')
+                // ->orderBy('date', 'desc')
+                ->orderBy('id', 'desc')
                 ->paginate(10);
 
             $data = $contents->getCollection()->transform(function ($item) {
