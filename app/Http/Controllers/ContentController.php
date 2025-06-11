@@ -39,7 +39,7 @@ class ContentController extends Controller
             $contents = Content::with(['category', 'subcategory'])
                 ->where('category_id', $cat_id)
                 ->latest()
-                ->take(4)
+                ->take(10)
                 ->get();
 
             // Check if contents are empty
