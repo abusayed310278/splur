@@ -165,7 +165,7 @@ class ContentController extends Controller
                     'author' => $item->author,
                     'date' => $item->date,
                     'body1' => $item->body1,
-                    'tags' => $item->tags,
+                    $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
