@@ -32,6 +32,49 @@ class ContentController extends Controller
         ]);
     }
 
+    public function relatedContents($cat_id, $sub_id, $contentId)
+    {
+        try {
+            // Get latest 10 related contents (same category and subcategory, excluding current)
+            $contents = Content::with(['category', 'subcategory'])
+                ->where('category_id', $cat_id)
+                ->where('subcategory_id', $sub_id)
+                ->where('id', '!=', $contentId)
+                ->latest()
+                ->take(10)
+                ->get();
+
+            if ($contents->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No related content found.',
+                    'data' => [],
+                ], 404);
+            }
+
+            // Add full image URLs
+            $contents->transform(function ($content) {
+                $content->image1_url = $content->image1 ? url($content->image1) : null;
+                $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+                return $content;
+            });
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Related contents fetched successfully.',
+                'data' => $contents,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Fetching related contents failed: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to fetch related contents.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function indexFrontend($cat_id)
     {
         try {
@@ -165,7 +208,7 @@ class ContentController extends Controller
                     'author' => $item->author,
                     'date' => $item->date,
                     'body1' => $item->body1,
-                    'tags'=>$item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+                    'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
