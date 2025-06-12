@@ -116,5 +116,6 @@ Route::get('upvote-downvote', [ContentController::class, 'getVotes']);
 // Route::get('comment/{content_id}', [CommentController::class, 'index']);
 Route::get('comment/content/{content_id}', [CommentController::class, 'index']);
 Route::get('footer', [SettingController::class, 'footer']);
-Route::get('landing-page', [ContentController::class, 'landingPage']);
-Route::get('show-tags/{slug}', [ContentController::class,'showAllTags']);
+Route::get('contents/landing-page', [ContentController::class, 'landingPage']);
+Route::get('contents/{slug}', [ContentController::class,'showAllTags']);
+Route::get('contents/{slug}', [ContentController::class,'showAllTags']);
