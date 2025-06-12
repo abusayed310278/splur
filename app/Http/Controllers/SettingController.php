@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,92 +14,22 @@ use Exception;
 
 class SettingController extends Controller
 {
-    // public function updateEmail(Request $request)
-    // {
-    //     try {
-    //         // Validate new email (must be unique except current user's email)
-    //         $validated = $request->validate([
-    //             'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
-    //         ]);
+    public function footer()
+    {
+        $categories = Category::with('subCategories')->get();
 
-    //         // Get authenticated user
-    //         $user = Auth::user();
+        $data = $categories->map(function ($category) {
+            return [
+                'category' => $category->category_name,
+                'sub_categories' => $category->subCategories->pluck('name'),
+            ];
+        });
 
-    //         if (!$user) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'User not authenticated.'
-    //             ], 401);
-    //         }
-
-    //         // Update email
-    //         $user->email = $validated['email'];
-    //         if (method_exists($user, 'save')) {
-    //             $user->save();
-    //         } else {
-    //             // If $user is not an Eloquent model, update via query builder
-    //             DB::table('users')->where('id', $user->id)->update(['email' => $validated['email']]);
-    //         }
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Email updated successfully.',
-    //             'data'    => $user
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error('Error updating user email: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to update email.',
-    //             'error'   => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    // public function updatePassword(Request $request)
-    // {
-    //     // return dd($request->all());
-    //     try {
-    //         $validator = Validator::make($request->all(), [
-    //             'password' => 'required|string',
-    //             'new_password' => 'required|string|min:6|confirmed', // uses new_password_confirmation
-    //         ]);
-
-    //         if ($validator->fails()) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Validation failed.',
-    //                 'errors' => $validator->errors(),
-    //             ], 400);
-    //         }
-
-    //         $user = Auth::user();
-
-    //         // Check current password
-    //         if (!Hash::check($request->password, $user->password)) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'The current password is incorrect.',
-    //             ], 403);
-    //         }
-
-    //         // Update to new password
-    //         $user->password = Hash::make($request->password);
-    //         $user->save();
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Password updated successfully.',
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         Log::error('Error updating password: ' . $e->getMessage());
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to update password.',
-    //         ], 500);
-    //     }
-    // }
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
 
     public function storeOrUpdateColor(Request $request)
     {

@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\CommentVote;
 use App\Models\Content;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
@@ -30,6 +31,52 @@ class ContentController extends Controller
                 'last_page' => $contents->lastPage(),
             ]
         ]);
+    }
+
+    public function landingPage()
+    {
+        $latestActiveContent = Content::where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($latestActiveContent) {
+            $latestActiveContent->makeHidden(['user_id', 'category_id', 'subcategory_id', 'status']);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'latest' => $latestActiveContent,
+            ],
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        // Validate the status field
+        $request->validate([
+            'status' => 'required|string|in:active,pending',  // adjust allowed values as needed
+        ]);
+
+        // Find the content by ID
+        $content = Content::find($id);
+
+        if (!$content) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Content not found.',
+            ], 404);
+        }
+
+        // Update the status
+        $content->status = $request->input('status');
+        $content->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Content status updated successfully.',
+            'data' => $content
+        ], 200);
     }
 
     public function relatedContents($cat_id, $sub_id, $contentId)
@@ -154,53 +201,34 @@ class ContentController extends Controller
         }
     }
 
-    // public function indexForSubCategory($cat_id, $sub_id)
-    // {
-    //     try {
-    //         $contents = Content::where('category_id', $cat_id)
-    //             ->where('subcategory_id', $sub_id)
-    //             ->orderBy('date', 'desc')
-    //             ->paginate(10);
 
-    //         // Map over items to add full URLs to image fields
-    //         $data = $contents->getCollection()->transform(function ($item) {
-    //             $item->image1_url = $item->image1 ? url($item->image1) : null;
-    //             $item->advertising_image_url = $item->advertising_image ? url($item->advertising_image) : null;
-    //             return $item;
-    //         });
-
-    //         return response()->json([
-    //             'status' => true,
-    //             'data' => $data,
-    //             'meta' => [
-    //                 'current_page' => $contents->currentPage(),
-    //                 'per_page' => $contents->perPage(),
-    //                 'total_items' => $contents->total(),
-    //                 'total_pages' => $contents->lastPage(),
-    //             ]
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error('Fetching contents by category and subcategory failed: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Failed to fetch contents.',
-    //             'error' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
-
-    public function indexForSubCategory($cat_id, $sub_id)
+    public function indexForSubCategory($cat_id, $sub_id, Request $request)
     {
         try {
-            $contents = Content::with(['category', 'subcategory'])
-                ->where('category_id', $cat_id)
-                ->where('subcategory_id', $sub_id)
-                // ->orderBy('date', 'desc')
-                ->orderBy('id', 'desc')
-                ->paginate(10);
+            // Validate query parameters
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+                'search' => 'nullable|string|max:255',
+            ]);
 
-            $data = $contents->getCollection()->transform(function ($item) {
+            $paginate_count = $validated['paginate_count'] ?? 10;
+            $search = $validated['search'] ?? null;
+
+            // Base query with relationships
+            $query = Content::with(['category', 'subcategory'])
+                ->where('category_id', $cat_id)
+                ->where('subcategory_id', $sub_id);
+
+            // Optional search on heading
+            if ($search) {
+                $query->where('heading', 'like', '%' . $search . '%');
+            }
+
+            // Apply pagination
+            $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
+
+            // Transform only the items in the paginated result
+            $transformedData = $contents->getCollection()->transform(function ($item) {
                 return [
                     'id' => $item->id,
                     'heading' => $item->heading,
@@ -218,24 +246,26 @@ class ContentController extends Controller
                 ];
             });
 
+            // Replace the collection with transformed data
+            $contents->setCollection($transformedData);
+
+            // Return response matching the example format
             return response()->json([
-                'status' => true,
-                'data' => $data,
-                'meta' => [
-                    'current_page' => $contents->currentPage(),
-                    'per_page' => $contents->perPage(),
-                    'total_items' => $contents->total(),
-                    'total_pages' => $contents->lastPage(),
-                ]
-            ]);
+                'success' => true,
+                'data' => $contents,
+                'current_page' => $contents->currentPage(),
+                'total_pages' => $contents->lastPage(),
+                'per_page' => $contents->perPage(),
+                'total' => $contents->total(),
+            ], Response::HTTP_OK);
         } catch (\Exception $e) {
             Log::error('Fetching contents by category and subcategory failed: ' . $e->getMessage());
 
             return response()->json([
-                'status' => false,
+                'success' => false,
                 'message' => 'Failed to fetch contents.',
                 'error' => $e->getMessage(),
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -434,6 +464,9 @@ class ContentController extends Controller
 
             $validated['tags'] = $tagsArray;
 
+            // ✅ Add authenticated user ID
+            $validated['user_id'] = auth()->id();
+
             $content = Content::create($validated);
 
             return response()->json([
@@ -518,6 +551,9 @@ class ContentController extends Controller
             $validated['image_link'] = $validated['imageLink'] ?? $content->image_link;
             $validated['advertising_link'] = $validated['advertisingLink'] ?? $content->advertising_link;
             unset($validated['imageLink'], $validated['advertisingLink']);
+
+            // ✅ Add authenticated user ID
+            $validated['user_id'] = auth()->id();
 
             $content->update($validated);
 

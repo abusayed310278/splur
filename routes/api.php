@@ -50,31 +50,17 @@ Route::middleware('auth:api')->group(function () {
 
         Route::apiResource('comment', CommentController::class)->only(['store']);
 
-        // Route::prefix('contents')->group(function () {
-        //     Route::post('/', [ContentController::class, 'store']);
-        //     Route::put('/{id}', [ContentController::class, 'update']);
-        //     Route::delete('/{id}', [ContentController::class, 'destroy']);
-
-        // });
 
         Route::middleware('role:admin')->group(function () {
             // Role management
             Route::apiResource('roles', RoleManagementController::class);
             Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
+            Route::patch('contents/update-status/{id}', [ContentController::class, 'updateStatus']);
+
         });
     });
 
-    // -------------------
-    // Editor-only routes
-    // -------------------
-    // Route::middleware('role:editor')->group(function () {
-    //     // Editors can create and update content, but maybe not delete or categories
-    //     Route::prefix('contents')->group(function () {
-    //         Route::post('/', [ContentController::class, 'store']);
-    //         Route::put('/{id}', [ContentController::class, 'update']);
-    //         // No delete route for editors
-    //     });
-    // });
+
 
     // Author-only routes
     Route::middleware('role:author,admin,editor')->group(function () {
@@ -83,13 +69,13 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
+
+
         });
         Route::apiResource('comment', CommentController::class)->only(['store']);
     });
 
-    // Route::middleware('role:user,author,editor,admin')->group(function () {
-    //     Route::post('/upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
-    // });
+
 
     // Subscriber/User-only routes
     Route::middleware('role:user')->group(function () {
@@ -123,10 +109,11 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
-// Route::post('/comment', [CommentController::class, 'store']);
 Route::get('change-color', [SettingController::class, 'showColor']);
 Route::post('/upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 
 Route::get('upvote-downvote', [ContentController::class, 'getVotes']);
 // Route::get('comment/{content_id}', [CommentController::class, 'index']);
 Route::get('comment/content/{content_id}', [CommentController::class, 'index']);
+Route::get('footer', [SettingController::class, 'footer']);
+Route::get('landing-page', [ContentController::class, 'landingPage']);

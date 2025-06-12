@@ -22,6 +22,8 @@ class Content extends Model
         'tags',
         'imageLink',
         'advertisingLink',
+        'user_id',
+        'status',
     ];
 
     protected $casts = [
