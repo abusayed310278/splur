@@ -118,4 +118,4 @@ Route::get('comment/content/{content_id}', [CommentController::class, 'index']);
 Route::get('footer', [SettingController::class, 'footer']);
 Route::get('contents/landing-page', [ContentController::class, 'landingPage']);
 Route::get('contents/{slug}', [ContentController::class,'showAllTags']);
-Route::get('contents/{slug}', [ContentController::class,'showAllTags']);
+// Route::get('contents/{slug}', [ContentController::class,'showAllTags']);
