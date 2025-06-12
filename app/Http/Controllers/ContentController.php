@@ -14,6 +14,62 @@ use Illuminate\Support\Facades\Storage;
 
 class ContentController extends Controller
 {
+    
+    public function showAllTags($slug, Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+            ]);
+
+            $paginate_count = $validated['paginate_count'] ?? 10;
+
+            // Search for tag using LIKE (case insensitive)
+            $query = Content::with(['category', 'subcategory'])
+                ->where('tags', 'LIKE', '%' . $slug . '%');
+
+            $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
+
+            $transformedData = $contents->getCollection()->transform(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'heading' => $item->heading,
+                    'sub_heading' => $item->sub_heading,
+                    'author' => $item->author,
+                    'date' => $item->date,
+                    'body1' => $item->body1,
+                    'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+                    'category_name' => optional($item->category)->category_name,
+                    'sub_category_name' => optional($item->subcategory)->name,
+                    'image1' => $item->image1 ? url($item->image1) : null,
+                    'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
+                    'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
+                    'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+                ];
+            });
+
+            // Replace collection with transformed data
+            $contents->setCollection($transformedData);
+
+            return response()->json([
+                'success' => true,
+                'data' => $contents,
+                'current_page' => $contents->currentPage(),
+                'total_pages' => $contents->lastPage(),
+                'per_page' => $contents->perPage(),
+                'total' => $contents->total(),
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            \Log::error('Tag filtering failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch content by tag.',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public function showContents()
     {
         $perPage = 10;
@@ -200,7 +256,6 @@ class ContentController extends Controller
             ], 500);
         }
     }
-
 
     public function indexForSubCategory($cat_id, $sub_id, Request $request)
     {
