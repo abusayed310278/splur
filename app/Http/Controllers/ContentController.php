@@ -649,64 +649,19 @@ class ContentController extends Controller
         }
     }
 
-    // public function showCategoryExcept5LatestContent($cat_id)
-    // {
-    //     // Step 1: Get the IDs of the 5 latest active contents in this category
-    //     $latestFiveIds = Content::where('category_id', $cat_id)
-    //         ->where('status', 'active')
-    //         ->orderBy('created_at', 'desc')
-    //         ->limit(5)
-    //         ->pluck('id');
-
-    //     // Step 2: Get the next 3 active contents, excluding the above 5
-    //     $otherContents = Content::with(['category', 'subcategory'])
-    //         ->where('category_id', $cat_id)
-    //         ->where('status', 'active')
-    //         ->whereNotIn('id', $latestFiveIds)
-    //         ->orderBy('created_at', 'desc')
-    //         ->limit(3)
-    //         ->get();
-
-    //     // Step 3: Transform results with category/subcategory names
-    //     $transformed = $otherContents->map(function ($item) {
-    //         return [
-    //             'id' => $item->id,
-    //             'category_id' => $item->category_id,
-    //             'sub_category_id' => $item->subcategory_id,
-    //             'category_name' => optional($item->category)->category_name,
-    //             'sub_category_name' => optional($item->subcategory)->name,
-    //             'heading' => $item->heading,
-    //             'sub_heading' => $item->sub_heading,
-    //             'author' => $item->author,
-    //             'date' => $item->date,
-    //             'tags' => $item->tags,
-    //             'image1' => $item->image1 ? url($item->image1) : null,
-    //             'imageLink' => $item->imageLink ? url($item->imageLink) : null,
-    //         ];
-    //     });
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'data' => $transformed,
-    //     ]);
-    // }
-
     public function showCategoryExcept5LatestContent($cat_id)
     {
-        // Get next 6 contents after skipping top 5
-        $nextSixContents = Content::with(['category', 'subcategory'])
+        // Get next 3 contents after skipping top 5
+        $contents = Content::with(['category', 'subcategory'])
             ->where('category_id', $cat_id)
             ->where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->skip(5)  // exclude latest 5
-            ->take(6)  // get next 6
+            ->take(3)  // get next 3 contents
             ->get();
 
-        // Sort these 6 again by created_at descending and pick top 3
-        $latest3FromNext6 = $nextSixContents->sortByDesc('created_at')->take(3);
-
         // Transform data
-        $transformed = $latest3FromNext6->map(function ($item) {
+        $transformed = $contents->map(function ($item) {
             return [
                 'id' => $item->id,
                 'category_id' => $item->category_id,
