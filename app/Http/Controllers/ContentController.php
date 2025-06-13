@@ -658,8 +658,9 @@ class ContentController extends Controller
             ->limit(5)
             ->pluck('id');
 
-        // Fetch the next 4 contents excluding the latest 5
-        $otherContents = Content::where('category_id', $cat_id)
+        // Fetch the next 3 contents excluding the latest 5
+        $otherContents = Content::with(['category', 'subcategory'])  // Eager-load relationships
+            ->where('category_id', $cat_id)
             ->where('status', 'active')
             ->whereNotIn('id', $latestFiveIds)
             ->orderBy('created_at', 'desc')
