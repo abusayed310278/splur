@@ -695,6 +695,36 @@ class ContentController extends Controller
         ]);
     }
 
+    // public function showCategoryExceptLatestContent($cat_id)
+    // {
+    //     // Get the latest content to exclude it
+    //     $latestContent = Content::where('category_id', $cat_id)
+    //         ->where('status', 'active')
+    //         ->orderBy('created_at', 'desc')
+    //         ->first();
+
+    //     // If no content exists in this category
+    //     if (!$latestContent) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'No content found for this category',
+    //         ], 404);
+    //     }
+
+    //     // Get 4 other active contents (excluding the latest one)
+    //     $otherContents = Content::where('category_id', $cat_id)
+    //         ->where('status', 'active')
+    //         ->where('id', '!=', $latestContent->id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->take(2)
+    //         ->get();
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'data' => $otherContents,
+    //     ]);
+    // }
+
     public function showCategoryExceptLatestContent($cat_id)
     {
         // Get the latest content to exclude it
@@ -711,17 +741,25 @@ class ContentController extends Controller
             ], 404);
         }
 
-        // Get 4 other active contents (excluding the latest one)
-        $otherContents = Content::where('category_id', $cat_id)
+        // Get 2 other active contents (excluding the latest one)
+        $otherContents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $cat_id)
             ->where('status', 'active')
             ->where('id', '!=', $latestContent->id)
             ->orderBy('created_at', 'desc')
             ->take(2)
             ->get();
 
+        // Add category and subcategory names to each item
+        $transformed = $otherContents->map(function ($item) {
+            $item->category_name = optional($item->category)->category_name;
+            $item->sub_category_name = optional($item->subcategory)->name;
+            return $item;
+        });
+
         return response()->json([
             'status' => true,
-            'data' => $otherContents,
+            'data' => $transformed,
         ]);
     }
 
