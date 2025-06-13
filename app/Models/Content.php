@@ -30,18 +30,28 @@ class Content extends Model
         'tags' => 'array',
     ];
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
+    // public function category()
+    // {
+    //     return $this->belongsTo(Category::class);
+    // }
 
-    public function subcategory()
-    {
-        return $this->belongsTo(SubCategory::class);
-    }
+    // public function subcategory()
+    // {
+    //     return $this->belongsTo(SubCategory::class);
+    // }
 
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function subcategory()
+    {
+        return $this->belongsTo(SubCategory::class, 'subcategory_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

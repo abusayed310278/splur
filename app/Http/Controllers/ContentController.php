@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Comment;
 use App\Models\CommentVote;
 use App\Models\Content;
@@ -14,7 +15,739 @@ use Illuminate\Support\Facades\Storage;
 
 class ContentController extends Controller
 {
-    
+    public function landingPage6thPageBottomPortion()
+    {
+        // Get the 4th latest category (by created_at descending)
+        $fourthLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(3)
+            ->first();
+
+        if (!$fourthLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fourth latest category not found.'
+            ]);
+        }
+
+        // Fetch contents: skip latest one, take next 4
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $fourthLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->skip(1)
+            ->take(5)
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found after skipping the latest content for the 4th latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $fourthLatestCategory->id,
+                'name' => $fourthLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage6thPageTopPortion()
+    {
+        // Get the 4th latest category (by created_at descending)
+        $fourthLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(3)
+            ->first();
+
+        if (!$fourthLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fourth latest category not found.'
+            ]);
+        }
+
+        // Fetch all active contents for this category
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $fourthLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found for the 4th latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $fourthLatestCategory->id,
+                'name' => $fourthLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage5thPageBottomPortion()
+    {
+        // Get the 4th latest category (by created_at descending)
+        $fourthLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(3)
+            ->first();
+
+        if (!$fourthLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fourth latest category not found.'
+            ]);
+        }
+
+        // Fetch contents: skip latest one, take next 4
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $fourthLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->skip(1)
+            ->take(5)
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found after skipping the latest content for the 4th latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $fourthLatestCategory->id,
+                'name' => $fourthLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage5thPageTopPortion()
+    {
+        // Get the 4th latest category (by created_at descending)
+        $fourthLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(3)
+            ->first();
+
+        if (!$fourthLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fourth latest category not found.'
+            ]);
+        }
+
+        // Fetch all active contents for this category
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $fourthLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found for the 4th latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $fourthLatestCategory->id,
+                'name' => $fourthLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage4thPageBottomPortion()
+    {
+        // Get the 4th latest category (by created_at descending)
+        $fourthLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(3)
+            ->first();
+
+        if (!$fourthLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fourth latest category not found.'
+            ]);
+        }
+
+        // Fetch contents: skip latest one, take next 4
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $fourthLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->skip(1)
+            ->take(4)
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found after skipping the latest content for the 4th latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $fourthLatestCategory->id,
+                'name' => $fourthLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage4thPageTopPortion()
+    {
+        // Get the 4th latest category (by created_at descending)
+        $fourthLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(3)
+            ->first();
+
+        if (!$fourthLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fourth latest category not found.'
+            ]);
+        }
+
+        // Fetch all active contents for this category
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $fourthLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found for the 4th latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $fourthLatestCategory->id,
+                'name' => $fourthLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage3rdPageBottomPortion()
+    {
+        // Get the 3rd latest category (by created_at descending)
+        $thirdLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(2)
+            ->first();
+
+        if (!$thirdLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Third latest category not found.'
+            ]);
+        }
+
+        // Fetch contents skipping the latest (skip 1) and take next 4
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $thirdLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->skip(1)  // skip the latest content
+            ->take(4)  // get next 4 contents
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found after skipping the latest content for the 3rd latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $thirdLatestCategory->id,
+                'name' => $thirdLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage3rdPageTopPortion()
+    {
+        // Get the third latest category by created_at
+        $thirdLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(1)
+            ->first();
+
+        if (!$thirdLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Third latest category not found.'
+            ]);
+        }
+
+        // Get 4 active contents for that category
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $thirdLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found for the 3rd latest category.'
+            ]);
+        }
+
+        // Transform data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $thirdLatestCategory->id,
+                'name' => $thirdLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage2ndPageBottomPortion()
+    {
+        // Get the 2nd latest category (by created_at descending)
+        $secondLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(1)
+            ->first();
+
+        if (!$secondLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Second latest category not found.'
+            ]);
+        }
+
+        // Fetch contents skipping the latest (skip 1) and take next 4
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $secondLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->skip(1)  // skip the latest content
+            ->take(4)  // get next 4 contents
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found after skipping the latest content for the 2nd latest category.'
+            ]);
+        }
+
+        // Transform the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $secondLatestCategory->id,
+                'name' => $secondLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function landingPage2ndPageTopPortion()
+    {
+        // Get the 2nd latest category (by created_at or id)
+        $secondLatestCategory = Category::orderBy('created_at', 'desc')
+            ->skip(1)
+            ->first();
+
+        if (!$secondLatestCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Second latest category not found.'
+            ]);
+        }
+
+        // Fetch all active content for the 2nd latest category
+        $contents = Content::with(['category', 'subcategory'])
+            ->where('category_id', $secondLatestCategory->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($contents->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active content found for the 2nd latest category.'
+            ]);
+        }
+
+        // Transform and return the data
+        $transformed = $contents->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $secondLatestCategory->id,
+                'name' => $secondLatestCategory->category_name,
+            ],
+            'data' => $transformed,
+        ]);
+    }
+
+    public function showCategoryExcept8LatestContent($cat_id, Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'paginate_count' => 'nullable|integer|min:1',
+            ]);
+
+            $paginate_count = $validated['paginate_count'] ?? 10;
+
+            // Get the IDs of the latest 8 contents
+            $latestEightIds = Content::where('category_id', $cat_id)
+                ->where('status', 'active')
+                ->orderBy('created_at', 'desc')
+                ->limit(8)
+                ->pluck('id');
+
+            // Fetch paginated contents excluding those 8
+            $query = Content::with(['category', 'subcategory'])
+                ->where('category_id', $cat_id)
+                ->where('status', 'active')
+                ->whereNotIn('id', $latestEightIds)
+                ->orderBy('created_at', 'desc');
+
+            $contents = $query->paginate($paginate_count);
+
+            $transformedData = $contents->getCollection()->transform(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'heading' => $item->heading,
+                    'sub_heading' => $item->sub_heading,
+                    'author' => $item->author,
+                    'date' => $item->date,
+                    'body1' => $item->body1,
+                    'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+                    'category_name' => optional($item->category)->category_name,
+                    'sub_category_name' => optional($item->subcategory)->name,
+                    'image1' => $item->image1 ? url($item->image1) : null,
+                    'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
+                    'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
+                    'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+                ];
+            });
+
+            $contents->setCollection($transformedData);
+
+            return response()->json([
+                'success' => true,
+                'data' => $contents,
+                'current_page' => $contents->currentPage(),
+                'total_pages' => $contents->lastPage(),
+                'per_page' => $contents->perPage(),
+                'total' => $contents->total(),
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch paginated content after excluding latest 8: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch content.',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function showCategoryExcept5LatestContent($cat_id)
+    {
+        // Get the IDs of the 5 latest contents to exclude them
+        $latestFiveIds = Content::where('category_id', $cat_id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->pluck('id');
+
+        // Fetch the next 4 contents excluding the latest 5
+        $otherContents = Content::where('category_id', $cat_id)
+            ->where('status', 'active')
+            ->whereNotIn('id', $latestFiveIds)
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $otherContents,
+        ]);
+    }
+
+    public function showCategoryExcept3LatestContent($cat_id)
+    {
+        // Get the IDs of the 3 latest contents to exclude them
+        $latestThreeIds = Content::where('category_id', $cat_id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->pluck('id');
+
+        // Fetch the next 4 contents excluding the top 3
+        $otherContents = Content::where('category_id', $cat_id)
+            ->where('status', 'active')
+            ->whereNotIn('id', $latestThreeIds)
+            ->orderBy('created_at', 'desc')
+            ->take(2)
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $otherContents,
+        ]);
+    }
+
+    public function showCategoryExceptLatestContent($cat_id)
+    {
+        // Get the latest content to exclude it
+        $latestContent = Content::where('category_id', $cat_id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // If no content exists in this category
+        if (!$latestContent) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No content found for this category',
+            ], 404);
+        }
+
+        // Get 4 other active contents (excluding the latest one)
+        $otherContents = Content::where('category_id', $cat_id)
+            ->where('status', 'active')
+            ->where('id', '!=', $latestContent->id)
+            ->orderBy('created_at', 'desc')
+            ->take(2)
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $otherContents,
+        ]);
+    }
+
+    public function showCategoryLatestContent($cat_id)
+    {
+        // Get latest active content for the category, ordered by creation date descending
+        $latestContent = Content::where('category_id', $cat_id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$latestContent) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No content found for this category',
+            ], 404);
+        }
+
+        $latestContent->makeHidden(['status']);  // optional: hide status if you want
+
+        return response()->json([
+            'status' => true,
+            'data' => $latestContent,
+        ]);
+    }
+
     public function showAllTags($slug, Request $request)
     {
         try {
@@ -89,14 +822,14 @@ class ContentController extends Controller
         ]);
     }
 
-    public function landingPage()
+    public function landingPageTopPortion()
     {
         $latestActiveContent = Content::where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->first();
 
         if ($latestActiveContent) {
-            $latestActiveContent->makeHidden(['user_id', 'category_id', 'subcategory_id', 'status']);
+            $latestActiveContent->makeHidden(['status']);
         }
 
         return response()->json([
@@ -104,6 +837,37 @@ class ContentController extends Controller
             'data' => [
                 'latest' => $latestActiveContent,
             ],
+        ]);
+    }
+
+    public function landingPageBottomPortion()
+    {
+        $categories = Category::with([
+            'subcategories.contents' => function ($query) {
+                $query
+                    ->where('status', 'active')
+                    ->latest()
+                    ->take(5);  // Adjust limit per subcategory
+            }
+        ])->get();
+
+        $data = $categories->map(function ($category) {
+            return [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'subcategories' => $category->subcategories->map(function ($subcategory) {
+                    return [
+                        'subcategory_id' => $subcategory->id,
+                        'subcategory_name' => $subcategory->name,
+                        'contents' => $subcategory->contents->makeHidden(['status']),
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'data' => $data,
         ]);
     }
 
