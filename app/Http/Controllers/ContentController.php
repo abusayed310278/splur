@@ -755,6 +755,9 @@ class ContentController extends Controller
             'tags' => $latestContent->tags,
             'image1' => $latestContent->image1 ? url($latestContent->image1) : null,
             'imageLink' => $latestContent->imageLink ? url($latestContent->imageLink) : null,
+            'advertising_image' => $latestContent->advertising_image ? url($latestContent->advertising_image) : null,
+            'advertisingLink' => $latestContent->advertisingLink ? url($latestContent->advertisingLink) : null,
+            'body1' => $latestContent->body1,
         ];
 
         return response()->json([
