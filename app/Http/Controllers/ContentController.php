@@ -651,27 +651,38 @@ class ContentController extends Controller
 
     public function showCategoryExcept5LatestContent($cat_id)
     {
-        // Get the IDs of the 5 latest contents to exclude them
+        // Step 1: Get the IDs of the 5 latest active contents in this category
         $latestFiveIds = Content::where('category_id', $cat_id)
             ->where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->pluck('id');
 
-        // Fetch the next 3 contents excluding the latest 5
-        $otherContents = Content::with(['category', 'subcategory'])  // Eager-load relationships
+        // Step 2: Get the next 3 active contents, excluding the above 5
+        $otherContents = Content::with(['category', 'subcategory'])
             ->where('category_id', $cat_id)
             ->where('status', 'active')
             ->whereNotIn('id', $latestFiveIds)
             ->orderBy('created_at', 'desc')
-            ->take(3)
+            ->limit(3)
             ->get();
 
-        // Add category and subcategory names to each item
+        // Step 3: Transform results with category/subcategory names
         $transformed = $otherContents->map(function ($item) {
-            $item->category_name = optional($item->category)->category_name;
-            $item->sub_category_name = optional($item->subcategory)->name;
-            return $item;
+            return [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'sub_category_id' => $item->subcategory_id,
+                'category_name' => optional($item->category)->category_name,
+                'sub_category_name' => optional($item->subcategory)->name,
+                'heading' => $item->heading,
+                'sub_heading' => $item->sub_heading,
+                'author' => $item->author,
+                'date' => $item->date,
+                'tags' => $item->tags,
+                'image1' => $item->image1 ? url($item->image1) : null,
+                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+            ];
         });
 
         return response()->json([
