@@ -649,47 +649,41 @@ class ContentController extends Controller
         }
     }
 
-    public function showCategoryExcept5LatestContent($cat_id)
-    {
-        // Step 1: Get the IDs of the 5 latest active contents in this category
-        $latestFiveIds = Content::where('category_id', $cat_id)
-            ->where('status', 'active')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->pluck('id');
+    public function showCategorySkipRange($cat_id)
+{
+    // Skip the 5 latest active contents (e.g., 27 to 23)
+    $contents = Content::with(['category', 'subcategory'])
+        ->where('category_id', $cat_id)
+        ->where('status', 'active')
+        ->orderBy('created_at', 'desc')
+        ->skip(5)    // skip 5 records
+        ->take(3)    // get next 3 records
+        ->get();
 
-        // Step 2: Get the next 3 active contents, excluding the above 5
-        $otherContents = Content::with(['category', 'subcategory'])
-            ->where('category_id', $cat_id)
-            ->where('status', 'active')
-            ->whereNotIn('id', $latestFiveIds)
-            ->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get();
+    // Transform data to include category/subcategory names
+    $transformed = $contents->map(function ($item) {
+        return [
+            'id' => $item->id,
+            'category_id' => $item->category_id,
+            'sub_category_id' => $item->subcategory_id,
+            'category_name' => optional($item->category)->category_name,
+            'sub_category_name' => optional($item->subcategory)->name,
+            'heading' => $item->heading,
+            'sub_heading' => $item->sub_heading,
+            'author' => $item->author,
+            'date' => $item->date,
+            'tags' => $item->tags,
+            'image1' => $item->image1 ? url($item->image1) : null,
+            'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+        ];
+    });
 
-        // Step 3: Transform results with category/subcategory names
-        $transformed = $otherContents->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'category_id' => $item->category_id,
-                'sub_category_id' => $item->subcategory_id,
-                'category_name' => optional($item->category)->category_name,
-                'sub_category_name' => optional($item->subcategory)->name,
-                'heading' => $item->heading,
-                'sub_heading' => $item->sub_heading,
-                'author' => $item->author,
-                'date' => $item->date,
-                'tags' => $item->tags,
-                'image1' => $item->image1 ? url($item->image1) : null,
-                'imageLink' => $item->imageLink ? url($item->imageLink) : null,
-            ];
-        });
+    return response()->json([
+        'status' => true,
+        'data' => $transformed,
+    ]);
+}
 
-        return response()->json([
-            'status' => true,
-            'data' => $transformed,
-        ]);
-    }
 
     public function showCategoryExcept3LatestContent($cat_id)
     {
