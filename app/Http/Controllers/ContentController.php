@@ -727,8 +727,9 @@ class ContentController extends Controller
 
     public function showCategoryLatestContent($cat_id)
     {
-        // Get latest active content for the category, ordered by creation date descending
-        $latestContent = Content::where('category_id', $cat_id)
+        // Get latest active content for the category, including relations
+        $latestContent = Content::with(['category', 'subcategory'])
+            ->where('category_id', $cat_id)
             ->where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->first();
@@ -740,11 +741,25 @@ class ContentController extends Controller
             ], 404);
         }
 
-        $latestContent->makeHidden(['status']);  // optional: hide status if you want
+        // Transform response with category and subcategory names
+        $transformed = [
+            'id' => $latestContent->id,
+            'category_id' => $latestContent->category_id,
+            'sub_category_id' => $latestContent->subcategory_id,
+            'category_name' => optional($latestContent->category)->category_name,
+            'sub_category_name' => optional($latestContent->subcategory)->name,
+            'heading' => $latestContent->heading,
+            'sub_heading' => $latestContent->sub_heading,
+            'author' => $latestContent->author,
+            'date' => $latestContent->date,
+            'tags' => $latestContent->tags,
+            'image1' => $latestContent->image1 ? url($latestContent->image1) : null,
+            'imageLink' => $latestContent->imageLink ? url($latestContent->imageLink) : null,
+        ];
 
         return response()->json([
             'status' => true,
-            'data' => $latestContent,
+            'data' => $transformed,
         ]);
     }
 
