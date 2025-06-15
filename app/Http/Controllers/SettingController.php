@@ -25,8 +25,12 @@ class SettingController extends Controller
             ];
         });
 
+        // Get the color setting
+        $color = Setting::value('color');
+
         return response()->json([
             'success' => true,
+            'color' => $color,
             'data' => $data
         ]);
     }
