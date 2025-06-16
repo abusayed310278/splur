@@ -162,5 +162,6 @@ Route::get('landing-page/6th-page-bottom-portion', [ContentController::class, 'l
 //Landing page content by category
 Route::get('home', [ContentController::class,'HomeContent']);
 Route::get('home/{cat_name}', [ContentController::class,'HomeCategoryContent']);
+// Route::get('',[]);
 
 

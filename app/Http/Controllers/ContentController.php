@@ -1165,6 +1165,7 @@ class ContentController extends Controller
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+                     'status' => $item->status,
                 ];
             });
 
