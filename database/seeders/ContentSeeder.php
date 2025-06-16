@@ -33,6 +33,13 @@ class ContentSeeder extends Seeder
         ];
 
         for ($i = 0; $i < 100; $i++) {
+
+             $image1 = $images[array_rand($images)];
+            $advertisingImage = $images[array_rand($images)];
+            $imageLink = $images[array_rand($images)];
+            $advertisingLink = $images[array_rand($images)];
+
+
             DB::table('contents')->insert([
                 'category_id' => fake()->randomElement($categoryIds),
                 'subcategory_id' => fake()->randomElement($subcategoryIds),
@@ -41,11 +48,11 @@ class ContentSeeder extends Seeder
                 'date' => fake()->date(),
                 'sub_heading' => fake()->sentence(10),
                 'body1' => fake()->paragraphs(5, true),
-                'image1' => url($images[array_rand($images)]),
-                'advertising_image' => url($images[array_rand($images)]),
+                'image1' =>  $image1,
+                'advertising_image' => $advertisingImage,
                 'tags' => json_encode(fake()->words(5)),
-                'imageLink' => url($images[array_rand($images)]),
-                'advertisingLink' => url($images[array_rand($images)]),
+                'imageLink' => asset($imageLink),
+                'advertisingLink' => asset($advertisingLink),
                 'user_id' => fake()->randomElement($userIds),
                 'status' => 'active',
                 'created_at' => Carbon::now(),
