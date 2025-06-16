@@ -14,6 +14,11 @@ use Exception;
 
 class SettingController extends Controller
 {
+
+    public function storeOrUpdateFooter(Request $request){
+        
+    }
+
     public function footer()
     {
         $categories = Category::with('subCategories')->get();
@@ -198,6 +203,15 @@ class SettingController extends Controller
                 'email' => $user->email,
                 'country' => $user->country,
                 'city' => $user->city,
+                'description' => $user->description,
+                'instagram_icon' => $user->instagram_icon,
+                'instagram_link' => $user->instagram_link,
+                'facebook_icon' => $user->facebook_icon,
+                'facebook_link' => $user->facebook_link,
+                'youtube_icon' => $user->youtube_icon,
+                'youtube_link' => $user->youtube_link,
+                'twitter_icon' => $user->twitter_icon,
+                'twitter_link' => $user->twitter_link,
                 'profile_pic' => $user->profile_pic
                     ? url('uploads/ProfilePics/' . $user->profile_pic)
                     : null,
@@ -250,17 +264,26 @@ class SettingController extends Controller
                 'country' => 'nullable|string|max:255',
                 'city' => 'nullable|string|max:255',
                 'profile_pic' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:10240',  // 10MB
+                // New fields
+                'description' => 'nullable|string',
+                'instagram_icon' => 'nullable|string|max:255',
+                'instagram_link' => 'nullable|url|max:255',
+                'facebook_icon' => 'nullable|string|max:255',
+                'facebook_link' => 'nullable|url|max:255',
+                'youtube_icon' => 'nullable|string|max:255',
+                'youtube_link' => 'nullable|url|max:255',
+                'twitter_icon' => 'nullable|string|max:255',
+                'twitter_link' => 'nullable|url|max:255',
             ]);
 
             $user = Auth::user();
 
             // Update fields
-            $user->first_name = $validated['first_name'] ?? $user->first_name;
-            $user->last_name = $validated['last_name'] ?? $user->last_name;
-            $user->phone = $validated['phone'] ?? $user->phone;
-            $user->email = $validated['email'] ?? $user->email;
-            $user->country = $validated['country'] ?? $user->country;
-            $user->city = $validated['city'] ?? $user->city;
+            foreach ($validated as $key => $value) {
+                if ($key !== 'profile_pic') {
+                    $user->$key = $value ?? $user->$key;
+                }
+            }
 
             // Handle profile picture upload
             if ($request->hasFile('profile_pic')) {
@@ -273,10 +296,6 @@ class SettingController extends Controller
                 $profilePicName = time() . '_profile.' . $profilePic->getClientOriginalExtension();
                 $profilePic->move(public_path('uploads/ProfilePics'), $profilePicName);
                 $user->profile_pic = $profilePicName;
-
-                // Alternative using Storage (future-proof):
-                // $profilePicName = $profilePic->storeAs('profile_pics', $profilePicName, 'public');
-                // $user->profile_pic = basename($profilePicName);
             }
 
             $user->save();
@@ -291,6 +310,15 @@ class SettingController extends Controller
                     'email' => $user->email,
                     'country' => $user->country,
                     'city' => $user->city,
+                    'description' => $user->description,
+                    'instagram_icon' => $user->instagram_icon,
+                    'instagram_link' => $user->instagram_link,
+                    'facebook_icon' => $user->facebook_icon,
+                    'facebook_link' => $user->facebook_link,
+                    'youtube_icon' => $user->youtube_icon,
+                    'youtube_link' => $user->youtube_link,
+                    'twitter_icon' => $user->twitter_icon,
+                    'twitter_link' => $user->twitter_link,
                     'profile_pic' => $user->profile_pic
                         ? url('uploads/ProfilePics/' . $user->profile_pic)
                         : null,
