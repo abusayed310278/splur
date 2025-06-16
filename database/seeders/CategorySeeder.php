@@ -20,7 +20,7 @@ class CategorySeeder extends Seeder
             'Music',
             'Quiet Calm',
             'Video',
-            // 'Shop',
+            'Shop',
         ];
 
         foreach ($categories as $name) {
