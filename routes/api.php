@@ -56,7 +56,7 @@ Route::middleware('auth:api')->group(function () {
             // Role management
             Route::apiResource('roles', RoleManagementController::class);
             Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
-            Route::patch('contents/update-status/{id}', [ContentController::class, 'updateStatus']);
+            Route::put('contents/update-status/{id}', [ContentController::class, 'updateStatus']);
             Route::post('footer', [FooterController::class, 'storeOrUpdateFooter']);
 
         });
@@ -162,6 +162,7 @@ Route::get('landing-page/6th-page-bottom-portion', [ContentController::class, 'l
 //Landing page content by category
 Route::get('home', [ContentController::class,'HomeContent']);
 Route::get('home/{cat_name}', [ContentController::class,'HomeCategoryContent']);
-// Route::get('',[]);
+Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
+
 
 
