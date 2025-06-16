@@ -1442,7 +1442,7 @@ class ContentController extends Controller
             'advertising_image' => 'nullable',
             'imageLink' => 'nullable|string',
             'advertisingLink' => 'nullable|string',
-            'status' => 'required|in:active,pending',
+            // 'status' => 'required|in:active,pending',
         ]);
 
         try {
