@@ -6,13 +6,13 @@ use App\Models\Category;
 use App\Models\Comment;
 use App\Models\CommentVote;
 use App\Models\Content;
+use App\Models\Genre;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Genre;
 
 class ContentController extends Controller
 {
@@ -974,32 +974,43 @@ class ContentController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, $id)
+    public function storeOrUpdateStatus(Request $request, $id)
     {
         // Validate the status field
         $request->validate([
             'status' => 'required|string|in:active,pending',  // adjust allowed values as needed
         ]);
 
-        // Find the content by ID
+        // Try to find existing content by ID
         $content = Content::find($id);
 
-        if (!$content) {
+        if ($content) {
+            // Update existing content status
+            $content->status = $request->input('status');
+            $content->save();
+
             return response()->json([
-                'status' => false,
-                'message' => 'Content not found.',
-            ], 404);
+                'status' => true,
+                'message' => 'Content status updated successfully.',
+                'data' => $content,
+            ], 200);
+        } else {
+            // Create new content with given id and status (optional)
+            // Note: Usually ID is auto-increment and shouldn't be forced
+            // If you want to create a new record without id, remove $id assignment
+
+            $content = new Content();
+            $content->id = $id;  // Only if your model supports manual ID assignment
+            $content->status = $request->input('status');
+            // You may need to fill other required fields here to avoid DB errors
+            $content->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Content created with status successfully.',
+                'data' => $content,
+            ], 201);
         }
-
-        // Update the status
-        $content->status = $request->input('status');
-        $content->save();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Content status updated successfully.',
-            'data' => $content
-        ], 200);
     }
 
     public function relatedContents($cat_id, $sub_id, $contentId)
@@ -1165,7 +1176,7 @@ class ContentController extends Controller
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
-                     'status' => $item->status,
+                    'status' => $item->status,
                 ];
             });
 
