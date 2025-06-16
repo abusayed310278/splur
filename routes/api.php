@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\FooterController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubCategoryController;
@@ -158,5 +159,8 @@ Route::get('landing-page/5th-page-bottom-portion', [ContentController::class, 'l
 Route::get('landing-page/6th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
 Route::get('landing-page/6th-page-bottom-portion', [ContentController::class, 'landingPage6thPageBottomPortion']);
 
+//Landing page content by category
+Route::get('home', [ContentController::class,'HomeContent']);
+Route::get('home/{cat_name}', [ContentController::class,'HomeCategoryContent']);
 
 

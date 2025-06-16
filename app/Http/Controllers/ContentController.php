@@ -12,9 +12,67 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Genre;
 
 class ContentController extends Controller
 {
+    public function HomeCategoryContent($cat_name)
+    {
+        try {
+            // Find the genre by name (case-insensitive)
+            $category_id = Category::where('category_name', 'like', $cat_name)->first();
+
+            if (!$category_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Category not found.',
+                ], 404);
+            }
+
+            // Get latest 15 contents for that genre
+            $contents = Content::where('category_id', $category_id->id)
+                ->latest()
+                ->where('status', 'active')
+                ->take(15)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Latest 15 contents for category fetched successfully.',
+                'data' => $contents,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('HomeCategoryContent Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch category contents.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function HomeContent()
+    {
+        try {
+            $contents = Content::latest()->take(15)->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Latest 15 contents fetched successfully.',
+                'data' => $contents,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('HomeContent Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch contents.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function landingPage6thPageBottomPortion()
     {
         // Get the 4th latest category (by created_at descending)
