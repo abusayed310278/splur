@@ -22,9 +22,9 @@ class DatabaseSeeder extends Seeder
 
         // $this->call(UserSeeder::class);
         $this->call([
-            // UserSeeder::class,
-            // CategorySeeder::class,
-            // SubCategorySeeder::class,
+            UserSeeder::class,
+            CategorySeeder::class,
+            SubCategorySeeder::class,
             ContentSeeder::class  
         ]);
     }
