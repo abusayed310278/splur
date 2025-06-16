@@ -10,30 +10,26 @@ class SubCategorySeeder extends Seeder
 {
     public function run(): void
     {
+        // Define subcategories for each category (7 categories, each with 7 subcategories)
         $subcategories = [
-            ['category_id' => 1, 'name' => 'Mountain Ride'],
-            ['category_id' => 1, 'name' => 'City Ride'],
-            ['category_id' => 2, 'name' => 'Helmets'],
-            ['category_id' => 2, 'name' => 'Gloves'],
-            ['category_id' => 3, 'name' => 'Apparel'],
-            ['category_id' => 3, 'name' => 'Accessories'],
-            ['category_id' => 4, 'name' => 'Street Art'],
-            ['category_id' => 4, 'name' => 'Galleries'],
-            ['category_id' => 5, 'name' => 'Mindfulness'],
-            ['category_id' => 5, 'name' => 'Yoga'],
-            ['category_id' => 6, 'name' => 'Indie Rock'],
-            ['category_id' => 6, 'name' => 'Electronic'],
-            ['category_id' => 7, 'name' => 'Short Films'],
-            ['category_id' => 7, 'name' => 'Documentaries'],
+            1 => ['Mountain Ride', 'City Ride', 'Trail Ride', 'Off-road', 'Downhill', 'Enduro', 'Cross Country'],
+            2 => ['Helmets', 'Gloves', 'Jackets', 'Boots', 'Goggles', 'Protective Gear', 'Rainwear'],
+            3 => ['Apparel', 'Accessories', 'Bags', 'Footwear', 'Eyewear', 'Watches', 'Jewelry'],
+            4 => ['Street Art', 'Galleries', 'Exhibitions', 'Murals', 'Sculptures', 'Workshops', 'Festivals'],
+            5 => ['Mindfulness', 'Yoga', 'Meditation', 'Breathing Techniques', 'Relaxation', 'Self-care', 'Retreats'],
+            6 => ['Indie Rock', 'Electronic', 'Jazz', 'Classical', 'Hip-Hop', 'Pop', 'Blues'],
+            7 => ['Short Films', 'Documentaries', 'Animations', 'Experimental', 'Drama', 'Comedy', 'Action'],
         ];
 
-        foreach ($subcategories as $subcategory) {
-            DB::table('sub_categories')->insert([
-                'category_id' => $subcategory['category_id'],
-                'name' => $subcategory['name'],
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+        foreach ($subcategories as $categoryId => $subs) {
+            foreach ($subs as $subName) {
+                DB::table('sub_categories')->insert([
+                    'category_id' => $categoryId,
+                    'name' => $subName,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
         }
     }
 }
