@@ -63,6 +63,8 @@ class ContentController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Latest 15 contents for category fetched successfully.',
+                'category_id' => $category->id,
+                'category_name' => $category->category_name,
                 'data' => $contents,
             ], 200);
         } catch (\Exception $e) {
