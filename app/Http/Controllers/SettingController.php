@@ -14,9 +14,106 @@ use Exception;
 
 class SettingController extends Controller
 {
+    public function getHeader()
+    {
+        $setting = Setting::where('key', 'header')->first();
 
-    public function storeOrUpdateFooter(Request $request){
-        
+        if (!$setting) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Header settings not found.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Header settings fetched successfully.',
+            'data' => $setting,
+        ]);
+    }
+
+    public function storeOrUpdateHeader(Request $request)
+    {
+        $request->validate([
+            'border_color' => 'nullable|string|max:255',
+            'bg_color' => 'nullable|string|max:255',
+            'menu_item_color' => 'nullable|string|max:255',
+            'menu_item_active_color' => 'nullable|string|max:255',
+            'logo' => 'nullable|image',
+        ]);
+
+        $setting = Setting::firstOrNew(['key' => 'header']);
+
+        $setting->border_color = $request->border_color;
+        $setting->bg_color = $request->bg_color;
+        $setting->menu_item_color = $request->menu_item_color;
+        $setting->menu_item_active_color = $request->menu_item_active_color;
+
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $logoName = time() . '_logo.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/Header'), $logoName);
+            $setting->logo = 'uploads/Header/' . $logoName;
+        }
+
+        $setting->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Header settings updated successfully.',
+            'data' => $setting,
+        ]);
+    }
+
+    public function storeOrUpdateFooter(Request $request)
+    {
+        $request->validate([
+            'facebook_icon' => 'nullable|image',
+            'facebook_link' => 'nullable|url',
+            'twitter_icon' => 'nullable|image',
+            'twitter_link' => 'nullable|url',
+            'linkedin_icon' => 'nullable|image',
+            'linkedin_link' => 'nullable|url',
+            'instagram_icon' => 'nullable|image',
+            'instagram_link' => 'nullable|url',
+            'app_store_icon' => 'nullable|image',
+            'app_store_link' => 'nullable|url',
+            'google_play_icon' => 'nullable|image',
+            'google_play_link' => 'nullable|url',
+            'copyright' => 'nullable|string',
+        ]);
+
+        $setting = Setting::firstOrNew(['key' => 'footer']);
+
+        // Handle each icon upload if present
+        foreach ([
+            'facebook_icon', 'twitter_icon', 'linkedin_icon', 'instagram_icon',
+            'app_store_icon', 'google_play_icon'
+        ] as $iconField) {
+            if ($request->hasFile($iconField)) {
+                $file = $request->file($iconField);
+                $fileName = time() . '_' . $iconField . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/Footer'), $fileName);
+                $setting->$iconField = 'uploads/Footer/' . $fileName;
+            }
+        }
+
+        // Set links and copyright
+        $setting->facebook_link = $request->facebook_link;
+        $setting->twitter_link = $request->twitter_link;
+        $setting->linkedin_link = $request->linkedin_link;
+        $setting->instagram_link = $request->instagram_link;
+        $setting->app_store_link = $request->app_store_link;
+        $setting->google_play_link = $request->google_play_link;
+        $setting->copyright = $request->copyright;
+
+        $setting->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Footer settings updated successfully.',
+            'data' => $setting,
+        ]);
     }
 
     public function footer()

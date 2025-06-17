@@ -961,12 +961,38 @@ class ContentController extends Controller
     {
         $perPage = 10;
 
-        $contents = Content::latest()->paginate($perPage);
+        $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            ->latest()
+            ->paginate($perPage);
+
+        $transformed = $contents->getCollection()->map(function ($content) {
+            return [
+                'id' => $content->id,
+                'category_id' => $content->category_id,
+                'subcategory_id' => $content->subcategory_id,
+                'category_name' => optional($content->category)->category_name,
+                'sub_category_name' => optional($content->subcategory)->name,
+                'heading' => $content->heading,
+                'author' => $content->author,
+                'date' => $content->date,
+                'sub_heading' => $content->sub_heading,
+                'body1' => $content->body1,
+                'image1' => $content->image1,
+                'advertising_image' => $content->advertising_image,
+                'tags' => $content->tags,
+                'created_at' => $content->created_at,
+                'updated_at' => $content->updated_at,
+                'imageLink' => $content->imageLink,
+                'advertisingLink' => $content->advertisingLink,
+                'user_id' => $content->user_id,
+                'status' => $content->status,
+            ];
+        });
 
         return response()->json([
             'success' => true,
             'message' => 'Latest contents fetched successfully.',
-            'data' => $contents->items(),
+            'data' => $transformed,
             'meta' => [
                 'current_page' => $contents->currentPage(),
                 'per_page' => $contents->perPage(),

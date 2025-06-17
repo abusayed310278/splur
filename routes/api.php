@@ -56,8 +56,10 @@ Route::middleware('auth:api')->group(function () {
             // Role management
             Route::apiResource('roles', RoleManagementController::class);
             Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
-            Route::post('content/update-status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
-            Route::post('footer', [FooterController::class, 'storeOrUpdateFooter']);
+            Route::post('content/status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
+            // Route::apiResource('footer-menu', [FooterController::class]);
+            Route::post('header/update'  , [SettingController::class,'storeOrUpdateHeader']);
+            Route::post('footer/update'  , [SettingController::class,'storeOrUpdateFooter']);
 
         });
     });
@@ -130,39 +132,42 @@ Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class
 
 // ---------------------------latest ---------------------------//
 
-Route::get('landing-page/top-portion', [ContentController::class, 'landingPageTopPortion']);
-Route::get('landing-page/bottom-portion', [ContentController::class, 'landingPageBottomPortion']);
+// Route::get('landing-page/top-portion', [ContentController::class, 'landingPageTopPortion']);
+// Route::get('landing-page/bottom-portion', [ContentController::class, 'landingPageBottomPortion']);
 
-//art & culture
-Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
-Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
-
-
-//quiet calm
-Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
-Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
+// //art & culture
+// Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
+// Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
 
 
-//gear
-Route::get('landing-page/3rd-page-top-portion', [ContentController::class, 'landingPage3rdPageTopPortion']);
-Route::get('landing-page/3rd-page-bottom-portion', [ContentController::class, 'landingPage3rdPageBottomPortion']);
+// //quiet calm
+// Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
+// Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
 
-//ride
-Route::get('landing-page/4th-page-top-portion', [ContentController::class, 'landingPage4thPageTopPortion']);
-Route::get('landing-page/4th-page-bottom-portion', [ContentController::class, 'landingPage4thPageBottomPortion']);
 
-//music
-Route::get('landing-page/5th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
-Route::get('landing-page/5th-page-bottom-portion', [ContentController::class, 'landingPage5thPageBottomPortion']);
+// //gear
+// Route::get('landing-page/3rd-page-top-portion', [ContentController::class, 'landingPage3rdPageTopPortion']);
+// Route::get('landing-page/3rd-page-bottom-portion', [ContentController::class, 'landingPage3rdPageBottomPortion']);
 
-//video 
-Route::get('landing-page/6th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
-Route::get('landing-page/6th-page-bottom-portion', [ContentController::class, 'landingPage6thPageBottomPortion']);
+// //ride
+// Route::get('landing-page/4th-page-top-portion', [ContentController::class, 'landingPage4thPageTopPortion']);
+// Route::get('landing-page/4th-page-bottom-portion', [ContentController::class, 'landingPage4thPageBottomPortion']);
+
+// //music
+// Route::get('landing-page/5th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
+// Route::get('landing-page/5th-page-bottom-portion', [ContentController::class, 'landingPage5thPageBottomPortion']);
+
+// //video 
+// Route::get('landing-page/6th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
+// Route::get('landing-page/6th-page-bottom-portion', [ContentController::class, 'landingPage6thPageBottomPortion']);
 
 //Landing page content by category
 Route::get('home', [ContentController::class,'HomeContent']);
+
+
 Route::get('home/{cat_name}', [ContentController::class,'HomeCategoryContent']);
 Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
+Route::get('header', [SettingController::class, 'getHeader']);
 
 
 
