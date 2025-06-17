@@ -56,7 +56,7 @@ Route::middleware('auth:api')->group(function () {
             // Role management
             Route::apiResource('roles', RoleManagementController::class);
             Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
-            // Route::post('contents/update-status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
+            Route::post('content/update-status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
             Route::post('footer', [FooterController::class, 'storeOrUpdateFooter']);
 
         });

@@ -19,22 +19,46 @@ class ContentController extends Controller
     public function HomeCategoryContent($cat_name)
     {
         try {
-            // Find the genre by name (case-insensitive)
-            $category_id = Category::where('category_name', 'like', $cat_name)->first();
+            // Find the category by name (case-insensitive)
+            $category = Category::where('category_name', 'like', $cat_name)->first();
 
-            if (!$category_id) {
+            if (!$category) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Category not found.',
                 ], 404);
             }
 
-            // Get latest 15 contents for that genre
-            $contents = Content::where('category_id', $category_id->id)            
-                ->latest()
+            // Get latest 15 contents for that category with related category and subcategory
+            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->where('category_id', $category->id)
                 ->where('status', 'active')
+                ->latest()
                 ->take(15)
-                ->get();
+                ->get()
+                ->map(function ($content) {
+                    return [
+                        'id' => $content->id,
+                        'category_id' => $content->category_id,
+                        'subcategory_id' => $content->subcategory_id,
+                        'category_name' => optional($content->category)->category_name,
+                        'sub_category_name' => optional($content->subcategory)->name,
+                        'heading' => $content->heading,
+                        'author' => $content->author,
+                        'date' => $content->date,
+                        'sub_heading' => $content->sub_heading,
+                        'body1' => $content->body1,
+                        'image1' => $content->image1,
+                        'advertising_image' => $content->advertising_image,
+                        'tags' => $content->tags,
+                        'created_at' => $content->created_at,
+                        'updated_at' => $content->updated_at,
+                        'imageLink' => $content->imageLink,
+                        'advertisingLink' => $content->advertisingLink,
+                        'user_id' => $content->user_id,
+                        'status' => $content->status,
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
@@ -55,7 +79,34 @@ class ContentController extends Controller
     public function HomeContent()
     {
         try {
-            $contents = Content::where('status', 'active')->latest()->take(15)->get();
+            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->where('status', 'active')
+                ->latest()
+                ->take(15)
+                ->get()
+                ->map(function ($content) {
+                    return [
+                        'id' => $content->id,
+                        'category_id' => $content->category_id,
+                        'subcategory_id' => $content->subcategory_id,
+                        'category_name' => optional($content->category)->category_name,
+                        'sub_category_name' => optional($content->subcategory)->name,
+                        'heading' => $content->heading,
+                        'author' => $content->author,
+                        'date' => $content->date,
+                        'sub_heading' => $content->sub_heading,
+                        'body1' => $content->body1,
+                        'image1' => $content->image1,
+                        'advertising_image' => $content->advertising_image,
+                        'tags' => $content->tags,
+                        'created_at' => $content->created_at,
+                        'updated_at' => $content->updated_at,
+                        'imageLink' => $content->imageLink,
+                        'advertisingLink' => $content->advertisingLink,
+                        'user_id' => $content->user_id,
+                        'status' => $content->status,
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
