@@ -57,7 +57,7 @@ Route::middleware('auth:api')->group(function () {
             Route::apiResource('roles', RoleManagementController::class);
             Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
             Route::post('content/status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
-            // Route::apiResource('footer-menu', [FooterController::class]);
+            Route::apiResource('footer-menu', FooterController::class);
             Route::post('header/update'  , [SettingController::class,'storeOrUpdateHeader']);
             Route::post('footer/update'  , [SettingController::class,'storeOrUpdateFooter']);
 
@@ -168,6 +168,7 @@ Route::get('home', [ContentController::class,'HomeContent']);
 Route::get('home/{cat_name}', [ContentController::class,'HomeCategoryContent']);
 Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
 Route::get('header', [SettingController::class, 'getHeader']);
+Route::get('footer', [SettingController::class, 'getFooter']);
 
 
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Footer;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,62 @@ use Exception;
 
 class SettingController extends Controller
 {
+    public function getFooter()
+    {
+        try {
+            // Get all footer links
+            $footerLinks = Footer::select('name', 'named_url')->get();
+
+            // Get footer setting where key = 'footer'
+            $setting = Setting::where('key', 'footer')->first();
+
+            $socialData = [
+                'facebook' => [
+                    'icon' => $setting->facebook_icon ?? null,
+                    'link' => $setting->facebook_link ?? null,
+                ],
+                'instagram' => [
+                    'icon' => $setting->instagram_icon ?? null,
+                    'link' => $setting->instagram_link ?? null,
+                ],
+                'linkedin' => [
+                    'icon' => $setting->linkedin_icon ?? null,
+                    'link' => $setting->linkedin_link ?? null,
+                ],
+                'twitter' => [
+                    'icon' => $setting->twitter_icon ?? null,
+                    'link' => $setting->twitter_link ?? null,
+                ],
+                'app_store' => [
+                    'icon' => $setting->app_store_icon ?? null,
+                    'link' => $setting->app_store_link ?? null,
+                ],
+                'google_play' => [
+                    'icon' => $setting->google_play_icon ?? null,
+                    'link' => $setting->google_play_link ?? null,
+                ],
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Footer data fetched successfully.',
+                'data' => [
+                    'footer_links' => $footerLinks,
+                    'copyright' => $setting->copyright ?? '',
+                    'social_links' => $socialData,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('getFooter Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch footer data.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getHeader()
     {
         $setting = Setting::where('key', 'header')->first();
@@ -28,7 +85,13 @@ class SettingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Header settings fetched successfully.',
-            'data' => $setting,
+            'data' => [
+                'logo' => $setting->logo,
+                'border_color' => $setting->border_color,
+                'bg_color' => $setting->bg_color,
+                'menu_item_color' => $setting->menu_item_color,
+                'menu_item_active_color' => $setting->menu_item_active_color,
+            ],
         ]);
     }
 
