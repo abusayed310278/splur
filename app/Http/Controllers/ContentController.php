@@ -31,6 +31,7 @@ class ContentController extends Controller
 
             // Get latest 15 contents for that genre
             $contents = Content::where('category_id', $category_id->id)
+                ->where('status', true)
                 ->latest()
                 ->where('status', 'active')
                 ->take(15)
@@ -55,7 +56,7 @@ class ContentController extends Controller
     public function HomeContent()
     {
         try {
-            $contents = Content::latest()->take(15)->get();
+            $contents = Content::where('status', true)->latest()->take(15)->get();
 
             return response()->json([
                 'success' => true,
