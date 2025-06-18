@@ -10,14 +10,26 @@ use Illuminate\Support\Facades\Validator;
 
 class SubscriberController extends Controller
 {
-    public function showSubscribers(): JsonResponse
+    public function showSubscribers(Request $request): JsonResponse
     {
         try {
-            $emails = Subscriber::pluck('email');
+            // Get dynamic pagination count or default to 10
+            $perPage = $request->input('paginate_count', 10);
+
+            // Fetch subscribers with id and email, paginated
+            $subscribers = Subscriber::select('id', 'email')
+                ->orderBy('id', 'desc')
+                ->paginate($perPage);
 
             return response()->json([
                 'success' => true,
-                'emails' => $emails
+                'data' => $subscribers->items(),
+                'meta' => [
+                    'current_page' => $subscribers->currentPage(),
+                    'per_page' => $subscribers->perPage(),
+                    'total' => $subscribers->total(),
+                    'last_page' => $subscribers->lastPage(),
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
