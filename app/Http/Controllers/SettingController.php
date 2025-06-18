@@ -29,7 +29,7 @@ class SettingController extends Controller
                 $content->image1_url = $content->image1 ? url($content->image1) : null;
                 $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
-                $content->category_name = $content->category?->name;
+                $content->category_name = $content->category?->category_name;
                 $content->sub_category_name = $content->subcategory?->name;
 
                 unset($content->category, $content->subcategory);  // optional: remove relations if not needed
