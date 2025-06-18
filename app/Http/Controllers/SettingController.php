@@ -18,46 +18,21 @@ class SettingController extends Controller
     public function getFooter()
     {
         try {
-            // Get all footer links
-            $footerLinks = Footer::select('name', 'named_url')->get();
-
-            // Get footer setting where key = 'footer'
+            $footerLinks = Footer::select('name', 'named_url')->get()->toArray();
             $setting = Setting::where('key', 'footer')->first();
-
-            $socialData = [
-                'facebook' => [
-                    'icon' => $setting->facebook_icon ?? null,
-                    'link' => $setting->facebook_link ?? null,
-                ],
-                'instagram' => [
-                    'icon' => $setting->instagram_icon ?? null,
-                    'link' => $setting->instagram_link ?? null,
-                ],
-                'linkedin' => [
-                    'icon' => $setting->linkedin_icon ?? null,
-                    'link' => $setting->linkedin_link ?? null,
-                ],
-                'twitter' => [
-                    'icon' => $setting->twitter_icon ?? null,
-                    'link' => $setting->twitter_link ?? null,
-                ],
-                'app_store' => [
-                    'icon' => $setting->app_store_icon ?? null,
-                    'link' => $setting->app_store_link ?? null,
-                ],
-                'google_play' => [
-                    'icon' => $setting->google_play_icon ?? null,
-                    'link' => $setting->google_play_link ?? null,
-                ],
-            ];
 
             return response()->json([
                 'success' => true,
                 'message' => 'Footer data fetched successfully.',
                 'data' => [
                     'footer_links' => $footerLinks,
-                    'copyright' => $setting->copyright ?? '',
-                    'social_links' => $socialData,
+                    'facebook_link' => $setting->facebook_link ?? null,
+                    'instagram_link' => $setting->instagram_link ?? null,
+                    'linkedin_icon' => $setting->linkedin_icon ?? null,
+                    'twitter_link' => $setting->twitter_link ?? null,
+                    'app_store_link' => $setting->app_store_link ?? null,
+                    'google_play_link' => $setting->google_play_link ?? null,
+                    'bg_color' => $setting->bg_color ?? null,  // <-- added background color
                 ]
             ]);
         } catch (Exception $e) {
