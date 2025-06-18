@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Content;
 use App\Models\Footer;
 use App\Models\Setting;
 use Illuminate\Http\Request;
@@ -15,6 +16,44 @@ use Exception;
 
 class SettingController extends Controller
 {
+    
+
+    public function getUserContent($user_id)
+    {
+        try {
+            $contents = Content::with(['user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link'])
+                ->where('user_id', $user_id)
+                ->latest()
+                ->get();
+
+            // Map image URLs
+            $contents->transform(function ($content) {
+                $content->image1_url = $content->image1 ? url($content->image1) : null;
+                $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+
+                if ($content->user && $content->user->profile_pic) {
+                    $content->user->profile_pic = url($content->user->profile_pic);
+                }
+
+                return $content;
+            });
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User content fetched successfully.',
+                'data' => $contents,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Fetching user content failed: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to fetch user content.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getFooter()
     {
         try {
