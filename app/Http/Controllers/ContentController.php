@@ -1238,12 +1238,13 @@ class ContentController extends Controller
             // Combine user info
             $user = $content->user;
             $userInfo = $user ? [
-                'first_name' => $user->name,
+                'name' => $user->first_name,
                 'description' => $user->description,
                 'facebook_link' => $user->facebook_link,
                 'instagram_link' => $user->instagram_link,
-                'linkedin_link' => $user->linkedin_link,
+                // 'linkedin_link' => $user->linkedin_link,
                 'twitter_link' => $user->twitter_link,
+                'youtube_link' => $user->youtube_link,
             ] : null;
 
             // Convert content to array and append user
