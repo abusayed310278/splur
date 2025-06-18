@@ -74,7 +74,7 @@ class SettingController extends Controller
     {
         $request->validate([
             'border_color' => 'nullable|string|max:255',
-            'bg_color' => 'nullable|string|max:255',
+            'color' => 'nullable|string|max:255',
             'menu_item_color' => 'nullable|string|max:255',
             'menu_item_active_color' => 'nullable|string|max:255',
             'logo' => 'nullable|image',
@@ -83,9 +83,10 @@ class SettingController extends Controller
         $setting = Setting::firstOrNew(['key' => 'header']);
 
         $setting->border_color = $request->border_color;
-        $setting->bg_color = $request->bg_color;
+        $setting->color = $request->color;
         $setting->menu_item_color = $request->menu_item_color;
         $setting->menu_item_active_color = $request->menu_item_active_color;
+        // $setting->color = $request->color;
 
         if ($request->hasFile('logo')) {
             $file = $request->file('logo');
