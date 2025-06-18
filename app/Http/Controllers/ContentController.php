@@ -1177,15 +1177,52 @@ class ContentController extends Controller
         }
     }
 
+    // public function index($cat_id, $sub_id, $id)
+    // {
+    //     try {
+    //         $content = Content::where('category_id', $cat_id)
+    //             ->where('subcategory_id', $sub_id)
+    //             ->where('id', $id)
+    //             ->first();
+
+    //         // If content not found
+    //         if (!$content) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'No Content Found.',
+    //                 'data' => null,
+    //             ], 404);
+    //         }
+
+    //         // Add full URLs for images
+    //         $content->image1_url = $content->image1 ? url($content->image1) : null;
+    //         $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content fetched successfully.',
+    //             'data' => $content,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Content fetch failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to fetch content.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function index($cat_id, $sub_id, $id)
     {
         try {
-            $content = Content::where('category_id', $cat_id)
+            $content = Content::with(['user:id,name,description,facebook_link,instagram_link,linkedin_link,twitter_link'])
+                ->where('category_id', $cat_id)
                 ->where('subcategory_id', $sub_id)
                 ->where('id', $id)
                 ->first();
 
-            // If content not found
             if (!$content) {
                 return response()->json([
                     'status' => false,
@@ -1194,14 +1231,29 @@ class ContentController extends Controller
                 ], 404);
             }
 
-            // Add full URLs for images
+            // Add image URLs
             $content->image1_url = $content->image1 ? url($content->image1) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+
+            // Combine user info
+            $user = $content->user;
+            $userInfo = $user ? [
+                'name' => $user->name,
+                'description' => $user->description,
+                'facebook_link' => $user->facebook_link,
+                'instagram_link' => $user->instagram_link,
+                'linkedin_link' => $user->linkedin_link,
+                'twitter_link' => $user->twitter_link,
+            ] : null;
+
+            // Convert content to array and append user
+            $data = $content->toArray();
+            $data['user'] = $userInfo;
 
             return response()->json([
                 'status' => true,
                 'message' => 'Content fetched successfully.',
-                'data' => $content,
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             Log::error('Content fetch failed: ' . $e->getMessage());
