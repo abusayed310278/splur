@@ -16,24 +16,23 @@ use Exception;
 
 class SettingController extends Controller
 {
-    
-
     public function getUserContent($user_id)
     {
         try {
-            $contents = Content::with(['user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link'])
+            $contents = Content::with(['category:id,name', 'subcategory:id,name'])
                 ->where('user_id', $user_id)
                 ->latest()
                 ->get();
 
-            // Map image URLs
+            // Append image URLs and category/subcategory names
             $contents->transform(function ($content) {
                 $content->image1_url = $content->image1 ? url($content->image1) : null;
                 $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
-                if ($content->user && $content->user->profile_pic) {
-                    $content->user->profile_pic = url($content->user->profile_pic);
-                }
+                $content->category_name = $content->category?->name;
+                $content->sub_category_name = $content->subcategory?->name;
+
+                unset($content->category, $content->subcategory);  // optional: remove relations if not needed
 
                 return $content;
             });
@@ -43,7 +42,7 @@ class SettingController extends Controller
                 'message' => 'User content fetched successfully.',
                 'data' => $contents,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Fetching user content failed: ' . $e->getMessage());
 
             return response()->json([
