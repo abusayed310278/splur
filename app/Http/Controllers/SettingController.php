@@ -19,7 +19,7 @@ class SettingController extends Controller
     public function getUserContent($user_id)
     {
         try {
-            $contents = Content::with(['category:id,name', 'subcategory:id,name'])
+            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
                 ->where('user_id', $user_id)
                 ->latest()
                 ->get();
