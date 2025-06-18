@@ -1177,10 +1177,48 @@ class ContentController extends Controller
         }
     }
 
+    // public function index($cat_id, $sub_id, $id)
+    // {
+    //     try {
+    //         $content = Content::where('category_id', $cat_id)
+    //             ->where('subcategory_id', $sub_id)
+    //             ->where('id', $id)
+    //             ->first();
+
+    //         // If content not found
+    //         if (!$content) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'No Content Found.',
+    //                 'data' => null,
+    //             ], 404);
+    //         }
+
+    //         // Add full URLs for images
+    //         $content->image1_url = $content->image1 ? url($content->image1) : null;
+    //         $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content fetched successfully.',
+    //             'data' => $content,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Content fetch failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Failed to fetch content.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function index($cat_id, $sub_id, $id)
     {
         try {
-            $content = Content::where('category_id', $cat_id)
+            $content = Content::with(['user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link'])
+                ->where('category_id', $cat_id)
                 ->where('subcategory_id', $sub_id)
                 ->where('id', $id)
                 ->first();
@@ -1198,6 +1236,11 @@ class ContentController extends Controller
             $content->image1_url = $content->image1 ? url($content->image1) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
+            // Optional: If user has a profile_pic, make it a full URL
+            if ($content->user && $content->user->profile_pic) {
+                $content->user->profile_pic = url($content->user->profile_pic);
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'Content fetched successfully.',
@@ -1213,8 +1256,6 @@ class ContentController extends Controller
             ], 500);
         }
     }
-
-
 
     public function indexForSubCategory($cat_id, $sub_id, Request $request)
     {
