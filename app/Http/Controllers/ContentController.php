@@ -1238,7 +1238,7 @@ class ContentController extends Controller
             // Combine user info
             $user = $content->user;
             $userInfo = $user ? [
-                'name' => $user->name,
+                'first_name' => $user->name,
                 'description' => $user->description,
                 'facebook_link' => $user->facebook_link,
                 'instagram_link' => $user->instagram_link,
