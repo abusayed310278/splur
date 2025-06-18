@@ -28,7 +28,7 @@ class SettingController extends Controller
                     'footer_links' => $footerLinks,
                     'facebook_link' => $setting->facebook_link ?? null,
                     'instagram_link' => $setting->instagram_link ?? null,
-                    'linkedin_icon' => $setting->linkedin_icon ?? null,
+                    'linkedin_link' => $setting->linkedin_link ?? null,
                     'twitter_link' => $setting->twitter_link ?? null,
                     'app_store_link' => $setting->app_store_link ?? null,
                     'google_play_link' => $setting->google_play_link ?? null,
