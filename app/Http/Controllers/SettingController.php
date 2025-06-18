@@ -60,8 +60,8 @@ class SettingController extends Controller
                     'social_links' => $socialData,
                 ]
             ]);
-        } catch (\Exception $e) {
-            \Log::error('getFooter Error: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('getFooter Error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -144,6 +144,7 @@ class SettingController extends Controller
             'google_play_icon' => 'nullable|image',
             'google_play_link' => 'nullable|url',
             'copyright' => 'nullable|string',
+            'bg_color' => 'nullable|string',
         ]);
 
         $setting = Setting::firstOrNew(['key' => 'footer']);
@@ -169,6 +170,7 @@ class SettingController extends Controller
         $setting->app_store_link = $request->app_store_link;
         $setting->google_play_link = $request->google_play_link;
         $setting->copyright = $request->copyright;
+        $setting->bg_color = $request->bg_color;
 
         $setting->save();
 
