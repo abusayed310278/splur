@@ -63,7 +63,7 @@ class SettingController extends Controller
             'data' => [
                 'logo' => $setting->logo,
                 'border_color' => $setting->border_color,
-                'bg_color' => $setting->bg_color,
+                'bg_color' => $setting->color,
                 'menu_item_color' => $setting->menu_item_color,
                 'menu_item_active_color' => $setting->menu_item_active_color,
             ],
