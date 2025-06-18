@@ -42,7 +42,8 @@ class CategoryController extends Controller
                 ->when($request->search, function ($query, $search) {
                     return $query->where('category_name', 'like', "%{$search}%");
                 })
-                ->latest()
+                // ->latest()
+                ->orderBy('id', 'asc')
                 ->paginate(10);
 
             $result = $categories->map(function ($category) {

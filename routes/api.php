@@ -109,7 +109,7 @@ Route::get('subcategories', [SubCategoryController::class, 'index']);
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('comment', CommentController::class)->only([
         'store', 'update', 'destroy'
-    ]);;
+    ]);
 });
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
