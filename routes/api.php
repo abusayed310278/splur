@@ -31,6 +31,7 @@ Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('p
 
 // Routes requiring authentication
 Route::middleware('auth:api')->group(function () {
+    
     // General authenticated routes for all logged-in users
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
@@ -169,7 +170,6 @@ Route::get('home/{cat_name}', [ContentController::class,'HomeCategoryContent']);
 Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
 Route::get('header', [SettingController::class, 'getHeader']);
 Route::get('footer', [SettingController::class, 'getFooter']);
-Route::get('view-post/{user_id}', [SettingController::class, 'getUserContent']);
 
 
 
