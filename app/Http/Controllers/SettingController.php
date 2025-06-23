@@ -17,8 +17,6 @@ use Exception;
 
 class SettingController extends Controller
 {
-
-
     public function getAdvertising($slug)
     {
         try {
@@ -30,6 +28,11 @@ class SettingController extends Controller
                     'success' => false,
                     'message' => 'Advertising setting not found.'
                 ], 404);
+            }
+
+            // Convert image1 path to full URL if it exists
+            if ($advertising->image1) {
+                $advertising->image1 = asset($advertising->image1);
             }
 
             return response()->json([
