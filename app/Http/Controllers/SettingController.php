@@ -23,7 +23,7 @@ class SettingController extends Controller
     {
         try {
             // Find the advertising record by slug
-            $advertising = Setting::where('slug', $slug)->first();
+            $advertising = Advertising::where('slug', $slug)->first();
 
             if (!$advertising) {
                 return response()->json([
