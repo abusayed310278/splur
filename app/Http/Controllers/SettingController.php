@@ -17,6 +17,35 @@ use Exception;
 
 class SettingController extends Controller
 {
+
+
+    public function getAdvertising($slug)
+    {
+        try {
+            // Find the advertising record by slug
+            $advertising = Setting::where('slug', $slug)->first();
+
+            if (!$advertising) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Advertising setting not found.'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Advertising setting fetched successfully.',
+                'data' => $advertising
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch advertising setting.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function storeOrUpdateAdvertising(Request $request, $slug)
     {
         $validated = $request->validate([
@@ -54,11 +83,6 @@ class SettingController extends Controller
             ],
         ]);
     }
-
-
-
-
-
 
     public function getUserContent($user_id)
     {
