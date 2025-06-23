@@ -64,51 +64,62 @@ class SettingController extends Controller
 
     public function storeOrUpdateAdvertising(Request $request, $slug)
     {
-        $validated = $request->validate([
-            'link' => 'nullable|string|url',
-            'image' => 'nullable|image',
-            'code' => 'nullable|string|url',
-        ]);
+        try {
+            $validated = $request->validate([
+                'link' => 'nullable|string|url',
+                'image' => 'nullable|image',
+                'code' => 'nullable|string|url',
+            ]);
 
-        // Validate slug value
-        if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
-            return response()->json(['message' => 'Invalid or missing slug.'], 400);
-        }
-
-        $validated['slug'] = $slug;
-
-        // Handle image upload to /public/uploads/Advertisings
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-            $destination = public_path('uploads/Advertisings');
-
-            // Create the directory if it doesn't exist
-            if (!file_exists($destination)) {
-                mkdir($destination, 0755, true);
+            // Validate slug value
+            if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid or missing slug.'
+                ], 400);
             }
 
-            $file->move($destination, $imageName);
-            $validated['image'] = 'uploads/Advertisings/' . $imageName;
+            $validated['slug'] = $slug;
+
+            // Handle image upload to /public/uploads/Advertisings
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+                $destination = public_path('uploads/Advertisings');
+
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0755, true);
+                }
+
+                $file->move($destination, $imageName);
+                $validated['image'] = 'uploads/Advertisings/' . $imageName;
+            }
+
+            $model = Advertising::updateOrCreate(
+                ['slug' => $slug],
+                $validated
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => $model->wasRecentlyCreated ? 'Created successfully.' : 'Updated successfully.',
+                'data' => [
+                    'id' => $model->id,
+                    'slug' => $model->slug,
+                    'link' => $model->link,
+                    'image' => $model->image ? asset($model->image) : null,
+                    'code' => $model->code,
+                    'created_at' => $model->created_at,
+                    'updated_at' => $model->updated_at,
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to store or update advertising.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $model = Advertising::updateOrCreate(
-            ['slug' => $slug],
-            $validated
-        );
-
-        return response()->json([
-            'message' => $model->wasRecentlyCreated ? 'Created successfully.' : 'Updated successfully.',
-            'data' => [
-                'id' => $model->id,
-                'slug' => $model->slug,
-                'link' => $model->link,
-                'image' => $model->image ? asset($model->image) : null,
-                'code' => $model->code,
-                'created_at' => $model->created_at,
-                'updated_at' => $model->updated_at,
-            ],
-        ]);
     }
 
     public function getUserContent($user_id)
