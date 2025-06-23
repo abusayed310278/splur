@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advertising;
 use App\Models\Category;
 use App\Models\Content;
 use App\Models\Footer;
@@ -16,6 +17,49 @@ use Exception;
 
 class SettingController extends Controller
 {
+    public function storeOrUpdateAdvertising(Request $request, $slug)
+    {
+        $validated = $request->validate([
+            'link' => 'nullable|string|url',
+            'image' => 'nullable|image',
+            'code' => 'nullable|string|url',
+        ]);
+
+        if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
+            return response()->json(['message' => 'Invalid or missing slug.'], 400);
+        }
+
+        $validated['slug'] = $slug;
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('advertisings', 'public');
+            $validated['image'] = $path;
+        }
+
+        $model = Advertising::updateOrCreate(
+            ['slug' => $slug],
+            $validated
+        );
+
+        return response()->json([
+            'message' => $model->wasRecentlyCreated ? 'Created successfully.' : 'Updated successfully.',
+            'data' => [
+                'id' => $model->id,
+                'slug' => $model->slug,
+                'link' => $model->link,
+                'image' => $model->image ? asset('storage/' . $model->image) : null,
+                'code' => $model->code,
+                'created_at' => $model->created_at,
+                'updated_at' => $model->updated_at,
+            ],
+        ]);
+    }
+
+
+
+
+
+
     public function getUserContent($user_id)
     {
         try {

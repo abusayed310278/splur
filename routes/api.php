@@ -61,6 +61,9 @@ Route::middleware('auth:api')->group(function () {
             Route::apiResource('footer-menu', FooterController::class);
             Route::post('header/update'  , [SettingController::class,'storeOrUpdateHeader']);
             Route::post('footer/update'  , [SettingController::class,'storeOrUpdateFooter']);
+            Route::post('advertising/{slug}'  , [SettingController::class,'storeOrUpdateAdvertising']);
+            // Route::post('advertising/vertical'  , [SettingController::class,'storeOrUpdateVerticalAdvertising']);
+            // Route::post('advertising/{s'  , [SettingController::class,'storeOrUpdate']);
 
         });
     });
