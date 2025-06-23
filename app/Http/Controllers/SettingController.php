@@ -102,7 +102,7 @@ class SettingController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $model->wasRecentlyCreated ? 'Created successfully.' : 'Updated successfully.',
+                'message' => $model->wasRecentlyCreated ? 'Advertising created successfully.' : 'Advertising updated successfully.',
                 'data' => [
                     'id' => $model->id,
                     'slug' => $model->slug,
