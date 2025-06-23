@@ -20,6 +20,14 @@ class SettingController extends Controller
     public function getAdvertising($slug)
     {
         try {
+            // Validate slug input
+            if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid or missing slug.'
+                ], 400);
+            }
+
             // Find the advertising record by slug
             $advertising = Advertising::where('slug', $slug)->first();
 
@@ -30,17 +38,22 @@ class SettingController extends Controller
                 ], 404);
             }
 
-            // Convert image1 path to full URL if it exists
-            if ($advertising->image1) {
-                $advertising->image1 = asset($advertising->image1);
-            }
-
             return response()->json([
                 'success' => true,
                 'message' => 'Advertising setting fetched successfully.',
-                'data' => $advertising
+                'data' => [
+                    'id' => $advertising->id,
+                    'slug' => $advertising->slug,
+                    'link' => $advertising->link,
+                    'image' => $advertising->image ? asset($advertising->image) : null,
+                    'code' => $advertising->code,
+                    'created_at' => $advertising->created_at,
+                    'updated_at' => $advertising->updated_at,
+                ]
             ], 200);
         } catch (Exception $e) {
+            Log::error('Error fetching advertising: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch advertising setting.',
@@ -57,17 +70,25 @@ class SettingController extends Controller
             'code' => 'nullable|string|url',
         ]);
 
+        // Validate slug value
         if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
             return response()->json(['message' => 'Invalid or missing slug.'], 400);
         }
 
         $validated['slug'] = $slug;
 
-        // Custom image upload handling
+        // Handle image upload to /public/uploads/Advertisings
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/Advertisings'), $imageName);
+            $destination = public_path('uploads/Advertisings');
+
+            // Create the directory if it doesn't exist
+            if (!file_exists($destination)) {
+                mkdir($destination, 0755, true);
+            }
+
+            $file->move($destination, $imageName);
             $validated['image'] = 'uploads/Advertisings/' . $imageName;
         }
 
