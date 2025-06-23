@@ -63,9 +63,12 @@ class SettingController extends Controller
 
         $validated['slug'] = $slug;
 
+        // Custom image upload handling
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('advertisings', 'public');
-            $validated['image'] = $path;
+            $file = $request->file('image');
+            $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/Advertisings'), $imageName);
+            $validated['image'] = 'uploads/Advertisings/' . $imageName;
         }
 
         $model = Advertising::updateOrCreate(
@@ -79,7 +82,7 @@ class SettingController extends Controller
                 'id' => $model->id,
                 'slug' => $model->slug,
                 'link' => $model->link,
-                'image' => $model->image ? asset('storage/' . $model->image) : null,
+                'image' => $model->image ? asset($model->image) : null,
                 'code' => $model->code,
                 'created_at' => $model->created_at,
                 'updated_at' => $model->updated_at,
