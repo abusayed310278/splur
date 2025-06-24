@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Genre;
 
 class Content extends Model
 {
@@ -60,8 +61,10 @@ class Content extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // In App\Models\Content.php
 
-    
-
-
+    public function genres()
+    {
+        return $this->belongsToMany(Genre::class, 'content_genre', 'content_id', 'genre_id');
+    }
 }
