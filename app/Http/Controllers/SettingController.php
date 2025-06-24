@@ -244,7 +244,13 @@ class SettingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Header settings updated successfully.',
-            'data' => $setting,
+            'data' => [
+                'border_color' => $setting->border_color,
+                'color' => $setting->color,
+                'menu_item_color' => $setting->menu_item_color,
+                'menu_item_active_color' => $setting->menu_item_active_color,
+                'logo' => $setting->logo,
+            ],
         ]);
     }
 
