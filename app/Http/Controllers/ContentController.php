@@ -1240,9 +1240,12 @@ class ContentController extends Controller
 
             // Format user's profilePic as full URL with camelCase
             if ($content->user && $content->user->profile_pic) {
-                $content->user->profilePic = url($content->user->profile_pic);
-                unset($content->user->profile_pic);  // optional: remove snake_case key
+                $content->user->profilePic = url('uploads/ProfilePics/' . $content->user->profile_pic);
+            } else {
+                $content->user->profilePic = null;
             }
+
+            unset($content->user->profile_pic);  // optional: remove snake_case key
 
             return response()->json([
                 'status' => true,
