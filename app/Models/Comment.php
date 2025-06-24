@@ -49,4 +49,6 @@ class Comment extends Model
     {
         return $this->votes()->where('user_id', $userId)->value('vote');
     }
+
+    
 }

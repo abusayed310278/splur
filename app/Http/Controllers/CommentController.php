@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Content;
 use App\Models\Subscriber;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -48,7 +49,7 @@ class CommentController extends Controller
     public function index($content_id)
     {
         // Validate content_id exists
-        if (!\App\Models\Content::where('id', $content_id)->exists()) {
+        if (!Content::where('id', $content_id)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid content ID.',
@@ -69,9 +70,16 @@ class CommentController extends Controller
                     $name = ucfirst(str_replace('.', ' ', strstr($email, '@', true)));
                 }
 
+                // Count upvotes and downvotes
+                $upvotes = $comment->votes->where('vote', 1)->count();
+                $downvotes = $comment->votes->where('vote', -1)->count();
+
                 return [
+                    'id' => $comment->id,
                     'name' => $name,
                     'comment' => $comment->comment,
+                    'upvotes' => $upvotes,
+                    'downvotes' => $downvotes,
                     'created_at' => $comment->created_at->toDateTimeString(),
                 ];
             });

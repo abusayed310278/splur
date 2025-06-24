@@ -68,7 +68,7 @@ class SettingController extends Controller
             $validated = $request->validate([
                 'link' => 'nullable|string|url',
                 'image' => 'nullable|image',
-                'code' => 'nullable|string|url',
+                'code' => 'nullable|string',
             ]);
 
             // Validate slug value
