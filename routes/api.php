@@ -31,7 +31,6 @@ Route::post('password/reset', [AuthController::class, 'passwordReset'])->name('p
 
 // Routes requiring authentication
 Route::middleware('auth:api')->group(function () {
-    
     // General authenticated routes for all logged-in users
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
@@ -52,23 +51,19 @@ Route::middleware('auth:api')->group(function () {
 
         Route::apiResource('comment', CommentController::class)->only(['store']);
 
-
         Route::middleware('role:admin')->group(function () {
             // Role management
             Route::apiResource('roles', RoleManagementController::class);
             Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
             Route::post('status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
             Route::apiResource('footer-menu', FooterController::class);
-            Route::post('header/update'  , [SettingController::class,'storeOrUpdateHeader']);
-            Route::post('footer/update'  , [SettingController::class,'storeOrUpdateFooter']);
-            Route::post('advertising/{slug}'  , [SettingController::class,'storeOrUpdateAdvertising']);
+            Route::post('header/update', [SettingController::class, 'storeOrUpdateHeader']);
+            Route::post('footer/update', [SettingController::class, 'storeOrUpdateFooter']);
+            Route::post('advertising/{slug}', [SettingController::class, 'storeOrUpdateAdvertising']);
             // Route::post('advertising/vertical'  , [SettingController::class,'storeOrUpdateVerticalAdvertising']);
             // Route::post('advertising/{s'  , [SettingController::class,'storeOrUpdate']);
-
         });
     });
-
-
 
     // Author-only routes
     Route::middleware('role:author,admin,editor')->group(function () {
@@ -77,13 +72,9 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
-
-
         });
         Route::apiResource('comment', CommentController::class)->only(['store']);
     });
-
-
 
     // Subscriber/User-only routes
     Route::middleware('role:user')->group(function () {
@@ -96,6 +87,8 @@ Route::middleware('auth:api')->group(function () {
 
         Route::apiResource('comment', CommentController::class)->only(['store']);
     });
+
+    Route::post('upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 });
 
 // Public GET routes
@@ -118,21 +111,22 @@ Route::middleware('auth:api')->group(function () {
 
 Route::post('/subscribe', [SubscriberController::class, 'store']);
 Route::get('change-color', [SettingController::class, 'showColor']);
-Route::post('/upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
+// Route::post('upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 
-Route::get('upvote-downvote', [ContentController::class, 'getVotes']);
+Route::get('upvote-downvote/{comment_id}', [ContentController::class, 'getVotes']);
+
 // Route::get('comment/{content_id}', [CommentController::class, 'index']);
 Route::get('comment/content/{content_id}', [CommentController::class, 'index']);
 Route::get('footer', [SettingController::class, 'footer']);
 
-//----------------------content and content details------------------------//
+// ----------------------content and content details------------------------//
 
-Route::get('show-tags/{slug}', [ContentController::class,'showAllTags']);
-Route::get('content/{cat_id}', [ContentController::class,'showCategoryLatestContent']); //1st page of content for a category
-Route::get('content-2nd-page-left-side/{cat_id}', [ContentController::class,'showCategoryExceptLatestContent']); //2nd page of content for a category
-Route::get('content-2nd-page-right-side/{cat_id}', [ContentController::class,'showCategoryExcept3LatestContent']); //2nd page of content for a category
-Route::get('content-3rd-page-top-portion/{cat_id}', [ContentController::class,'showCategoryExcept5LatestContent']); //2nd page of content for a category
-Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class,'showCategoryExcept8LatestContent']); //2nd page of content for a category
+Route::get('show-tags/{slug}', [ContentController::class, 'showAllTags']);
+Route::get('content/{cat_id}', [ContentController::class, 'showCategoryLatestContent']);  // 1st page of content for a category
+Route::get('content-2nd-page-left-side/{cat_id}', [ContentController::class, 'showCategoryExceptLatestContent']);  // 2nd page of content for a category
+Route::get('content-2nd-page-right-side/{cat_id}', [ContentController::class, 'showCategoryExcept3LatestContent']);  // 2nd page of content for a category
+Route::get('content-3rd-page-top-portion/{cat_id}', [ContentController::class, 'showCategoryExcept5LatestContent']);  // 2nd page of content for a category
+Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class, 'showCategoryExcept8LatestContent']);  // 2nd page of content for a category
 
 // ---------------------------latest ---------------------------//
 
@@ -143,11 +137,9 @@ Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class
 // Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
 // Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
 
-
 // //quiet calm
 // Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
 // Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
-
 
 // //gear
 // Route::get('landing-page/3rd-page-top-portion', [ContentController::class, 'landingPage3rdPageTopPortion']);
@@ -161,19 +153,15 @@ Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class
 // Route::get('landing-page/5th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
 // Route::get('landing-page/5th-page-bottom-portion', [ContentController::class, 'landingPage5thPageBottomPortion']);
 
-// //video 
+// //video
 // Route::get('landing-page/6th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
 // Route::get('landing-page/6th-page-bottom-portion', [ContentController::class, 'landingPage6thPageBottomPortion']);
 
-//Landing page content by category
-Route::get('home', [ContentController::class,'HomeContent']);
+// Landing page content by category
+Route::get('home', [ContentController::class, 'HomeContent']);
 
-
-Route::get('home/{cat_name}', [ContentController::class,'HomeCategoryContent']);
+Route::get('home/{cat_name}', [ContentController::class, 'HomeCategoryContent']);
 Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
 Route::get('header', [SettingController::class, 'getHeader']);
 Route::get('footer', [SettingController::class, 'getFooter']);
 Route::get('advertising/{slug}', [SettingController::class, 'getAdvertising']);
-
-
-

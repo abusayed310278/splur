@@ -1797,35 +1797,91 @@ class ContentController extends Controller
 
     public function vote(Request $request, $commentId)
     {
-        $request->validate([
-            'vote' => 'required|in:1,-1',
-        ]);
+        try {
+            // Ensure user is authenticated
+            if (!Auth::check()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated.'
+                ], 401);
+            }
 
-        $vote = CommentVote::updateOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'comment_id' => $commentId,
-            ],
-            [
-                'vote' => $request->vote,
-            ]
-        );
+            // Validate vote input
+            $validated = $request->validate([
+                'vote' => 'required|in:1,-1',  // 1 = upvote, -1 = downvote
+            ]);
 
-        return response()->json([
-            'message' => 'Vote saved',
-            'vote' => $vote,
-        ]);
+            // Check if comment exists
+            $comment = Comment::find($commentId);
+            if (!$comment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Comment not found.'
+                ], 404);
+            }
+
+            $userId = Auth::id();
+
+            // Update or create vote
+            $vote = CommentVote::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'comment_id' => $commentId
+                ],
+                [
+                    'vote' => $validated['vote']
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vote recorded successfully.',
+                'data' => $vote
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in vote method: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record vote.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function getVotes(Comment $comment)
+    public function getVotes($comment_id)
     {
-        return response()->json([
-            'comment_id' => $comment->id,
-            'upvotes' => $comment->votes()->where('vote', 1)->count(),
-            'downvotes' => $comment->votes()->where('vote', -1)->count(),
-            'user_vote' => auth()->check()
-                ? $comment->votes()->where('user_id', auth()->id())->value('vote')
-                : null
-        ]);
+        try {
+            // Check if the comment exists
+            $comment = Comment::find($comment_id);
+
+            if (!$comment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Comment not found.'
+                ], 404);
+            }
+
+            // Count upvotes and downvotes for the comment
+            $upvotes = CommentVote::where('comment_id', $comment_id)->where('vote', 1)->count();
+            $downvotes = CommentVote::where('comment_id', $comment_id)->where('vote', -1)->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'comment_id' => $comment_id,
+                    'upvotes' => $upvotes,
+                    'downvotes' => $downvotes,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in getVotes: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch vote data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
