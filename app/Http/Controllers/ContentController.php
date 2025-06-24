@@ -16,6 +16,46 @@ use Illuminate\Support\Facades\Storage;
 
 class ContentController extends Controller
 {
+    public function viewPosts($user_id)
+    {
+        try {
+            // Get all content by the given user, with optional relationships
+            $contents = Content::with(['genres', 'category', 'subcategory'])  // add your actual relationships
+                ->where('user_id', $user_id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            if ($contents->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No posts found for this user.',
+                    'data' => [],
+                ], 404);
+            }
+
+            // Add full image URLs for each content
+            $contents->transform(function ($content) {
+                $content->image1_url = $content->image1 ? url($content->image1) : null;
+                $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+                return $content;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User posts fetched successfully.',
+                'data' => $contents,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch user posts: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching posts.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function HomeCategoryContent($cat_name)
     {
         try {

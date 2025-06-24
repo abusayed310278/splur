@@ -165,3 +165,4 @@ Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
 Route::get('header', [SettingController::class, 'getHeader']);
 Route::get('footer', [SettingController::class, 'getFooter']);
 Route::get('advertising/{slug}', [SettingController::class, 'getAdvertising']);
+Route::get('view-posts/{user_id}', [ContentController::class,'viewPosts']);
