@@ -19,9 +19,8 @@ class ContentController extends Controller
     public function viewPosts($user_id)
     {
         try {
-            // Get all content by the given user, with optional relationships
-            $contents = Content::with(['genres', 'category', 'subcategory'])  // add your actual relationships
-                ->where('user_id', $user_id)
+            // Get all content for this user
+            $contents = Content::where('user_id', $user_id)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -33,10 +32,10 @@ class ContentController extends Controller
                 ], 404);
             }
 
-            // Add full image URLs for each content
+            // Add full image URLs for each content record
             $contents->transform(function ($content) {
-                $content->image1_url = $content->image1 ? url($content->image1) : null;
-                $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+                $content->image1_url = $content->image1 ? url('uploads/content/' . $content->image1) : null;
+                $content->advertising_image_url = $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null;
                 return $content;
             });
 

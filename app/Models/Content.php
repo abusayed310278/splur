@@ -63,8 +63,5 @@ class Content extends Model
 
     // In App\Models\Content.php
 
-    public function genres()
-    {
-        return $this->belongsToMany(Genre::class, 'content_genre', 'content_id', 'genre_id');
-    }
+
 }
