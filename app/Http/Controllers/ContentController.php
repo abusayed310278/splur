@@ -1279,6 +1279,29 @@ class ContentController extends Controller
                 $query->where('heading', 'like', '%' . $search . '%');
             }
 
+            // Role-based access control
+            if (auth()->check()) {
+                $user = auth()->user();
+                $role = $user->roles;
+
+                if ($role === 'author') {
+                    // Author can only see their own content
+                    $query->where('user_id', $user->id);
+                } elseif ($role === 'user') {
+                    // User role can't see any content
+                    return response()->json([
+                        'success' => true,
+                        'data' => [],
+                        'current_page' => 1,
+                        'total_pages' => 0,
+                        'per_page' => $paginate_count,
+                        'total' => 0,
+                        'message' => 'No contents available for your role.'
+                    ], 200);
+                }
+                // Admin and editor see all content
+            }
+
             // Apply pagination
             $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
 
@@ -1292,6 +1315,8 @@ class ContentController extends Controller
                     'date' => $item->date,
                     'body1' => $item->body1,
                     'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+                    'category_id' => $item->category_id,
+                    'subcategory_id' => $item->subcategory_id,
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
