@@ -926,6 +926,8 @@ class ContentController extends Controller
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
                     'date' => $item->date,
+                    'category_id' => $item->category_id,
+                    'sub_category_id' => $item->subcategory_id,
                     'body1' => $item->body1,
                     'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_name' => optional($item->category)->category_name,
@@ -1236,9 +1238,10 @@ class ContentController extends Controller
             $content->image1_url = $content->image1 ? url($content->image1) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
-            // Optional: If user has a profile_pic, make it a full URL
+            // Format user's profilePic as full URL with camelCase
             if ($content->user && $content->user->profile_pic) {
-                $content->user->profile_pic = url($content->user->profile_pic);
+                $content->user->profilePic = url($content->user->profile_pic);
+                unset($content->user->profile_pic);  // optional: remove snake_case key
             }
 
             return response()->json([
