@@ -88,6 +88,11 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('comment', CommentController::class)->only(['store']);
     });
 
+    Route::middleware('role:admin,editor')->group(function () {
+
+        Route::get('dashboard', [ContentController::class, 'dashboard']);  
+    });
+
     Route::post('upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 });
 

@@ -13,9 +13,44 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+    use Illuminate\Support\Carbon;
+    use App\Models\User;
+    use App\Models\Subscriber;
 
 class ContentController extends Controller
 {
+
+
+    public function dashboard()
+    {
+        $total_content = Content::count();
+
+        $total_pending_content = Content::where('status', 'pending')->count();
+
+        $total_author = User::where('role', 'author')->count();
+
+        $total_user = User::where('role', 'user')->count();
+
+        $total_subscriber = Subscriber::count();
+
+        $recent_content = Content::where('created_at', '>=', Carbon::now()->subDay())
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_content' => $total_content,
+                'total_pending_content' => $total_pending_content,
+                'total_author' => $total_author,
+                'total_user' => $total_user,
+                'total_subscriber' => $total_subscriber,
+                'recent_content' => $recent_content
+            ]
+        ]);
+    }
+
     public function viewPosts($user_id)
     {
         try {
