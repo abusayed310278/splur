@@ -177,6 +177,7 @@ class SettingController extends Controller
                     'app_store_link' => $setting->app_store_link ?? null,
                     'google_play_link' => $setting->google_play_link ?? null,
                     'bg_color' => $setting->bg_color ?? null,  // <-- added background color
+                    'copyright'=>$setting->copyright ?? null,
                 ]
             ]);
         } catch (Exception $e) {
@@ -217,10 +218,10 @@ class SettingController extends Controller
     public function storeOrUpdateHeader(Request $request)
     {
         $request->validate([
-            'border_color' => 'nullable|string|max:255',
-            'color' => 'nullable|string|max:255',
-            'menu_item_color' => 'nullable|string|max:255',
-            'menu_item_active_color' => 'nullable|string|max:255',
+            'border_color' => 'nullable|string',
+            'color' => 'nullable|string',
+            'menu_item_color' => 'nullable|string',
+            'menu_item_active_color' => 'nullable|string',
             'logo' => 'nullable|image',
         ]);
 
