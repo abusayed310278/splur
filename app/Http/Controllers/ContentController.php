@@ -1363,17 +1363,15 @@ class ContentController extends Controller
             if ($search) {
                 $query->where('heading', 'like', '%' . $search . '%');
             }
-
-            // Role-based access control
+            // Role-based access logic
             if (auth()->check()) {
                 $user = auth()->user();
-                $role = $user->role;
 
-                if ($role === 'author') {
-                    // Author can only see their own content
+                if ($user->role === 'author') {
+                    // Author sees only their own content
                     $query->where('user_id', $user->id);
-                } elseif ($role === 'user') {
-                    // Regular user cannot access this endpoint
+                } elseif ($user->role === 'user') {
+                    // Regular user gets no content
                     return response()->json([
                         'success' => true,
                         'data' => [],
@@ -1384,7 +1382,7 @@ class ContentController extends Controller
                         'message' => 'No contents available for your role.'
                     ], Response::HTTP_OK);
                 }
-                // Admin and editor can view all
+                // Admin/editor have full access – no extra filter
             }
 
             // Apply pagination
