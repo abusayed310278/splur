@@ -7,20 +7,18 @@ use App\Models\Comment;
 use App\Models\CommentVote;
 use App\Models\Content;
 use App\Models\Genre;
+use App\Models\Subscriber;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-    use Illuminate\Support\Carbon;
-    use App\Models\User;
-    use App\Models\Subscriber;
+use Illuminate\Support\Carbon;
 
 class ContentController extends Controller
 {
-
-
     public function dashboard()
     {
         $total_content = Content::count();
@@ -1375,7 +1373,7 @@ class ContentController extends Controller
                     // Author can only see their own content
                     $query->where('user_id', $user->id);
                 } elseif ($role === 'user') {
-                    // User role can't see any content
+                    // Regular user cannot access this endpoint
                     return response()->json([
                         'success' => true,
                         'data' => [],
@@ -1384,9 +1382,9 @@ class ContentController extends Controller
                         'per_page' => $paginate_count,
                         'total' => 0,
                         'message' => 'No contents available for your role.'
-                    ], 200);
+                    ], Response::HTTP_OK);
                 }
-                // Admin and editor see all content
+                // Admin and editor can view all
             }
 
             // Apply pagination
