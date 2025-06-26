@@ -1369,7 +1369,7 @@ class ContentController extends Controller
             // Role-based access control
             if (auth()->check()) {
                 $user = auth()->user();
-                $role = $user->roles;
+                $role = $user->role;
 
                 if ($role === 'author') {
                     // Author can only see their own content
