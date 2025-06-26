@@ -1347,7 +1347,7 @@ class ContentController extends Controller
     public function indexForSubCategoryForDashboard($cat_id, $sub_id, Request $request)
     {
         try {
-            // Validate query parameters
+            // Validate input
             $validated = $request->validate([
                 'paginate_count' => 'nullable|integer|min:1',
                 'search' => 'nullable|string|max:255',
@@ -1356,35 +1356,36 @@ class ContentController extends Controller
             $paginate_count = $validated['paginate_count'] ?? 10;
             $search = $validated['search'] ?? null;
 
-            // Get the authenticated user using auth:api
+            // Get authenticated user
             $user = Auth::guard('api')->user();
 
             if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized.',
-                ], \Illuminate\Http\Response::HTTP_UNAUTHORIZED);
+                ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Base content query
+            // Base query with relationships
             $query = Content::with(['category', 'subcategory'])
                 ->where('category_id', $cat_id)
                 ->where('subcategory_id', $sub_id);
 
-            // Apply role-based filtering
-            if ($user->hasRole('author')) {
-                $query->where('user_id', $user->id);  // Author sees own content only
+            // Role-based filtering
+            if ($user->role === 'author') {
+                $query->where('user_id', $user->id);  // Authors see only their own content
             }
-            // Editors and Admins can see all, no restriction needed
+            // Admins and Editors see all content
 
-            // Apply optional search
+            // Search by heading
             if ($search) {
                 $query->where('heading', 'like', '%' . $search . '%');
             }
 
-            // Paginate and transform results
+            // Get paginated results
             $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
 
+            // Transform each content item
             $transformedData = $contents->getCollection()->transform(function ($item) {
                 return [
                     'id' => $item->id,
@@ -1393,7 +1394,7 @@ class ContentController extends Controller
                     'author' => $item->author,
                     'date' => $item->date,
                     'body1' => $item->body1,
-                    'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+                    'tags' => is_array($item->tags) ? implode(', ', $item->tags) : $item->tags,
                     'category_id' => $item->category_id,
                     'subcategory_id' => $item->subcategory_id,
                     'category_name' => optional($item->category)->category_name,
@@ -1406,8 +1407,10 @@ class ContentController extends Controller
                 ];
             });
 
+            // Set the transformed data back on paginator
             $contents->setCollection($transformedData);
 
+            // Return response
             return response()->json([
                 'success' => true,
                 'data' => $contents,
