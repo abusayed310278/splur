@@ -1394,7 +1394,7 @@ class ContentController extends Controller
                     'author' => $item->author,
                     'date' => $item->date,
                     'body1' => $item->body1,
-                    'tags' => is_array($item->tags) ? implode(', ', $item->tags) : $item->tags,
+                    'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_id' => $item->category_id,
                     'subcategory_id' => $item->subcategory_id,
                     'category_name' => optional($item->category)->category_name,
