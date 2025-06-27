@@ -1004,7 +1004,7 @@ class ContentController extends Controller
                     'heading' => $item->heading,
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
-                    'date' => Carbon::parse($item->date)->format('m-d-Y'), 
+                    'date' => Carbon::parse($item->date)->format('m-d-Y'),
                     'category_id' => $item->category_id,
                     'sub_category_id' => $item->subcategory_id,
                     'body1' => $item->body1,
@@ -1057,7 +1057,7 @@ class ContentController extends Controller
                 'sub_category_name' => optional($content->subcategory)->name,
                 'heading' => $content->heading,
                 'author' => $content->author,
-                'date' => \Carbon\Carbon::parse($content->date)->format('m-d-Y'), 
+                'date' => \Carbon\Carbon::parse($content->date)->format('m-d-Y'),
                 'sub_heading' => $content->sub_heading,
                 'body1' => $content->body1,
                 'image1' => $content->image1,
@@ -1392,7 +1392,7 @@ class ContentController extends Controller
                     'heading' => $item->heading,
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
-                    'date' =>  \Carbon\Carbon::parse($item->date)->format('m-d-Y'), 
+                    'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
                     'body1' => $item->body1,
                     'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_id' => $item->category_id,
@@ -1463,7 +1463,7 @@ class ContentController extends Controller
                     'heading' => $item->heading,
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
-                    'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'), 
+                    'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
                     'body1' => $item->body1,
                     'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_id' => $item->category_id,
@@ -1645,7 +1645,16 @@ class ContentController extends Controller
             unset($validated['imageLink'], $validated['advertisingLink']);
 
             // ✅ Add authenticated user ID
-            $validated['user_id'] = auth()->id();
+            // $validated['user_id'] = auth()->id();
+
+            // Set user_id
+            $user = auth()->user();
+            $validated['user_id'] = $user->id;
+
+            // Role-based status control
+            if ($user->role === 'author') {
+                $validated['status'] = 'pending';
+            }
 
             $content->update($validated);
 
