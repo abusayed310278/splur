@@ -971,7 +971,7 @@ class ContentController extends Controller
             'heading' => $latestContent->heading,
             'sub_heading' => $latestContent->sub_heading,
             'author' => $latestContent->author,
-            'date' => $latestContent->date,
+            'date' => $latestContent->date ? \Carbon\Carbon::parse($latestContent->date)->format('m-d-Y') : null,
             'tags' => $latestContent->tags,
             'image1' => $latestContent->image1 ? url($latestContent->image1) : null,
             'imageLink' => $latestContent->imageLink ? url($latestContent->imageLink) : null,
@@ -1322,6 +1322,9 @@ class ContentController extends Controller
             // Add full URLs for images
             $content->image1_url = $content->image1 ? url($content->image1) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+
+            // Format date
+            $content->date = $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null;
 
             // Format user's profilePic as full URL with camelCase
             if ($content->user && $content->user->profile_pic) {
