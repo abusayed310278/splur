@@ -208,10 +208,7 @@ class ContentController extends Controller
     //     }
     // }
 
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\Log;
-    use Carbon\Carbon;
-    use App\Models\Content;
+
 
     public function HomeContent(Request $request)
     {
