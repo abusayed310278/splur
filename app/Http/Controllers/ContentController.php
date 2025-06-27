@@ -127,7 +127,7 @@ class ContentController extends Controller
                         'sub_category_name' => optional($content->subcategory)->name,
                         'heading' => $content->heading,
                         'author' => $content->author,
-                        'date' => $content->date,
+                        'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
                         'sub_heading' => $content->sub_heading,
                         'body1' => $content->body1,
                         'image1' => $content->image1,
