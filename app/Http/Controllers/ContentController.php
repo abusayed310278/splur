@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
-
 class ContentController extends Controller
 {
     public function dashboard()
@@ -74,6 +73,9 @@ class ContentController extends Controller
                 // Add category and subcategory names directly to the content object
                 $content->category_name = $content->category ? $content->category->category_name : null;
                 $content->sub_category_name = $content->subcategory ? $content->subcategory->name : null;
+
+                // Format date
+                $content->date = $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null;
 
                 // Optionally hide original relationships
                 unset($content->category, $content->subcategory);
