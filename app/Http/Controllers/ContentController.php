@@ -196,12 +196,12 @@ class ContentController extends Controller
                 'success' => true,
                 'message' => 'Latest 15 contents fetched successfully.',
                 'data' => $contents,
-                'pagination' => [
-                    'current_page' => $contents->currentPage(),
-                    'per_page' => $contents->perPage(),
-                    'total' => $contents->total(),
-                    'last_page' => $contents->lastPage(),
-                ]
+                // 'pagination' => [
+                //     'current_page' => $contents->currentPage(),
+                //     'per_page' => $contents->perPage(),
+                //     'total' => $contents->total(),
+                //     'last_page' => $contents->lastPage(),
+                // ]
             ], 200);
         } catch (\Exception $e) {
             Log::error('HomeContent Error: ' . $e->getMessage());
