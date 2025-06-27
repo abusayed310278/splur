@@ -237,7 +237,7 @@ public function HomeContent(Request $request)
                     'body1' => $content->body1,
                     'image1' => $content->image1,
                     'advertising_image' => $content->advertising_image,
-                    'tags' => $content->tags,
+                    'tags' => $content->tags? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                     'created_at' => $content->created_at,
                     'updated_at' => $content->updated_at,
                     'imageLink' => $content->imageLink,
