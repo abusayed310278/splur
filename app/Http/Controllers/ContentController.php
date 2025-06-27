@@ -160,58 +160,64 @@ class ContentController extends Controller
         }
     }
 
-    // public function HomeContent()
-    // {
-    //     try {
-    //         $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
-    //             ->where('status', 'active')
-    //             ->latest()
-    //             ->take(15)
-    //             ->get()
-    //             ->map(function ($content) {
-    //                 return [
-    //                     'id' => $content->id,
-    //                     'category_id' => $content->category_id,
-    //                     'subcategory_id' => $content->subcategory_id,
-    //                     'category_name' => optional($content->category)->category_name,
-    //                     'sub_category_name' => optional($content->subcategory)->name,
-    //                     'heading' => $content->heading,
-    //                     'author' => $content->author,
-    //                     'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
-    //                     'sub_heading' => $content->sub_heading,
-    //                     'body1' => $content->body1,
-    //                     'image1' => $content->image1,
-    //                     'advertising_image' => $content->advertising_image,
-    //                     'tags' => $content->tags,
-    //                     'created_at' => $content->created_at,
-    //                     'updated_at' => $content->updated_at,
-    //                     'imageLink' => $content->imageLink,
-    //                     'advertisingLink' => $content->advertisingLink,
-    //                     'user_id' => $content->user_id,
-    //                     'status' => $content->status,
-    //                 ];
-    //             });
+    public function HomeContent()
+    {
+        try {
+            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->where('status', 'active')
+                ->latest()
+                ->take(15)
+                ->get()
+                ->map(function ($content) {
+                    return [
+                        'id' => $content->id,
+                        'category_id' => $content->category_id,
+                        'subcategory_id' => $content->subcategory_id,
+                        'category_name' => optional($content->category)->category_name,
+                        'sub_category_name' => optional($content->subcategory)->name,
+                        'heading' => $content->heading,
+                        'author' => $content->author,
+                        'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+                        'sub_heading' => $content->sub_heading,
+                        'body1' => $content->body1,
+                        'image1' => $content->image1,
+                        'advertising_image' => $content->advertising_image,
+                        'tags' => $content->tags,
+                        'created_at' => $content->created_at,
+                        'updated_at' => $content->updated_at,
+                        'imageLink' => $content->imageLink,
+                        'advertisingLink' => $content->advertisingLink,
+                        'user_id' => $content->user_id,
+                        'status' => $content->status,
+                    ];
+                });
 
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Latest 15 contents fetched successfully.',
-    //             'data' => $contents,
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         Log::error('HomeContent Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'message' => 'Latest 15 contents fetched successfully.',
+                'data' => $contents,
+                'pagination' => [
+                    'current_page' => $contents->currentPage(),
+                    'per_page' => $contents->perPage(),
+                    'total' => $contents->total(),
+                    'last_page' => $contents->lastPage(),
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('HomeContent Error: ' . $e->getMessage());
 
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to fetch contents.',
-    //             'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch contents.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
 
     // public function HomeContent(Request $request)
     // {
     //     try {
-    //         $perPage = $request->query('per_page', 15); // Default to 15 items per page
+    //         $perPage = $request->query('per_page', 15);  // Default to 15 items per page
 
     //         $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
     //             ->where('status', 'active')
@@ -231,7 +237,7 @@ class ContentController extends Controller
     //                     'body1' => $content->body1,
     //                     'image1' => $content->image1,
     //                     'advertising_image' => $content->advertising_image,
-    //                     'tags' => $content->tags? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
+    //                     'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
     //                     'created_at' => $content->created_at,
     //                     'updated_at' => $content->updated_at,
     //                     'imageLink' => $content->imageLink,
@@ -263,73 +269,73 @@ class ContentController extends Controller
     //     }
     // }
 
-    public function HomeContent(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'per_page' => 'nullable|integer|min:1',
-                'search' => 'nullable|string|max:255',
-            ]);
+    // public function HomeContent(Request $request)
+    // {
+    //     try {
+    //         $validated = $request->validate([
+    //             'per_page' => 'nullable|integer|min:1',
+    //             'search' => 'nullable|string|max:255',
+    //         ]);
 
-            $perPage = $validated['per_page'] ?? 15;
-            $search = $validated['search'] ?? null;
+    //         $perPage = $validated['per_page'] ?? 15;
+    //         $search = $validated['search'] ?? null;
 
-            $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
-                ->where('status', 'active')
-                ->latest();
+    //         $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
+    //             ->where('status', 'active')
+    //             ->latest();
 
-            if ($search) {
-                $query->where('heading', 'like', '%' . $search . '%');
-            }
+    //         if ($search) {
+    //             $query->where('heading', 'like', '%' . $search . '%');
+    //         }
 
-            $paginated = $query->paginate($perPage);
+    //         $paginated = $query->paginate($perPage);
 
-            $mappedContents = $paginated->getCollection()->map(function ($content) {
-                return [
-                    'id' => $content->id,
-                    'category_id' => $content->category_id,
-                    'subcategory_id' => $content->subcategory_id,
-                    'category_name' => optional($content->category)->category_name,
-                    'sub_category_name' => optional($content->subcategory)->name,
-                    'heading' => $content->heading,
-                    'author' => $content->author,
-                    'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
-                    'sub_heading' => $content->sub_heading,
-                    'body1' => $content->body1,
-                    'image1' => $content->image1,
-                    'advertising_image' => $content->advertising_image,
-                    'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
-                    'created_at' => $content->created_at,
-                    'updated_at' => $content->updated_at,
-                    'imageLink' => $content->imageLink,
-                    'advertisingLink' => $content->advertisingLink,
-                    'user_id' => $content->user_id,
-                    'status' => $content->status,
-                ];
-            });
+    //         $mappedContents = $paginated->getCollection()->map(function ($content) {
+    //             return [
+    //                 'id' => $content->id,
+    //                 'category_id' => $content->category_id,
+    //                 'subcategory_id' => $content->subcategory_id,
+    //                 'category_name' => optional($content->category)->category_name,
+    //                 'sub_category_name' => optional($content->subcategory)->name,
+    //                 'heading' => $content->heading,
+    //                 'author' => $content->author,
+    //                 'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+    //                 'sub_heading' => $content->sub_heading,
+    //                 'body1' => $content->body1,
+    //                 'image1' => $content->image1,
+    //                 'advertising_image' => $content->advertising_image,
+    //                 'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
+    //                 'created_at' => $content->created_at,
+    //                 'updated_at' => $content->updated_at,
+    //                 'imageLink' => $content->imageLink,
+    //                 'advertisingLink' => $content->advertisingLink,
+    //                 'user_id' => $content->user_id,
+    //                 'status' => $content->status,
+    //             ];
+    //         });
 
-            $paginated->setCollection($mappedContents);
+    //         $paginated->setCollection($mappedContents);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Latest contents fetched successfully.',
-                'data' => $paginated->items(),
-                'current_page' => $paginated->currentPage(),
-                'total_pages' => $paginated->lastPage(),
-                'per_page' => $paginated->perPage(),
-                'total' => $paginated->total(),
-                'paginate_count' => $mappedContents->count(),
-            ], 200);
-        } catch (\Exception $e) {
-            \Log::error('HomeContent Error: ' . $e->getMessage());
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Latest contents fetched successfully.',
+    //             'data' => $paginated->items(),
+    //             'current_page' => $paginated->currentPage(),
+    //             'total_pages' => $paginated->lastPage(),
+    //             'per_page' => $paginated->perPage(),
+    //             'total' => $paginated->total(),
+    //             'paginate_count' => $mappedContents->count(),
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         \Log::error('HomeContent Error: ' . $e->getMessage());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to fetch contents.',
-                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to fetch contents.',
+    //             'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     public function landingPage6thPageBottomPortion()
     {
