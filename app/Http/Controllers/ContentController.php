@@ -1137,19 +1137,67 @@ class ContentController extends Controller
         ]);
     }
 
+    // public function storeOrUpdateStatus(Request $request, $id)
+    // {
+    //     // Validate the status field
+    //     $request->validate([
+    //         'status' => 'required|string|in:active,pending',  // adjust allowed values as needed
+    //     ]);
+
+    //     // Try to find existing content by ID
+    //     $content = Content::find($id);
+
+    //     if ($content) {
+    //         // Update existing content status
+    //         $content->status = $request->input('status');
+    //         $content->save();
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content status updated successfully.',
+    //             'data' => $content,
+    //         ], 200);
+    //     } else {
+    //         // Create new content with given id and status (optional)
+    //         // Note: Usually ID is auto-increment and shouldn't be forced
+    //         // If you want to create a new record without id, remove $id assignment
+
+    //         $content = new Content();
+    //         $content->id = $id;  // Only if your model supports manual ID assignment
+    //         $content->status = $request->input('status');
+    //         // You may need to fill other required fields here to avoid DB errors
+    //         $content->save();
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Content created with status successfully.',
+    //             'data' => $content,
+    //         ], 201);
+    //     }
+    // }
+
     public function storeOrUpdateStatus(Request $request, $id)
     {
-        // Validate the status field
+        $user = auth()->user();
+
         $request->validate([
-            'status' => 'required|string|in:active,pending',  // adjust allowed values as needed
+            'status' => 'required|string|in:active,pending',
         ]);
 
-        // Try to find existing content by ID
+        $requestedStatus = $request->input('status');
+
+        // Only admins and editors can approve (set status to 'active')
+        if ($requestedStatus === 'active' && !in_array($user->role, ['admin', 'editor'])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You are not authorized to approve content.',
+            ], 403);
+        }
+
         $content = Content::find($id);
 
         if ($content) {
-            // Update existing content status
-            $content->status = $request->input('status');
+            $content->status = $requestedStatus;
             $content->save();
 
             return response()->json([
@@ -1158,14 +1206,17 @@ class ContentController extends Controller
                 'data' => $content,
             ], 200);
         } else {
-            // Create new content with given id and status (optional)
-            // Note: Usually ID is auto-increment and shouldn't be forced
-            // If you want to create a new record without id, remove $id assignment
-
+            // Optional: allow creation with manual ID (not usually recommended)
             $content = new Content();
-            $content->id = $id;  // Only if your model supports manual ID assignment
-            $content->status = $request->input('status');
-            // You may need to fill other required fields here to avoid DB errors
+            $content->id = $id;
+
+            // Author can only create with status 'pending'
+            $content->status = in_array($user->role, ['admin', 'editor']) ? $requestedStatus : 'pending';
+
+            // Add required default values if needed
+            $content->user_id = $user->id;  // just an example
+            $content->heading = 'Untitled';  // fill other required fields as needed
+
             $content->save();
 
             return response()->json([

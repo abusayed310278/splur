@@ -55,7 +55,7 @@ Route::middleware('auth:api')->group(function () {
             // Role management
             Route::apiResource('roles', RoleManagementController::class);
             Route::apiResource('comment', CommentController::class)->only(['store', 'update', 'destroy']);
-            Route::post('status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
+            // Route::post('status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
             Route::apiResource('footer-menu', FooterController::class);
             Route::post('header/update', [SettingController::class, 'storeOrUpdateHeader']);
             Route::post('footer/update', [SettingController::class, 'storeOrUpdateFooter']);
@@ -97,6 +97,8 @@ Route::middleware('auth:api')->group(function () {
 
 
     Route::get('content-dashbaord/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategoryForDashboard']);
+
+    Route::post('status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
 
 
 });
