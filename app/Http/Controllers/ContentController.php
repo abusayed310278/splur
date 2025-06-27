@@ -1375,7 +1375,7 @@ class ContentController extends Controller
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
             // Add category_name and sub_category_name
-            $content->category_name = $content->category ? $content->category->name : null;
+            $content->category_name = $content->category ? $content->category->category_name : null;
             $content->sub_category_name = $content->subcategory ? $content->subcategory->name : null;
 
             // Format date
