@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
+
 class ContentController extends Controller
 {
     public function dashboard()
@@ -1199,7 +1200,7 @@ class ContentController extends Controller
                 $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
                 // Format date
-                $content->formatted_date = $content->created_at ? Carbon::parse($content->created_at)->format('m-d-Y') : null;
+                $content->date = $content->created_at ? Carbon::parse($content->date)->format('m-d-Y') : null;
                 return $content;
             });
 
