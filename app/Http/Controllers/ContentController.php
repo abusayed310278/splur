@@ -208,22 +208,74 @@ class ContentController extends Controller
     //     }
     // }
 
+    // public function HomeContent(Request $request)
+    // {
+    //     try {
+    //         $perPage = $request->query('per_page', 15); // Default to 15 items per page
 
+    //         $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+    //             ->where('status', 'active')
+    //             ->latest()
+    //             ->paginate($perPage)
+    //             ->through(function ($content) {
+    //                 return [
+    //                     'id' => $content->id,
+    //                     'category_id' => $content->category_id,
+    //                     'subcategory_id' => $content->subcategory_id,
+    //                     'category_name' => optional($content->category)->category_name,
+    //                     'sub_category_name' => optional($content->subcategory)->name,
+    //                     'heading' => $content->heading,
+    //                     'author' => $content->author,
+    //                     'date' => $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null,
+    //                     'sub_heading' => $content->sub_heading,
+    //                     'body1' => $content->body1,
+    //                     'image1' => $content->image1,
+    //                     'advertising_image' => $content->advertising_image,
+    //                     'tags' => $content->tags? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
+    //                     'created_at' => $content->created_at,
+    //                     'updated_at' => $content->updated_at,
+    //                     'imageLink' => $content->imageLink,
+    //                     'advertisingLink' => $content->advertisingLink,
+    //                     'user_id' => $content->user_id,
+    //                     'status' => $content->status,
+    //                 ];
+    //             });
 
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Contents fetched successfully.',
+    //             'data' => $contents->items(),
+    //             'pagination' => [
+    //                 'current_page' => $contents->currentPage(),
+    //                 'per_page' => $contents->perPage(),
+    //                 'total' => $contents->total(),
+    //                 'last_page' => $contents->lastPage(),
+    //             ]
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         Log::error('HomeContent Error: ' . $e->getMessage());
 
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to fetch contents.',
+    //             'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
+    public function HomeContent(Request $request)
+    {
+        try {
+            $perPage = $request->query('per_page', 15);
+            $page = $request->query('page', 1);
 
+            $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->where('status', 'active')
+                ->latest();
 
-public function HomeContent(Request $request)
-{
-    try {
-        $perPage = $request->query('per_page', 15); // Default to 15 items per page
+            $paginated = $query->paginate($perPage, ['*'], 'page', $page);
 
-        $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
-            ->where('status', 'active')
-            ->latest()
-            ->paginate($perPage)
-            ->through(function ($content) {
+            $mappedContents = $paginated->getCollection()->map(function ($content) {
                 return [
                     'id' => $content->id,
                     'category_id' => $content->category_id,
@@ -237,7 +289,7 @@ public function HomeContent(Request $request)
                     'body1' => $content->body1,
                     'image1' => $content->image1,
                     'advertising_image' => $content->advertising_image,
-                    'tags' => $content->tags? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
+                    'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                     'created_at' => $content->created_at,
                     'updated_at' => $content->updated_at,
                     'imageLink' => $content->imageLink,
@@ -247,29 +299,27 @@ public function HomeContent(Request $request)
                 ];
             });
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Contents fetched successfully.',
-            'data' => $contents->items(),
-            'pagination' => [
-                'current_page' => $contents->currentPage(),
-                'per_page' => $contents->perPage(),
-                'total' => $contents->total(),
-                'last_page' => $contents->lastPage(),
-            ]
-        ], 200);
-    } catch (\Exception $e) {
-        Log::error('HomeContent Error: ' . $e->getMessage());
+            $paginated->setCollection($mappedContents);
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to fetch contents.',
-            'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
-        ], 500);
+            // Add paginate_count
+            $paginatedData = $paginated->toArray();
+            $paginatedData['paginate_count'] = count($mappedContents);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Latest contents fetched successfully.',
+                'data' => $paginatedData,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('HomeContent Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch contents.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
     }
-}
-
-
 
     public function landingPage6thPageBottomPortion()
     {
