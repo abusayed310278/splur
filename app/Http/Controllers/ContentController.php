@@ -1197,6 +1197,9 @@ class ContentController extends Controller
             $contents->transform(function ($content) {
                 $content->image1_url = $content->image1 ? url($content->image1) : null;
                 $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+
+                // Format date
+                $content->formatted_date = $content->created_at ? Carbon::parse($content->created_at)->format('m-d-Y') : null;
                 return $content;
             });
 
