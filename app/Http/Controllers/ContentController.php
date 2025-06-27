@@ -1374,6 +1374,10 @@ class ContentController extends Controller
             $content->image1_url = $content->image1 ? url($content->image1) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
+            // Add category_name and sub_category_name
+            $content->category_name = $content->category ? $content->category->name : null;
+            $content->sub_category_name = $content->subcategory ? $content->subcategory->name : null;
+
             // Format date
             $content->date = $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null;
 
