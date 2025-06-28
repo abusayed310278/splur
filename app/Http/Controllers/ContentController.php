@@ -428,7 +428,75 @@ class ContentController extends Controller
         }
     }
 
-    public function HomeCategoryContent($cat_name)
+    // public function HomeCategoryContent($cat_name)
+    // {
+    //     try {
+    //         $category = Category::where('category_name', 'like', $cat_name)->first();
+
+    //         if (!$category) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Category not found.',
+    //             ], 404);
+    //         }
+
+    //         $perPage = request('per_page', 10);
+
+    //         $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+    //             ->where('category_id', $category->id)
+    //             ->where('status', 'active')
+    //             ->latest()
+    //             ->paginate($perPage);
+
+    //         $data = $contents->map(function ($content) {
+    //             return [
+    //                 'id' => $content->id,
+    //                 'category_id' => $content->category_id,
+    //                 'subcategory_id' => $content->subcategory_id,
+    //                 'category_name' => optional($content->category)->category_name,
+    //                 'sub_category_name' => optional($content->subcategory)->name,
+    //                 'heading' => $content->heading,
+    //                 'author' => $content->author,
+    //                 'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+    //                 'sub_heading' => $content->sub_heading,
+    //                 'body1' => $content->body1,
+    //                 'image1' => $content->image1,
+    //                 'advertising_image' => $content->advertising_image,
+    //                 'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
+    //                 'created_at' => $content->created_at,
+    //                 'updated_at' => $content->updated_at,
+    //                 'imageLink' => $content->imageLink,
+    //                 'advertisingLink' => $content->advertisingLink,
+    //                 'user_id' => $content->user_id,
+    //                 'status' => $content->status,
+    //             ];
+    //         });
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Category contents fetched successfully.',
+    //             'category_id' => $category->id,
+    //             'category_name' => $category->category_name,
+    //             'data' => $data,
+    //             'meta' => [
+    //                 'current_page' => $contents->currentPage(),
+    //                 'per_page' => $contents->perPage(),
+    //                 'total' => $contents->total(),
+    //                 'last_page' => $contents->lastPage(),
+    //             ]
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         Log::error('HomeCategoryContent Error: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to fetch category contents.',
+    //             'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+    public function HomeCategoryContent(Request $request, $cat_name)
     {
         try {
             $category = Category::where('category_name', 'like', $cat_name)->first();
@@ -440,45 +508,45 @@ class ContentController extends Controller
                 ], 404);
             }
 
-            $perPage = request('per_page', 10);
+            $limit = (int) $request->query('limit', 10);  // default to 10 if not provided
+            $limit = $limit > 0 ? $limit : 10;  // ensure valid value
 
             $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
                 ->where('category_id', $category->id)
                 ->where('status', 'active')
                 ->latest()
-                ->paginate($perPage);
-
-            $data = $contents->map(function ($content) {
-                return [
-                    'id' => $content->id,
-                    'category_id' => $content->category_id,
-                    'subcategory_id' => $content->subcategory_id,
-                    'category_name' => optional($content->category)->category_name,
-                    'sub_category_name' => optional($content->subcategory)->name,
-                    'heading' => $content->heading,
-                    'author' => $content->author,
-                    'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
-                    'sub_heading' => $content->sub_heading,
-                    'body1' => $content->body1,
-                    'image1' => $content->image1,
-                    'advertising_image' => $content->advertising_image,
-                    'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
-                    'created_at' => $content->created_at,
-                    'updated_at' => $content->updated_at,
-                    'imageLink' => $content->imageLink,
-                    'advertisingLink' => $content->advertisingLink,
-                    'user_id' => $content->user_id,
-                    'status' => $content->status,
-                ];
-            });
+                ->paginate($limit)
+                ->through(function ($content) {
+                    return [
+                        'id' => $content->id,
+                        'category_id' => $content->category_id,
+                        'subcategory_id' => $content->subcategory_id,
+                        'category_name' => optional($content->category)->category_name,
+                        'sub_category_name' => optional($content->subcategory)->name,
+                        'heading' => $content->heading,
+                        'author' => $content->author,
+                        'date' => $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null,
+                        'sub_heading' => $content->sub_heading,
+                        'body1' => $content->body1,
+                        'image1' => $content->image1,
+                        'advertising_image' => $content->advertising_image,
+                        'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
+                        'created_at' => $content->created_at,
+                        'updated_at' => $content->updated_at,
+                        'imageLink' => $content->imageLink,
+                        'advertisingLink' => $content->advertisingLink,
+                        'user_id' => $content->user_id,
+                        'status' => $content->status,
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
                 'message' => 'Category contents fetched successfully.',
                 'category_id' => $category->id,
                 'category_name' => $category->category_name,
-                'data' => $data,
-                'meta' => [
+                'data' => $contents->items(),
+                'pagination' => [
                     'current_page' => $contents->currentPage(),
                     'per_page' => $contents->perPage(),
                     'total' => $contents->total(),
