@@ -49,54 +49,55 @@ class ContentController extends Controller
         ]);
     }
 
-    public function viewPosts($user_id)
-    {
-        try {
-            // Get all content for this user
-            $contents = Content::where('user_id', $user_id)
-                ->orderBy('created_at', 'desc')
-                ->get();
+    // this is effective method for viewPosts
+    // public function viewPosts($user_id)
+    // {
+    //     try {
+    //         // Get all content for this user
+    //         $contents = Content::where('user_id', $user_id)
+    //             ->orderBy('created_at', 'desc')
+    //             ->get();
 
-            if ($contents->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No posts found for this user.',
-                    'data' => [],
-                ], 404);
-            }
+    //         if ($contents->isEmpty()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'No posts found for this user.',
+    //                 'data' => [],
+    //             ], 404);
+    //         }
 
-            // Add full image URLs for each content record
-            $contents->transform(function ($content) {
-                $content->image1_url = $content->image1 ? url('uploads/content/' . $content->image1) : null;
-                $content->advertising_image_url = $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null;
+    //         // Add full image URLs for each content record
+    //         $contents->transform(function ($content) {
+    //             $content->image1_url = $content->image1 ? url('uploads/content/' . $content->image1) : null;
+    //             $content->advertising_image_url = $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null;
 
-                // Add category and subcategory names directly to the content object
-                $content->category_name = $content->category ? $content->category->category_name : null;
-                $content->sub_category_name = $content->subcategory ? $content->subcategory->name : null;
+    //             // Add category and subcategory names directly to the content object
+    //             $content->category_name = $content->category ? $content->category->category_name : null;
+    //             $content->sub_category_name = $content->subcategory ? $content->subcategory->name : null;
 
-                // Format date
-                $content->date = $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null;
+    //             // Format date
+    //             $content->date = $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null;
 
-                // Optionally hide original relationships
-                unset($content->category, $content->subcategory);
-                return $content;
-            });
+    //             // Optionally hide original relationships
+    //             unset($content->category, $content->subcategory);
+    //             return $content;
+    //         });
 
-            return response()->json([
-                'success' => true,
-                'message' => 'User posts fetched successfully.',
-                'data' => $contents,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch user posts: ' . $e->getMessage());
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'User posts fetched successfully.',
+    //             'data' => $contents,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Failed to fetch user posts: ' . $e->getMessage());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while fetching posts.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'An error occurred while fetching posts.',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     // this is effective method fo HomeCategoryContent
     // public function HomeCategoryContent($cat_name)
@@ -359,6 +360,72 @@ class ContentController extends Controller
     //         ], 500);
     //     }
     // }
+
+    public function viewPosts($user_id)
+    {
+        try {
+            $perPage = request('per_page', 10);
+
+            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->where('user_id', $user_id)
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage);
+
+            if ($contents->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No posts found for this user.',
+                    'data' => [],
+                ], 404);
+            }
+
+            $data = $contents->map(function ($content) {
+                return [
+                    'id' => $content->id,
+                    'category_id' => $content->category_id,
+                    'subcategory_id' => $content->subcategory_id,
+                    'category_name' => optional($content->category)->category_name,
+                    'sub_category_name' => optional($content->subcategory)->name,
+                    'heading' => $content->heading,
+                    'author' => $content->author,
+                    'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+                    'sub_heading' => $content->sub_heading,
+                    'body1' => $content->body1,
+                    'image1' => $content->image1,
+                    'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
+                    'advertising_image' => $content->advertising_image,
+                    'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
+                    'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
+                    'created_at' => $content->created_at,
+                    'updated_at' => $content->updated_at,
+                    'imageLink' => $content->imageLink,
+                    'advertisingLink' => $content->advertisingLink,
+                    'user_id' => $content->user_id,
+                    'status' => $content->status,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User posts fetched successfully.',
+                'data' => $data,
+                'meta' => [
+                    'current_page' => $contents->currentPage(),
+                    'per_page' => $contents->perPage(),
+                    'total' => $contents->total(),
+                    'last_page' => $contents->lastPage(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch user posts: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching posts.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function HomeCategoryContent($cat_name)
     {
