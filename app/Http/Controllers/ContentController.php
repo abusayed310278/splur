@@ -371,7 +371,7 @@ class ContentController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage);
 
-            if ($contents->isEmpty()) {
+            if ($contents->total() === 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No posts found for this user.',
@@ -379,7 +379,8 @@ class ContentController extends Controller
                 ], 404);
             }
 
-            $data = $contents->map(function ($content) {
+            // Map over the collection inside the paginator
+            $data = $contents->getCollection()->map(function ($content) {
                 return [
                     'id' => $content->id,
                     'category_id' => $content->category_id,
