@@ -361,72 +361,73 @@ class ContentController extends Controller
     //     }
     // }
 
-    public function viewPosts($user_id)
-    {
-        try {
-            $perPage = request('per_page', 10);
+public function viewPosts($user_id)
+{
+    try {
+        $perPage = request('per_page', 10);
 
-            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
-                ->where('user_id', $user_id)
-                ->orderBy('created_at', 'desc')
-                ->paginate($perPage);
+        $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            ->where('user_id', $user_id)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
-            if ($contents->total() === 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No posts found for this user.',
-                    'data' => [],
-                ], 404);
-            }
-
-            // Map over the collection inside the paginator
-            $data = $contents->getCollection()->map(function ($content) {
-                return [
-                    'id' => $content->id,
-                    'category_id' => $content->category_id,
-                    'subcategory_id' => $content->subcategory_id,
-                    'category_name' => optional($content->category)->category_name,
-                    'sub_category_name' => optional($content->subcategory)->name,
-                    'heading' => $content->heading,
-                    'author' => $content->author,
-                    'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
-                    'sub_heading' => $content->sub_heading,
-                    'body1' => $content->body1,
-                    'image1' => $content->image1,
-                    'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
-                    'advertising_image' => $content->advertising_image,
-                    'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
-                    'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
-                    'created_at' => $content->created_at,
-                    'updated_at' => $content->updated_at,
-                    'imageLink' => $content->imageLink,
-                    'advertisingLink' => $content->advertisingLink,
-                    'user_id' => $content->user_id,
-                    'status' => $content->status,
-                ];
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => 'User posts fetched successfully.',
-                'data' => $data,
-                'meta' => [
-                    'current_page' => $contents->currentPage(),
-                    'per_page' => $contents->perPage(),
-                    'total' => $contents->total(),
-                    'last_page' => $contents->lastPage(),
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch user posts: ' . $e->getMessage());
-
+        if ($contents->total() === 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while fetching posts.',
-                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
-            ], 500);
+                'message' => 'No posts found for this user.',
+                'data' => [],
+            ], 404);
         }
+
+        // Map over the collection inside the paginator
+        $data = $contents->getCollection()->map(function ($content) {
+            return [
+                'id' => $content->id,
+                'category_id' => $content->category_id,
+                'subcategory_id' => $content->subcategory_id,
+                'category_name' => optional($content->category)->category_name,
+                'sub_category_name' => optional($content->subcategory)->name,
+                'heading' => $content->heading,
+                'author' => $content->author,
+                'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+                'sub_heading' => $content->sub_heading,
+                'body1' => $content->body1,
+                'image1' => $content->image1,
+                'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
+                'advertising_image' => $content->advertising_image,
+                'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
+                'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
+                'created_at' => $content->created_at,
+                'updated_at' => $content->updated_at,
+                'imageLink' => $content->imageLink,
+                'advertisingLink' => $content->advertisingLink,
+                'user_id' => $content->user_id,
+                'status' => $content->status,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User posts fetched successfully.',
+            'data' => $data,
+            'meta' => [
+                'current_page' => $contents->currentPage(),
+                'per_page' => $contents->perPage(),
+                'total' => $contents->total(),
+                'last_page' => $contents->lastPage(),
+            ]
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Failed to fetch user posts: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while fetching posts.',
+            'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+        ], 500);
     }
+}
+
 
     public function HomeCategoryContent($cat_name)
     {
@@ -496,60 +497,60 @@ class ContentController extends Controller
         }
     }
 
-    // public function HomeContent(Request $request)
-    // {
-    //     try {
-    //         $perPage = $request->query('per_page', 15);  // Default to 15 items per page
+    public function HomeContent(Request $request)
+    {
+        try {
+            $perPage = $request->query('per_page', 15);  // Default to 15 items per page
 
-    //         $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
-    //             ->where('status', 'active')
-    //             ->latest()
-    //             ->paginate($perPage)
-    //             ->through(function ($content) {
-    //                 return [
-    //                     'id' => $content->id,
-    //                     'category_id' => $content->category_id,
-    //                     'subcategory_id' => $content->subcategory_id,
-    //                     'category_name' => optional($content->category)->category_name,
-    //                     'sub_category_name' => optional($content->subcategory)->name,
-    //                     'heading' => $content->heading,
-    //                     'author' => $content->author,
-    //                     'date' => $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null,
-    //                     'sub_heading' => $content->sub_heading,
-    //                     'body1' => $content->body1,
-    //                     'image1' => $content->image1,
-    //                     'advertising_image' => $content->advertising_image,
-    //                     'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
-    //                     'created_at' => $content->created_at,
-    //                     'updated_at' => $content->updated_at,
-    //                     'imageLink' => $content->imageLink,
-    //                     'advertisingLink' => $content->advertisingLink,
-    //                     'user_id' => $content->user_id,
-    //                     'status' => $content->status,
-    //                 ];
-    //             });
+            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->where('status', 'active')
+                ->latest()
+                ->paginate($perPage)
+                ->through(function ($content) {
+                    return [
+                        'id' => $content->id,
+                        'category_id' => $content->category_id,
+                        'subcategory_id' => $content->subcategory_id,
+                        'category_name' => optional($content->category)->category_name,
+                        'sub_category_name' => optional($content->subcategory)->name,
+                        'heading' => $content->heading,
+                        'author' => $content->author,
+                        'date' => $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null,
+                        'sub_heading' => $content->sub_heading,
+                        'body1' => $content->body1,
+                        'image1' => $content->image1,
+                        'advertising_image' => $content->advertising_image,
+                        'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
+                        'created_at' => $content->created_at,
+                        'updated_at' => $content->updated_at,
+                        'imageLink' => $content->imageLink,
+                        'advertisingLink' => $content->advertisingLink,
+                        'user_id' => $content->user_id,
+                        'status' => $content->status,
+                    ];
+                });
 
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Contents fetched successfully.',
-    //             'data' => $contents->items(),
-    //             'pagination' => [
-    //                 'current_page' => $contents->currentPage(),
-    //                 'per_page' => $contents->perPage(),
-    //                 'total' => $contents->total(),
-    //                 'last_page' => $contents->lastPage(),
-    //             ]
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         Log::error('HomeContent Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'message' => 'Contents fetched successfully.',
+                'data' => $contents->items(),
+                'pagination' => [
+                    'current_page' => $contents->currentPage(),
+                    'per_page' => $contents->perPage(),
+                    'total' => $contents->total(),
+                    'last_page' => $contents->lastPage(),
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('HomeContent Error: ' . $e->getMessage());
 
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to fetch contents.',
-    //             'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch contents.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
 
     // public function HomeContent(Request $request)
     // {
