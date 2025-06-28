@@ -98,6 +98,69 @@ class ContentController extends Controller
         }
     }
 
+    // this is effective method fo HomeCategoryContent
+    // public function HomeCategoryContent($cat_name)
+    // {
+    //     try {
+    //         // Find the category by name (case-insensitive)
+    //         $category = Category::where('category_name', 'like', $cat_name)->first();
+
+    //         if (!$category) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Category not found.',
+    //             ], 404);
+    //         }
+
+    //         // Get latest 15 contents for that category with related category and subcategory
+    //         $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+    //             ->where('category_id', $category->id)
+    //             ->where('status', 'active')
+    //             ->latest()
+    //             ->take(15)
+    //             ->get()
+    //             ->map(function ($content) {
+    //                 return [
+    //                     'id' => $content->id,
+    //                     'category_id' => $content->category_id,
+    //                     'subcategory_id' => $content->subcategory_id,
+    //                     'category_name' => optional($content->category)->category_name,
+    //                     'sub_category_name' => optional($content->subcategory)->name,
+    //                     'heading' => $content->heading,
+    //                     'author' => $content->author,
+    //                     'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+    //                     'sub_heading' => $content->sub_heading,
+    //                     'body1' => $content->body1,
+    //                     'image1' => $content->image1,
+    //                     'advertising_image' => $content->advertising_image,
+    //                     'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
+    //                     'created_at' => $content->created_at,
+    //                     'updated_at' => $content->updated_at,
+    //                     'imageLink' => $content->imageLink,
+    //                     'advertisingLink' => $content->advertisingLink,
+    //                     'user_id' => $content->user_id,
+    //                     'status' => $content->status,
+    //                 ];
+    //             });
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Latest 15 contents for category fetched successfully.',
+    //             'category_id' => $category->id,
+    //             'category_name' => $category->category_name,
+    //             'data' => $contents,
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         Log::error('HomeCategoryContent Error: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to fetch category contents.',
+    //             'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function HomeCategoryContent($cat_name)
     {
         try {
@@ -111,43 +174,56 @@ class ContentController extends Controller
                 ], 404);
             }
 
-            // Get latest 15 contents for that category with related category and subcategory
+            $perPage = request('per_page', 10);
+
             $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
                 ->where('category_id', $category->id)
                 ->where('status', 'active')
                 ->latest()
-                ->take(15)
-                ->get()
-                ->map(function ($content) {
-                    return [
-                        'id' => $content->id,
-                        'category_id' => $content->category_id,
-                        'subcategory_id' => $content->subcategory_id,
-                        'category_name' => optional($content->category)->category_name,
-                        'sub_category_name' => optional($content->subcategory)->name,
-                        'heading' => $content->heading,
-                        'author' => $content->author,
-                        'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
-                        'sub_heading' => $content->sub_heading,
-                        'body1' => $content->body1,
-                        'image1' => $content->image1,
-                        'advertising_image' => $content->advertising_image,
-                        'tags' => $content->tags,
-                        'created_at' => $content->created_at,
-                        'updated_at' => $content->updated_at,
-                        'imageLink' => $content->imageLink,
-                        'advertisingLink' => $content->advertisingLink,
-                        'user_id' => $content->user_id,
-                        'status' => $content->status,
-                    ];
-                });
+                ->paginate($perPage);
+
+            $transformed = $contents->getCollection()->map(function ($content) {
+                $tags = is_string($content->tags) ? json_decode($content->tags, true) : $content->tags;
+
+                $cleanedTags = collect($tags)->map(function ($tag) {
+                    return preg_replace('/[^a-zA-Z0-9\s]/', '', $tag);
+                })->toArray();
+
+                return [
+                    'id' => $content->id,
+                    'category_id' => $content->category_id,
+                    'subcategory_id' => $content->subcategory_id,
+                    'category_name' => optional($content->category)->category_name,
+                    'sub_category_name' => optional($content->subcategory)->name,
+                    'heading' => $content->heading,
+                    'author' => $content->author,
+                    'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+                    'sub_heading' => $content->sub_heading,
+                    'body1' => $content->body1,
+                    'image1' => $content->image1,
+                    'advertising_image' => $content->advertising_image,
+                    'tags' => $cleanedTags,
+                    'created_at' => $content->created_at,
+                    'updated_at' => $content->updated_at,
+                    'imageLink' => $content->imageLink,
+                    'advertisingLink' => $content->advertisingLink,
+                    'user_id' => $content->user_id,
+                    'status' => $content->status,
+                ];
+            });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Latest 15 contents for category fetched successfully.',
+                'message' => 'Latest contents for category fetched successfully.',
                 'category_id' => $category->id,
                 'category_name' => $category->category_name,
-                'data' => $contents,
+                'data' => $transformed,
+                'meta' => [
+                    'current_page' => $contents->currentPage(),
+                    'per_page' => $contents->perPage(),
+                    'total' => $contents->total(),
+                    'last_page' => $contents->lastPage(),
+                ]
             ], 200);
         } catch (\Exception $e) {
             Log::error('HomeCategoryContent Error: ' . $e->getMessage());
@@ -238,7 +314,7 @@ class ContentController extends Controller
                 'body1' => $content->body1,
                 'image1' => $content->image1,
                 'advertising_image' => $content->advertising_image,
-                'tags' => is_string($content->tags) ? json_decode($content->tags, true) : $content->tags,
+                'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
                 'created_at' => $content->created_at,
                 'updated_at' => $content->updated_at,
                 'imageLink' => $content->imageLink,
