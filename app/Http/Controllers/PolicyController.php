@@ -100,7 +100,7 @@ class PolicyController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Privacy policy saved successfully.',
-                'data' => $policy
+                'data' => $policy->privacy_policy
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -126,7 +126,7 @@ class PolicyController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Terms and conditions saved successfully.',
-                'data' => $policy
+                'data' => $policy->terms_conditions
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -152,7 +152,7 @@ class PolicyController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Cookies policy saved successfully.',
-                'data' => $policy
+                'data' => $policy->cookies_policy
             ], 200);
         } catch (Exception $e) {
             return response()->json([
