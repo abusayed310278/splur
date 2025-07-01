@@ -272,6 +272,7 @@ class SettingController extends Controller
                     'google_play_link' => $setting->google_play_link ?? null,
                     'bg_color' => $setting->bg_color ?? null,  // <-- added background color
                     'copyright' => $setting->copyright ?? null,
+                    'text_color' => $setting->text_color ?? null,  // <-- added text color
                 ]
             ]);
         } catch (Exception $e) {
@@ -366,6 +367,7 @@ class SettingController extends Controller
             'google_play_link' => 'nullable|url',
             'copyright' => 'nullable|string',
             'bg_color' => 'nullable|string',
+            'text_color' => 'nullable|string',
         ]);
 
         $setting = Setting::firstOrNew(['key' => 'footer']);
@@ -373,7 +375,7 @@ class SettingController extends Controller
         // Handle each icon upload if present
         foreach ([
             'facebook_icon', 'twitter_icon', 'linkedin_icon', 'instagram_icon',
-            'app_store_icon', 'google_play_icon'
+            'app_store_icon', 'google_play_icon','text_color'
         ] as $iconField) {
             if ($request->hasFile($iconField)) {
                 $file = $request->file($iconField);
@@ -392,6 +394,7 @@ class SettingController extends Controller
         $setting->google_play_link = $request->google_play_link;
         $setting->copyright = $request->copyright;
         $setting->bg_color = $request->bg_color;
+        $setting->text_color = $request->text_color;
 
         $setting->save();
 
