@@ -31,10 +31,7 @@ class ContentController extends Controller
 
         $total_subscriber = Subscriber::count();
 
-        $recent_content = Content::where('created_at', '>=', Carbon::now()->subDay())
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get();
+        $recent_content =Content::latest()->take(7)->get();
 
         return response()->json([
             'success' => true,
