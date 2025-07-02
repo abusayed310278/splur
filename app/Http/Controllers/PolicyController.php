@@ -83,6 +83,31 @@ class PolicyController extends Controller
         }
     }
 
+    public function getInvestmentDisclaimer()
+    {
+        try {
+            $policy = Policy::first();
+
+            if (!$policy || !$policy->investment_disclaimer) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Investment disclaimer not found.'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'investment_disclaimer' => $policy->investment_disclaimer,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch investment disclaimer.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function storeOrUpdatePrivacyPolicy(Request $request)
     {
         $request->validate([
@@ -158,6 +183,32 @@ class PolicyController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to save cookies policy.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function storeOrUpdateInvestmentDisclaimer(Request $request)
+    {
+        $request->validate([
+            'investment_disclaimer' => 'required|string',
+        ]);
+
+        try {
+            $policy = Policy::firstOrNew();
+
+            $policy->investment_disclaimer = $request->investment_disclaimer;
+            $policy->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Investment disclaimer saved successfully.',
+                'data' => $policy->investment_disclaimer
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to save investment disclaimer.',
                 'error' => $e->getMessage()
             ], 500);
         }

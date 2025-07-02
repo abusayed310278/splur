@@ -45,18 +45,17 @@ class ContentController extends Controller
                 'categories.category_name',
                 'sub_categories.name as sub_category_name'
             )
-            ->where('contents.status', 'approved')  // optional filter
-            ->whereRaw("
-            to_tsvector('english',
-                coalesce(contents.heading, '') || ' ' ||
-                coalesce(contents.sub_heading, '') || ' ' ||
-                coalesce(contents.body1, '') || ' ' ||
-                coalesce(contents.author, '') || ' ' ||
-                coalesce(contents.tags::text, '') || ' ' ||
-                coalesce(categories.category_name, '') || ' ' ||
-                coalesce(sub_categories.name, '')
-            ) @@ plainto_tsquery('english', ?)
-        ", [$search])
+            ->where('contents.status', 'approved')
+            ->where(function ($query) use ($search) {
+                $query
+                    ->where('contents.heading', 'LIKE', "%$search%")
+                    ->orWhere('contents.sub_heading', 'LIKE', "%$search%")
+                    ->orWhere('contents.body1', 'LIKE', "%$search%")
+                    ->orWhere('contents.author', 'LIKE', "%$search%")
+                    ->orWhere('contents.tags', 'LIKE', "%$search%")
+                    ->orWhere('categories.category_name', 'LIKE', "%$search%")
+                    ->orWhere('sub_categories.name', 'LIKE', "%$search%");
+            })
             ->orderByDesc('contents.date')
             ->get();
 

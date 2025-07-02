@@ -12,5 +12,6 @@ class Policy extends Model
         'privacy_policy',
         'terms_conditions',
         'cookies_policy',
+        'investment_disclaimer'
     ];
 }

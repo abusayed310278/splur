@@ -60,6 +60,7 @@ Route::middleware('auth:api')->group(function () {
             Route::post('privacy-policy', [PolicyController::class, 'storeOrUpdatePrivacyPolicy']);
             Route::post('terms-conditions', [PolicyController::class, 'storeOrUpdateTermsConditions']);
             Route::post('cookie-policy', [PolicyController::class, 'storeOrUpdateCookiesPolicy']);
+            Route::post('investment-disclaimer', [PolicyController::class, 'storeOrUpdateInvestmentDisclaimer']);
             
             Route::apiResource('footer-menu', FooterController::class);
             Route::post('header/update', [SettingController::class, 'storeOrUpdateHeader']);
@@ -187,6 +188,7 @@ Route::get('view-posts/{user_id}', [ContentController::class,'viewPosts']);
 Route::get('privacy-policy', [PolicyController::class, 'getPrivacyPolicy']);
 Route::get('terms-conditions', [PolicyController::class, 'getTermsConditions']);
 Route::get('cookies-policy', [PolicyController::class, 'getCookiesPolicy']);
+Route::get('investment-disclaimer', [PolicyController::class, 'getInvestmentDisclaimer']);
 
 
 Route::get('search', [ContentController::class, 'search']);
