@@ -187,3 +187,6 @@ Route::get('view-posts/{user_id}', [ContentController::class,'viewPosts']);
 Route::get('privacy-policy', [PolicyController::class, 'getPrivacyPolicy']);
 Route::get('terms-conditions', [PolicyController::class, 'getTermsConditions']);
 Route::get('cookies-policy', [PolicyController::class, 'getCookiesPolicy']);
+
+
+Route::get('search', [ContentController::class, 'search']);

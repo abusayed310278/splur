@@ -12,13 +12,57 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
+use Exception;
 
 class ContentController extends Controller
 {
+    public function search(Request $request)
+    {
+        $search = $request->input('q');
+
+        if (!$search) {
+            return response()->json(['message' => 'Search term is required'], 400);
+        }
+
+        $results = DB::table('contents')
+            ->join('categories', 'categories.id', '=', 'contents.category_id')
+            ->join('sub_categories', 'sub_categories.id', '=', 'contents.subcategory_id')
+            ->select(
+                'contents.id',
+                'contents.heading',
+                'contents.sub_heading',
+                'contents.body1',
+                'contents.author',
+                'contents.tags',
+                'contents.date',
+                'contents.image1',
+                'contents.status',
+                'categories.category_name',
+                'sub_categories.name as sub_category_name'
+            )
+            ->where('contents.status', 'approved')  // optional filter
+            ->whereRaw("
+            to_tsvector('english',
+                coalesce(contents.heading, '') || ' ' ||
+                coalesce(contents.sub_heading, '') || ' ' ||
+                coalesce(contents.body1, '') || ' ' ||
+                coalesce(contents.author, '') || ' ' ||
+                coalesce(contents.tags::text, '') || ' ' ||
+                coalesce(categories.category_name, '') || ' ' ||
+                coalesce(sub_categories.name, '')
+            ) @@ plainto_tsquery('english', ?)
+        ", [$search])
+            ->orderByDesc('contents.date')
+            ->get();
+
+        return response()->json($results);
+    }
+
     public function dashboard()
     {
         $total_content = Content::count();
@@ -31,7 +75,7 @@ class ContentController extends Controller
 
         $total_subscriber = Subscriber::count();
 
-        $recent_content =Content::latest()->take(7)->get();
+        $recent_content = Content::latest()->take(7)->get();
 
         return response()->json([
             'success' => true,
