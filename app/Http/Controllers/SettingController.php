@@ -273,6 +273,7 @@ class SettingController extends Controller
                     'bg_color' => $setting->bg_color ?? null,  // <-- added background color
                     'copyright' => $setting->copyright ?? null,
                     'text_color' => $setting->text_color ?? null,  // <-- added text color
+                    'active_text_color'=>$setting->text_color ?? null,
                 ]
             ]);
         } catch (Exception $e) {
@@ -368,6 +369,8 @@ class SettingController extends Controller
             'copyright' => 'nullable|string',
             'bg_color' => 'nullable|string',
             'text_color' => 'nullable|string',
+            'active_text_color'=>'nullable | string'
+
         ]);
 
         $setting = Setting::firstOrNew(['key' => 'footer']);
@@ -375,7 +378,7 @@ class SettingController extends Controller
         // Handle each icon upload if present
         foreach ([
             'facebook_icon', 'twitter_icon', 'linkedin_icon', 'instagram_icon',
-            'app_store_icon', 'google_play_icon','text_color'
+            'app_store_icon', 'google_play_icon','text_color','active_text_color'
         ] as $iconField) {
             if ($request->hasFile($iconField)) {
                 $file = $request->file($iconField);
@@ -395,6 +398,7 @@ class SettingController extends Controller
         $setting->copyright = $request->copyright;
         $setting->bg_color = $request->bg_color;
         $setting->text_color = $request->text_color;
+        $setting->active_text_color = $request->active_text_color;
 
         $setting->save();
 

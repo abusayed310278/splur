@@ -33,5 +33,6 @@ class Setting extends Model
         'google_play_link',
         'copyright',
         'text_color', // Added text_color field
+        'active_text_color'
     ];
 }

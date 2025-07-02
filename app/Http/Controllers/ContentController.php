@@ -23,43 +23,40 @@ class ContentController extends Controller
 {
     public function search(Request $request)
     {
-        $search = $request->input('q');
+        $query = $request->input('q');
 
-        if (!$search) {
-            return response()->json(['message' => 'Search term is required'], 400);
+        // Check if the input is a valid date
+        $isDate = false;
+        try {
+            $isDate = $query && Carbon::parse($query);
+        } catch (Exception $e) {
+            $isDate = false;
         }
 
-        $results = DB::table('contents')
-            ->join('categories', 'categories.id', '=', 'contents.category_id')
-            ->join('sub_categories', 'sub_categories.id', '=', 'contents.subcategory_id')
-            ->select(
-                'contents.id',
-                'contents.heading',
-                'contents.sub_heading',
-                'contents.body1',
-                'contents.author',
-                'contents.tags',
-                'contents.date',
-                'contents.image1',
-                'contents.status',
-                'categories.category_name',
-                'sub_categories.name as sub_category_name'
-            )
-            ->where('contents.status', 'approved')
-            ->where(function ($query) use ($search) {
-                $query
-                    ->where('contents.heading', 'LIKE', "%$search%")
-                    ->orWhere('contents.sub_heading', 'LIKE', "%$search%")
-                    ->orWhere('contents.body1', 'LIKE', "%$search%")
-                    ->orWhere('contents.author', 'LIKE', "%$search%")
-                    ->orWhere('contents.tags', 'LIKE', "%$search%")
-                    ->orWhere('categories.category_name', 'LIKE', "%$search%")
-                    ->orWhere('sub_categories.name', 'LIKE', "%$search%");
+        $contents = Content::with(['category', 'subcategory'])
+            ->when($query, function ($q) use ($query, $isDate) {
+                $q->where(function ($subQuery) use ($query, $isDate) {
+                    $subQuery
+                        ->where('author', 'ilike', "%{$query}%")
+                        ->orWhere(DB::raw('tags::text'), 'ilike', "%{$query}%")
+                        ->orWhere('heading', 'ilike', "%{$query}%")
+                        ->orWhere('sub_heading', 'ilike', "%{$query}%")
+                        ->orWhere('body1', 'ilike', "%{$query}%")
+                        ->when($isDate, function ($dateQuery) use ($query) {
+                            $dateQuery->orWhereDate('date', $query);
+                        })
+                        ->orWhereHas('category', function ($catQuery) use ($query) {
+                            $catQuery->where('category_name', 'ilike', "%{$query}%");
+                        })
+                        ->orWhereHas('subcategory', function ($subQuery) use ($query) {
+                            $subQuery->where('name', 'ilike', "%{$query}%");
+                        });
+                });
             })
-            ->orderByDesc('contents.date')
-            ->get();
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-        return response()->json($results);
+        return response()->json($contents);
     }
 
     public function dashboard()
