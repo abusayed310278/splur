@@ -12,6 +12,7 @@ use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\SubscriberController;
+use App\Http\Controllers\PageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
