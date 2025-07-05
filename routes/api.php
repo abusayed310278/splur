@@ -66,6 +66,10 @@ Route::middleware('auth:api')->group(function () {
             Route::post('header/update', [SettingController::class, 'storeOrUpdateHeader']);
             Route::post('footer/update', [SettingController::class, 'storeOrUpdateFooter']);
             Route::post('advertising/{slug}', [SettingController::class, 'storeOrUpdateAdvertising']);
+
+            Route::post('/pages', [PageController::class, 'store']);
+            Route::put('/pages/{id}', [PageController::class, 'update']);
+            Route::delete('/pages/{id}', [PageController::class, 'destroy']);
             // Route::post('advertising/vertical'  , [SettingController::class,'storeOrUpdateVerticalAdvertising']);
             // Route::post('advertising/{s'  , [SettingController::class,'storeOrUpdate']);
         });
@@ -192,3 +196,6 @@ Route::get('investment-disclaimer', [PolicyController::class, 'getInvestmentDisc
 
 
 Route::get('search', [ContentController::class, 'search']);
+
+Route::get('/pages', [PageController::class, 'index']);
+Route::get('/pages/{id}', [PageController::class, 'show']);
