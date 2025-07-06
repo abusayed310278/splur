@@ -200,3 +200,4 @@ Route::get('search', [ContentController::class, 'search']);
 
 Route::get('/pages', [PageController::class, 'index']);
 Route::get('/pages/{id}', [PageController::class, 'show']);
+Route::get('/pages/slug/{name}', [PageController::class, 'showByName']); 

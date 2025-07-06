@@ -41,4 +41,14 @@ class PageController extends Controller
         Page::findOrFail($id)->delete();
         return response()->json(['message' => 'Deleted successfully']);
     }
+    public function showByName($name)
+    {
+        $page = Page::where('name', $name)->first();
+
+        if (!$page) {
+            return response()->json(['message' => 'Page not found'], 404);
+        }
+
+        return response()->json($page);
+    }
 }
