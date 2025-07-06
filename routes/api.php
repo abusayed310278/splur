@@ -73,6 +73,8 @@ Route::middleware('auth:api')->group(function () {
             Route::delete('/pages/{id}', [PageController::class, 'destroy']);
 
             Route::put('/footer-sections/{id}', [FooterSectionController::class, 'update']);
+            Route::post('/footer-sections', [FooterSectionController::class, 'store']);
+
 
             // Route::post('advertising/vertical'  , [SettingController::class,'storeOrUpdateVerticalAdvertising']);
             // Route::post('advertising/{s'  , [SettingController::class,'storeOrUpdate']);

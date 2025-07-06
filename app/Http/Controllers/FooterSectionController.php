@@ -22,6 +22,22 @@ class FooterSectionController extends Controller
         return response()->json($sections);
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'pages' => 'nullable|array',
+        ]);
+
+        $section = FooterSection::create([
+            'title' => $request->title,
+            'pages' => $request->pages,
+        ]);
+
+        return response()->json($section, 201);
+    }
+
+
     public function update(Request $request, $id)
     {
         $request->validate([
