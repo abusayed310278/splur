@@ -71,6 +71,9 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/pages', [PageController::class, 'store']);
             Route::put('/pages/{id}', [PageController::class, 'update']);
             Route::delete('/pages/{id}', [PageController::class, 'destroy']);
+
+            Route::put('/footer-sections/{id}', [FooterSectionController::class, 'update']);
+
             // Route::post('advertising/vertical'  , [SettingController::class,'storeOrUpdateVerticalAdvertising']);
             // Route::post('advertising/{s'  , [SettingController::class,'storeOrUpdate']);
         });
@@ -201,3 +204,5 @@ Route::get('search', [ContentController::class, 'search']);
 Route::get('/pages', [PageController::class, 'index']);
 Route::get('/pages/{id}', [PageController::class, 'show']);
 Route::get('/pages/slug/{name}', [PageController::class, 'showByName']); 
+
+Route::get('/footer-sections', [FooterSectionController::class, 'index']);
