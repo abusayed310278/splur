@@ -13,6 +13,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\FooterSectionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
