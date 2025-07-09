@@ -273,7 +273,7 @@ class SettingController extends Controller
                     'bg_color' => $setting->bg_color ?? null,  // <-- added background color
                     'copyright' => $setting->copyright ?? null,
                     'text_color' => $setting->text_color ?? null,  // <-- added text color
-                    'active_text_color'=>$setting->text_color ?? null,
+                    'active_text_color'=>$setting->active_text_color ?? null,
                 ]
             ]);
         } catch (Exception $e) {
