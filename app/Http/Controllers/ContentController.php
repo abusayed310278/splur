@@ -2175,14 +2175,10 @@ class ContentController extends Controller
                 ];
             });
 
-            // Return the custom response without Laravel's built-in pagination URLs
+            // Return the custom response without unnecessary pagination fields at root
             return response()->json([
                 'success' => true,
                 'data' => $transformed,
-                'current_page' => $contents->currentPage(),
-                'total_pages' => $contents->lastPage(),
-                'per_page' => $contents->perPage(),
-                'total' => $contents->total(),
                 'meta' => [
                     'current_page' => $contents->currentPage(),
                     'per_page' => $contents->perPage(),
