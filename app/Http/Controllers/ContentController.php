@@ -62,7 +62,6 @@ class ContentController extends Controller
 
     // for mysql
 
-
     public function search(Request $request)
     {
         $query = $request->input('q');
@@ -2058,9 +2057,81 @@ class ContentController extends Controller
         }
     }
 
+    // public function indexForSubCategory($cat_id, $sub_id, Request $request)
+    // {
+    //     // return "ok";
+    //     try {
+    //         // Validate query parameters
+    //         $validated = $request->validate([
+    //             'paginate_count' => 'nullable|integer|min:1',
+    //             'search' => 'nullable|string|max:255',
+    //         ]);
+
+    //         $paginate_count = $validated['paginate_count'] ?? 10;
+    //         $search = $validated['search'] ?? null;
+
+    //         // Base query with relationships
+    //         $query = Content::with(['category', 'subcategory'])
+    //             ->where('category_id', $cat_id)
+    //             ->where('subcategory_id', $sub_id);
+
+    //         // Optional search on heading
+    //         if ($search) {
+    //             $query->where('heading', 'like', '%' . $search . '%');
+    //         }
+
+    //         // Apply pagination
+    //         $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
+
+    //         // Transform only the items in the paginated result
+    //         $transformedData = $contents->getCollection()->transform(function ($item) {
+    //             return [
+    //                 'id' => $item->id,
+    //                 'heading' => $item->heading,
+    //                 'sub_heading' => $item->sub_heading,
+    //                 'author' => $item->author,
+    //                 'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
+    //                 'body1' => $item->body1,
+    //                 'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+    //                 'category_id' => $item->category_id,
+    //                 'subcategory_id' => $item->subcategory_id,
+    //                 'category_name' => optional($item->category)->category_name,
+    //                 'sub_category_name' => optional($item->subcategory)->name,
+    //                 'image1' => $item->image1 ? url($item->image1) : null,
+    //                 'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
+    //                 'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
+    //                 'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+    //                 'status' => $item->status,
+    //             ];
+    //         });
+
+    //         // Replace the collection with transformed data
+    //         $contents->setCollection($transformedData);
+
+    //         // return $transformedData;
+
+    //         // Return response matching the example format
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $contents,
+    //             'current_page' => $contents->currentPage(),
+    //             'total_pages' => $contents->lastPage(),
+    //             'per_page' => $contents->perPage(),
+    //             'total' => $contents->total(),
+    //         ], Response::HTTP_OK);
+    //     } catch (\Exception $e) {
+    //         Log::error('Fetching contents by category and subcategory failed: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to fetch contents.',
+    //             'error' => $e->getMessage(),
+    //         ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    //     }
+    // }
+
     public function indexForSubCategory($cat_id, $sub_id, Request $request)
     {
-        // return "ok";
         try {
             // Validate query parameters
             $validated = $request->validate([
@@ -2068,30 +2139,28 @@ class ContentController extends Controller
                 'search' => 'nullable|string|max:255',
             ]);
 
-            $paginate_count = $validated['paginate_count'] ?? 10;
+            $perPage = $validated['paginate_count'] ?? 10;
             $search = $validated['search'] ?? null;
 
-            // Base query with relationships
-            $query = Content::with(['category', 'subcategory'])
+            // Build the query
+            $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
                 ->where('category_id', $cat_id)
                 ->where('subcategory_id', $sub_id);
 
-            // Optional search on heading
             if ($search) {
                 $query->where('heading', 'like', '%' . $search . '%');
             }
 
-            // Apply pagination
-            $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
+            $contents = $query->orderBy('id', 'desc')->paginate($perPage);
 
-            // Transform only the items in the paginated result
-            $transformedData = $contents->getCollection()->transform(function ($item) {
+            // Map the collection just like in viewPosts
+            $transformed = $contents->getCollection()->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'heading' => $item->heading,
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
-                    'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
+                    'date' => $item->date ? \Carbon\Carbon::parse($item->date)->format('m-d-Y') : null,
                     'body1' => $item->body1,
                     'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_id' => $item->category_id,
@@ -2106,12 +2175,10 @@ class ContentController extends Controller
                 ];
             });
 
-            // Replace the collection with transformed data
-            $contents->setCollection($transformedData);
+            // Set transformed data as the paginated collection
+            $contents->setCollection($transformed);
 
-            // return $transformedData;
-
-            // Return response matching the example format
+            // Return the original response format
             return response()->json([
                 'success' => true,
                 'data' => $contents,
