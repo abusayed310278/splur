@@ -62,6 +62,7 @@ class ContentController extends Controller
 
     // for mysql
 
+
     public function search(Request $request)
     {
         $query = $request->input('q');
@@ -77,18 +78,19 @@ class ContentController extends Controller
         $contents = Content::with(['category', 'subcategory'])
             ->when($query, function ($q) use ($query, $isDate) {
                 $q->where(function ($subQuery) use ($query, $isDate) {
+                    $lowerQuery = strtolower($query);
+
                     $subQuery
-                        ->where('author', 'like', "%{$query}%")
-                        // If 'tags' is stored as comma-separated string for MariaDB compatibility
-                        ->orWhereRaw('LOWER(tags) LIKE ?', ['%' . strtolower($query) . '%'])
-                        ->orWhere('heading', 'like', "%{$query}%")
-                        ->orWhere('sub_heading', 'like', "%{$query}%")
-                        ->orWhere('body1', 'like', "%{$query}%")
-                        ->orWhereHas('category', function ($catQuery) use ($query) {
-                            $catQuery->where('category_name', 'like', "%{$query}%");
+                        ->whereRaw('LOWER(author) LIKE ?', ["%$lowerQuery%"])
+                        ->orWhereRaw('LOWER(tags) LIKE ?', ["%$lowerQuery%"])
+                        ->orWhereRaw('LOWER(heading) LIKE ?', ["%$lowerQuery%"])
+                        ->orWhereRaw('LOWER(sub_heading) LIKE ?', ["%$lowerQuery%"])
+                        ->orWhereRaw('LOWER(body1) LIKE ?', ["%$lowerQuery%"])
+                        ->orWhereHas('category', function ($catQuery) use ($lowerQuery) {
+                            $catQuery->whereRaw('LOWER(category_name) LIKE ?', ["%$lowerQuery%"]);
                         })
-                        ->orWhereHas('subcategory', function ($subCatQuery) use ($query) {
-                            $subCatQuery->where('name', 'like', "%{$query}%");
+                        ->orWhereHas('subcategory', function ($subCatQuery) use ($lowerQuery) {
+                            $subCatQuery->whereRaw('LOWER(name) LIKE ?', ["%$lowerQuery%"]);
                         });
 
                     if ($isDate) {
