@@ -23,6 +23,7 @@ use Exception;
 
 class ContentController extends Controller
 {
+    //for postgresql
     // public function search(Request $request)
     // {
     //     $query = $request->input('q');
