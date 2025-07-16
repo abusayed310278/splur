@@ -19,11 +19,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Exception;
 
-
-
 class ContentController extends Controller
 {
-    //for postgresql
+    // for postgresql
     // public function search(Request $request)
     // {
     //     $query = $request->input('q');
@@ -62,13 +60,12 @@ class ContentController extends Controller
     //     return response()->json($contents);
     // }
 
-
-
+    // for mysql
     public function search(Request $request)
     {
         $query = $request->input('q');
 
-        // Determine if the input is a valid date
+        // Check if input is a valid date
         $isDate = false;
         try {
             $isDate = $query && Carbon::parse($query);
@@ -76,36 +73,24 @@ class ContentController extends Controller
             $isDate = false;
         }
 
-        // Detect the database driver (mysql, pgsql, sqlite, etc.)
-        $driver = DB::getDriverName();
-
-        // Use appropriate operator
-        $likeOperator = $driver === 'pgsql' ? 'ilike' : 'like';
-
         $contents = Content::with(['category', 'subcategory'])
-            ->when($query, function ($q) use ($query, $isDate, $likeOperator, $driver) {
-                $q->where(function ($subQuery) use ($query, $isDate, $likeOperator, $driver) {
+            ->when($query, function ($q) use ($query, $isDate) {
+                $q->where(function ($subQuery) use ($query, $isDate) {
                     $subQuery
-                        ->where('author', $likeOperator, "%{$query}%")
-                        // Handle JSON/array column for tags
-                        ->orWhere(function ($tagsQuery) use ($query, $likeOperator, $driver) {
-                            if ($driver === 'pgsql') {
-                                $tagsQuery->orWhere(DB::raw('tags::text'), $likeOperator, "%{$query}%");
-                            } else {
-                                $tagsQuery->orWhere('tags', $likeOperator, "%{$query}%");
-                            }
-                        })
-                        ->orWhere('heading', $likeOperator, "%{$query}%")
-                        ->orWhere('sub_heading', $likeOperator, "%{$query}%")
-                        ->orWhere('body1', $likeOperator, "%{$query}%")
+                        ->where('author', 'like', "%{$query}%")
+                        // For 'tags' column (assuming it's JSON or comma-separated string)
+                        ->orWhere('tags', 'like', "%{$query}%")
+                        ->orWhere('heading', 'like', "%{$query}%")
+                        ->orWhere('sub_heading', 'like', "%{$query}%")
+                        ->orWhere('body1', 'like', "%{$query}%")
                         ->when($isDate, function ($dateQuery) use ($query) {
                             $dateQuery->orWhereDate('date', $query);
                         })
-                        ->orWhereHas('category', function ($catQuery) use ($query, $likeOperator) {
-                            $catQuery->where('category_name', $likeOperator, "%{$query}%");
+                        ->orWhereHas('category', function ($catQuery) use ($query) {
+                            $catQuery->where('category_name', 'like', "%{$query}%");
                         })
-                        ->orWhereHas('subcategory', function ($subQuery) use ($query, $likeOperator) {
-                            $subQuery->where('name', $likeOperator, "%{$query}%");
+                        ->orWhereHas('subcategory', function ($subCatQuery) use ($query) {
+                            $subCatQuery->where('name', 'like', "%{$query}%");
                         });
                 });
             })
