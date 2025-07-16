@@ -2175,13 +2175,10 @@ class ContentController extends Controller
                 ];
             });
 
-            // Set transformed data as the paginated collection
-            // $contents->setCollection($transformed);
-
-            // Return the original response format
+            // Return the custom response without Laravel's built-in pagination URLs
             return response()->json([
                 'success' => true,
-                'data' => $contents,
+                'data' => $transformed,
                 'current_page' => $contents->currentPage(),
                 'total_pages' => $contents->lastPage(),
                 'per_page' => $contents->perPage(),
