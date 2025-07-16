@@ -2176,7 +2176,7 @@ class ContentController extends Controller
             });
 
             // Set transformed data as the paginated collection
-            $contents->setCollection($transformed);
+            // $contents->setCollection($transformed);
 
             // Return the original response format
             return response()->json([
@@ -2186,6 +2186,12 @@ class ContentController extends Controller
                 'total_pages' => $contents->lastPage(),
                 'per_page' => $contents->perPage(),
                 'total' => $contents->total(),
+                'meta' => [
+                    'current_page' => $contents->currentPage(),
+                    'per_page' => $contents->perPage(),
+                    'total' => $contents->total(),
+                    'last_page' => $contents->lastPage(),
+                ],
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
             Log::error('Fetching contents by category and subcategory failed: ' . $e->getMessage());
