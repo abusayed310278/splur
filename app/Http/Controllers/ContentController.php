@@ -61,6 +61,7 @@ class ContentController extends Controller
     // }
 
     // for mysql
+
     public function search(Request $request)
     {
         $query = $request->input('q');
@@ -78,20 +79,21 @@ class ContentController extends Controller
                 $q->where(function ($subQuery) use ($query, $isDate) {
                     $subQuery
                         ->where('author', 'like', "%{$query}%")
-                        // For 'tags' column (assuming it's JSON or comma-separated string)
-                        ->orWhere('tags', 'like', "%{$query}%")
+                        // If 'tags' is stored as comma-separated string for MariaDB compatibility
+                        ->orWhereRaw('LOWER(tags) LIKE ?', ['%' . strtolower($query) . '%'])
                         ->orWhere('heading', 'like', "%{$query}%")
                         ->orWhere('sub_heading', 'like', "%{$query}%")
                         ->orWhere('body1', 'like', "%{$query}%")
-                        ->when($isDate, function ($dateQuery) use ($query) {
-                            $dateQuery->orWhereDate('date', $query);
-                        })
                         ->orWhereHas('category', function ($catQuery) use ($query) {
                             $catQuery->where('category_name', 'like', "%{$query}%");
                         })
                         ->orWhereHas('subcategory', function ($subCatQuery) use ($query) {
                             $subCatQuery->where('name', 'like', "%{$query}%");
                         });
+
+                    if ($isDate) {
+                        $subQuery->orWhereDate('date', $query);
+                    }
                 });
             })
             ->orderBy('created_at', 'desc')
