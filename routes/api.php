@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\FooterController;
+use App\Http\Controllers\NewsletterApiController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\SettingController;
@@ -75,6 +76,8 @@ Route::middleware('auth:api')->group(function () {
 
             Route::put('/footer-sections/{id}', [FooterSectionController::class, 'update']);
             Route::post('/footer-sections', [FooterSectionController::class, 'store']);
+
+            Route::apiResource('newsletters', NewsletterApiController::class);
 
 
             // Route::post('advertising/vertical'  , [SettingController::class,'storeOrUpdateVerticalAdvertising']);
