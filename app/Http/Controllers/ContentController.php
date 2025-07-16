@@ -75,14 +75,14 @@ class ContentController extends Controller
             $isDate = false;
         }
 
-        $contents = Content::with(['category', 'subcategory'])
-            ->when($query, function ($q) use ($query, $isDate) {
-                $q->where(function ($subQuery) use ($query, $isDate) {
-                    $lowerQuery = strtolower($query);
+        $lowerQuery = strtolower($query);
 
+        $contents = Content::with(['category', 'subcategory'])
+            ->when($query, function ($q) use ($lowerQuery, $isDate, $query) {
+                $q->where(function ($subQuery) use ($lowerQuery, $isDate, $query) {
                     $subQuery
                         ->whereRaw('LOWER(author) LIKE ?', ["%$lowerQuery%"])
-                        ->orWhereRaw('LOWER(tags) LIKE ?', ["%$lowerQuery%"])
+                        ->orWhereRaw('LOWER(tags) LIKE ?', ["%$lowerQuery%"])  // assume tags is a string or CSV
                         ->orWhereRaw('LOWER(heading) LIKE ?', ["%$lowerQuery%"])
                         ->orWhereRaw('LOWER(sub_heading) LIKE ?', ["%$lowerQuery%"])
                         ->orWhereRaw('LOWER(body1) LIKE ?', ["%$lowerQuery%"])
