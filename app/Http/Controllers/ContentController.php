@@ -2141,7 +2141,7 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
-                    'image2' => $item->image2 ? url($item->image2) : null,
+                    'image2' => $item->image2 ? $item->image2 : null,
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'image2_url' => is_array($item->image2_url)
@@ -2286,7 +2286,7 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
-                    'image2' => $item->image2 ? url($item->image2) : null,
+                    'image2' => $item->image2 ? $item->image2 : null,
                     'image2_url' => is_array($item->image2_url)
                         ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
                         : [],
