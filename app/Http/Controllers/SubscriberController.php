@@ -17,7 +17,7 @@ class SubscriberController extends Controller
             $perPage = $request->input('paginate_count', 10);
 
             // Fetch subscribers with id and email, paginated
-            $subscribers = Subscriber::select('id', 'email')
+            $subscribers = Subscriber::select('id', 'email','created_at')
                 ->orderBy('id', 'desc')
                 ->paginate($perPage);
 

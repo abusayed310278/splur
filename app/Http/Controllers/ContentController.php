@@ -177,7 +177,7 @@ class ContentController extends Controller
         }
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $total_content = Content::count();
 
@@ -189,7 +189,9 @@ class ContentController extends Controller
 
         $total_subscriber = Subscriber::count();
 
-        $recent_content = Content::latest()->take(7)->get();
+        // ✅ Paginate recent content (default 10 per page or as requested)
+        $perPage = $request->input('per_page', 10); // Allow client to set per_page
+        $recent_content = Content::latest()->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -203,6 +205,7 @@ class ContentController extends Controller
             ]
         ]);
     }
+
 
     // this is effective method for viewPosts
     // public function viewPosts($user_id)
