@@ -758,7 +758,7 @@ class ContentController extends Controller
                         'body1' => $content->body1,
                         'image1' => $content->image1,
                         // Ensure image2 is always an array, even if null
-                        'image2' => is_array($content->image2) ? $content->image2 : [],
+                        'image2' => $content->image2 ? $content->image2 : [],
                         // 'image2_url' => is_array($content->image2_url)
                         //     ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
                         //     : [],
