@@ -2315,124 +2315,115 @@ class ContentController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        // ✅ Validate input
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'required|exists:sub_categories,id',
-            'heading' => 'nullable|string',
-            'author' => 'nullable|string',
-            'date' => 'nullable|date',
-            'sub_heading' => 'nullable|string',
-            'body1' => 'nullable|string',
-            'image1' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
-            'images2' => 'nullable|array',
-            'images2.*.file' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
-            'images2.*.link' => 'nullable|url',
-            'advertising_image' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
-            'imageLink' => 'nullable|string',
-            'advertisingLink' => 'nullable|string',
-            // Tags handled manually
-        ]);
+    $validated = $request->validate([
+        'category_id' => 'required|exists:categories,id',
+        'subcategory_id' => 'required|exists:sub_categories,id',
+        'heading' => 'nullable|string',
+        'author' => 'nullable|string',
+        'date' => 'nullable|date',
+        'sub_heading' => 'nullable|string',
+        'body1' => 'nullable|string',
+        'image1' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
+        'images2' => 'nullable|array',
+        'images2.*.file' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
+        'images2.*.link' => 'nullable|url',
+        'advertising_image' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
+        'imageLink' => 'nullable|string',
+        'advertisingLink' => 'nullable|string',
+        // Tags handled manually
+    ]);
 
-        try {
-            // ✅ Role-based status enforcement
-            if ($user->role === 'admin' || $user->role === 'editor') {
-                $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
-                    ? $request->status
-                    : 'Draft';
-            } elseif ($user->role === 'author') {
-                $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
-            } else {
-                $validated['status'] = 'Draft';
-            }
+    try {
+        // Status based on role
+        if (in_array($user->role, ['admin', 'editor'])) {
+            $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
+                ? $request->status
+                : 'Draft';
+        } elseif ($user->role === 'author') {
+            $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+        } else {
+            $validated['status'] = 'Draft';
+        }
 
-            // ✅ Handle image1 upload
-            if ($request->hasFile('image1')) {
-                $file = $request->file('image1');
-                $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $image1Name);
-                $validated['image1'] = 'uploads/Blogs/' . $image1Name;
-            } else {
-                $validated['image1'] = null;
-            }
+        // Handle image1
+        if ($request->hasFile('image1')) {
+            $file = $request->file('image1');
+            $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/Blogs'), $image1Name);
+            $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+        }
 
-            // ✅ Handle images2 (file or link)
-            $images2Input = $request->input('images2');
-            $uploadedImages2 = [];
+        // ✅ Handle images2 (files and/or links)
+        $uploadedImages2 = [];
 
-            if (is_array($images2Input)) {
-                foreach ($images2Input as $index => $item) {
-                    // Handle uploaded file
-                    if ($request->hasFile("images2.$index.file")) {
-                        $file = $request->file("images2.$index.file");
-                        $filename = time() . "_images2_{$index}." . $file->getClientOriginalExtension();
-                        $file->move(public_path('uploads/Blogs'), $filename);
-                        $uploadedImages2[] = 'uploads/Blogs/' . $filename;
-                    }
-                    // Handle link
-                    elseif (!empty($item['link']) && filter_var($item['link'], FILTER_VALIDATE_URL)) {
-                        try {
-                            $imageContent = file_get_contents($item['link']);
-                            $ext = pathinfo(parse_url($item['link'], PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
-                            $filename = 'uploads/Blogs/' . time() . "_link_{$index}." . $ext;
-                            file_put_contents(public_path($filename), $imageContent);
-                            $uploadedImages2[] = $filename;
-                        } catch (\Exception $e) {
-                            Log::error("Image download failed at index {$index}: " . $e->getMessage());
-                            continue;
-                        }
+        if ($request->has('images2')) {
+            foreach ($request->input('images2') as $index => $imageData) {
+                // Handle file
+                if ($request->hasFile("images2.$index.file")) {
+                    $file = $request->file("images2.$index.file");
+                    $filename = time() . "_images2_{$index}." . $file->getClientOriginalExtension();
+                    $file->move(public_path('uploads/Blogs'), $filename);
+                    $uploadedImages2[] = 'uploads/Blogs/' . $filename;
+                }
+
+                // Handle link
+                elseif (!empty($imageData['link']) && filter_var($imageData['link'], FILTER_VALIDATE_URL)) {
+                    try {
+                        $ext = pathinfo(parse_url($imageData['link'], PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+                        $filename = 'uploads/Blogs/' . time() . "_link_{$index}." . $ext;
+                        file_put_contents(public_path($filename), file_get_contents($imageData['link']));
+                        $uploadedImages2[] = $filename;
+                    } catch (\Exception $e) {
+                        Log::error("Image download failed at index {$index}: " . $e->getMessage());
                     }
                 }
             }
-
-            $validated['image2'] = $uploadedImages2;
-
-            // ✅ Handle advertising_image upload
-            if ($request->hasFile('advertising_image')) {
-                $file = $request->file('advertising_image');
-                $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $advertisingImageName);
-                $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
-            } else {
-                $validated['advertising_image'] = null;
-            }
-
-            // ✅ Handle tags
-            $tagsInput = $request->input('tags');
-            if (is_string($tagsInput)) {
-                $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
-            } elseif (is_array($tagsInput)) {
-                $tagsArray = $tagsInput;
-            } else {
-                $tagsArray = null;
-            }
-            $validated['tags'] = $tagsArray;
-
-            // ✅ Add authenticated user
-            $validated['user_id'] = $user->id;
-
-            // ✅ Save content
-            $content = Content::create($validated);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Content created successfully.',
-                'data' => $content,
-                'image2' => $uploadedImages2, // Optional direct access in response
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Content creation failed: ' . $e->getMessage());
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Failed to create content.',
-                'error' => $e->getMessage(),
-            ], 500);
         }
+
+        $validated['image2'] = $uploadedImages2;
+
+        // Advertising image
+        if ($request->hasFile('advertising_image')) {
+            $file = $request->file('advertising_image');
+            $filename = time() . '_advertising.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/Blogs'), $filename);
+            $validated['advertising_image'] = 'uploads/Blogs/' . $filename;
+        }
+
+        // Tags
+        $tagsInput = $request->input('tags');
+        if (is_string($tagsInput)) {
+            $validated['tags'] = array_filter(array_map('trim', explode(',', $tagsInput)));
+        } elseif (is_array($tagsInput)) {
+            $validated['tags'] = $tagsInput;
+        }
+
+        // Save user ID
+        $validated['user_id'] = $user->id;
+
+        // Create content
+        $content = Content::create($validated);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Content created successfully.',
+            'data' => $content,
+            'uploaded_images2' => $uploadedImages2
+        ], 201);
+    } catch (\Exception $e) {
+        Log::error('Content creation failed: ' . $e->getMessage());
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Failed to create content.',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
 
     public function update(Request $request, $id)
