@@ -11,11 +11,13 @@ use App\Models\Subscriber;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;  // For file upload type checking
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;  // Add this at the top of your controller
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;  // If you need manual validation
 use Illuminate\Support\Carbon;
 use Exception;
 
@@ -1671,8 +1673,8 @@ class ContentController extends Controller
                     //                     'image2_url' => is_array($item->image2_url)
                     //     ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
                     //     : [],
-                    'image2_url' => is_array($item->image2_url) 
-                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url) 
+                    'image2_url' => is_array($item->image2_url)
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
                         : [],
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
@@ -1726,8 +1728,8 @@ class ContentController extends Controller
                 // Ensure image2 is always an array, even if null
                 'image2' => is_array($content->image2) ? $content->image2 : [],
                 'advertising_image' => $content->advertising_image,
-                'image2_url' => is_array($content->image2_url) 
-                    ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url) 
+                'image2_url' => is_array($content->image2_url)
+                    ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
                     : [],
                 'tags' => $content->tags,
                 'created_at' => $content->created_at,
@@ -2139,9 +2141,9 @@ class ContentController extends Controller
                     'image2' => $item->image2 ? url($item->image2) : null,
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
-                    'image2_url' => is_array($item->image2_url) 
-                    ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url) 
-                    : [],
+                    'image2_url' => is_array($item->image2_url)
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
+                        : [],
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'status' => $item->status,
                 ];
@@ -2282,8 +2284,8 @@ class ContentController extends Controller
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
                     'image2' => $item->image2 ? url($item->image2) : null,
-                    'image2_url' => is_array($item->image2_url) 
-                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url) 
+                    'image2_url' => is_array($item->image2_url)
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
                         : [],
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
@@ -2314,30 +2316,24 @@ class ContentController extends Controller
         }
     }
 
-    public function store(Request $request)
-{
-    $user = auth()->user();
+ public function store(Request $request)
+    {
+        $user = auth()->user();
 
-    $validated = $request->validate([
-        'category_id' => 'required|exists:categories,id',
-        'subcategory_id' => 'required|exists:sub_categories,id',
-        'heading' => 'nullable|string',
-        'author' => 'nullable|string',
-        'date' => 'nullable|date',
-        'sub_heading' => 'nullable|string',
-        'body1' => 'nullable|string',
-        'image1' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
-        'images2' => 'nullable|array',
-        'images2.*.file' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
-        'images2.*.link' => 'nullable|url',
-        'advertising_image' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp',
-        'imageLink' => 'nullable|string',
-        'advertisingLink' => 'nullable|string',
-        // Tags handled manually
-    ]);
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'subcategory_id' => 'required|exists:sub_categories,id',
+            'heading' => 'nullable|string',
+            'author' => 'nullable|string',
+            'date' => 'nullable|date',
+            'sub_heading' => 'nullable|string',
+            'body1' => 'nullable|string',
+            'image2' => 'nullable',
+            'tags' => 'nullable',
+            'status' => 'nullable|string',
+        ]);
 
-    try {
-        // Status based on role
+        // Determine status based on user role
         if (in_array($user->role, ['admin', 'editor'])) {
             $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
                 ? $request->status
@@ -2348,83 +2344,61 @@ class ContentController extends Controller
             $validated['status'] = 'Draft';
         }
 
-        // Handle image1
-        if ($request->hasFile('image1')) {
-            $file = $request->file('image1');
-            $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/Blogs'), $image1Name);
-            $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+        // Handle image uploads and URLs
+        $uploadedImages = [];
+        $uploadPath = public_path('uploads');
+
+        // Create uploads directory if it doesn't exist
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
         }
 
-        // ✅ Handle images2 (files and/or links)
-        $uploadedImages2 = [];
+        // Handle different types of image input
+        if ($request->has('image2')) {
+            $imageInput = $request->image2;
 
-        if ($request->has('images2')) {
-            foreach ($request->input('images2') as $index => $imageData) {
-                // Handle file
-                if ($request->hasFile("images2.$index.file")) {
-                    $file = $request->file("images2.$index.file");
-                    $filename = time() . "_images2_{$index}." . $file->getClientOriginalExtension();
-                    $file->move(public_path('uploads/Blogs'), $filename);
-                    $uploadedImages2[] = 'uploads/Blogs/' . $filename;
-                }
-
-                // Handle link
-                elseif (!empty($imageData['link']) && filter_var($imageData['link'], FILTER_VALIDATE_URL)) {
-                    try {
-                        $ext = pathinfo(parse_url($imageData['link'], PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
-                        $filename = 'uploads/Blogs/' . time() . "_link_{$index}." . $ext;
-                        file_put_contents(public_path($filename), file_get_contents($imageData['link']));
-                        $uploadedImages2[] = $filename;
-                    } catch (\Exception $e) {
-                        Log::error("Image download failed at index {$index}: " . $e->getMessage());
+            if (is_array($imageInput)) {
+                foreach ($imageInput as $item) {
+                    if ($item instanceof UploadedFile) {
+                        $filename = time() . '_' . uniqid() . '.' . $item->getClientOriginalExtension();
+                        if ($item->move($uploadPath, $filename)) {
+                            $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
+                        }
+                    } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
+                        $uploadedImages[] = trim($item);
                     }
                 }
+            } elseif ($imageInput instanceof UploadedFile) {
+                $filename = time() . '_' . uniqid() . '.' . $imageInput->getClientOriginalExtension();
+                if ($imageInput->move($uploadPath, $filename)) {
+                    $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
+                }
+            } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
+                $uploadedImages[] = trim($imageInput);
             }
         }
 
-        $validated['image2'] = $uploadedImages2;
+        // Store images array in validated data
+        $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
 
-        // Advertising image
-        if ($request->hasFile('advertising_image')) {
-            $file = $request->file('advertising_image');
-            $filename = time() . '_advertising.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/Blogs'), $filename);
-            $validated['advertising_image'] = 'uploads/Blogs/' . $filename;
-        }
-
-        // Tags
+        // Handle tags
         $tagsInput = $request->input('tags');
-        if (is_string($tagsInput)) {
-            $validated['tags'] = array_filter(array_map('trim', explode(',', $tagsInput)));
-        } elseif (is_array($tagsInput)) {
-            $validated['tags'] = $tagsInput;
-        }
+        $validated['tags'] = is_array($tagsInput)
+            ? $tagsInput
+            : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
 
-        // Save user ID
+        // Set user ID
         $validated['user_id'] = $user->id;
 
-        // Create content
+        // Save to database
         $content = Content::create($validated);
 
         return response()->json([
             'status' => true,
             'message' => 'Content created successfully.',
             'data' => $content,
-            'uploaded_images2' => $uploadedImages2
         ], 201);
-    } catch (\Exception $e) {
-        Log::error('Content creation failed: ' . $e->getMessage());
-
-        return response()->json([
-            'status' => false,
-            'message' => 'Failed to create content.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
-
-
 
     public function update(Request $request, $id)
     {
