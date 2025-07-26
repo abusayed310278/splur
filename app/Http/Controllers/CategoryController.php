@@ -103,105 +103,106 @@ class CategoryController extends Controller
 
     // POST /api/categories
     public function store(Request $request)
-    {
-        if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please login first',
-            ], 401);
-        }
-
-        try {
-            $validated = $request->validate([
-                'category_name' => 'required|string|max:255|unique:categories,category_name',
-                'category_icon' => 'nullable|image',
-            ]);
-
-            if ($request->hasFile('category_icon')) {
-                // Store directly in 'public/category_icons' folder
-                $file = $request->file('category_icon');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('category_icons'), $filename);
-                $validated['category_icon'] = 'category_icons/' . $filename;
-            }
-
-            $category = Category::create($validated);
-
-            // Generate full URL manually (without /storage)
-            $category->category_icon = $category->category_icon
-                ? url($category->category_icon)
-                : null;
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Category created successfully',
-                'data' => $category
-            ], 201);
-        } catch (\Illuminate\Validation\ValidationException $ve) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $ve->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create category',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+{
+    if (!Auth::check()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Please login first',
+        ], 401);
     }
+
+    try {
+        $validated = $request->validate([
+            'category_name' => 'required|string|max:255|unique:categories,category_name',
+            'category_icon' => 'nullable|image',
+        ]);
+
+        $iconPath = null;
+        if ($request->hasFile('category_icon')) {
+            $file = $request->file('category_icon');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('category_icons'), $filename);
+            $iconPath = 'category_icons/' . $filename;
+            $validated['category_icon'] = $iconPath;
+        }
+
+        $category = Category::create($validated);
+
+        // Append full URL to the category_icon in response
+        $category->category_icon = $iconPath ? url($iconPath) : null;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category created successfully',
+            'data' => $category
+        ], 201);
+    } catch (\Illuminate\Validation\ValidationException $ve) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $ve->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create category',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 
     // PUT /api/categories/{id}
     public function update(Request $request, $id)
-    {
-        try {
-            $category = Category::findOrFail($id);
+{
+    try {
+        $category = Category::findOrFail($id);
 
-            $validated = $request->validate([
-                'category_name' => 'required|string|max:255|unique:categories,category_name,' . $id,
-                'category_icon' => 'nullable|image',
-            ]);
+        $validated = $request->validate([
+            'category_name' => 'required|string|max:255|unique:categories,category_name,' . $id,
+            'category_icon' => 'nullable|image',
+        ]);
 
-            if ($request->hasFile('category_icon')) {
-                // Optionally delete old icon file if exists
-                if ($category->category_icon && file_exists(public_path($category->category_icon))) {
-                    unlink(public_path($category->category_icon));
-                }
+        $iconPath = $category->category_icon; // default to old icon
 
-                // Store new icon directly in 'public/category_icons'
-                $file = $request->file('category_icon');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('category_icons'), $filename);
-                $validated['category_icon'] = 'category_icons/' . $filename;
+        if ($request->hasFile('category_icon')) {
+            // Delete old icon if it exists
+            if ($category->category_icon && file_exists(public_path($category->category_icon))) {
+                unlink(public_path($category->category_icon));
             }
 
-            $category->update($validated);
-
-            // Generate full URL manually (without /storage)
-            $category->category_icon = $category->category_icon
-                ? url($category->category_icon)
-                : null;
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Category updated successfully',
-                'data' => $category
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $ve) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $ve->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update category',
-                'error' => $e->getMessage()
-            ], 500);
+            // Store new icon
+            $file = $request->file('category_icon');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('category_icons'), $filename);
+            $iconPath = 'category_icons/' . $filename;
+            $validated['category_icon'] = $iconPath;
         }
+
+        $category->update($validated);
+
+        // Add full URL to icon in response
+        $category->category_icon = $iconPath ? url($iconPath) : null;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category updated successfully',
+            'data' => $category
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $ve) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $ve->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update category',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     // DELETE /api/categories/{id}
     public function destroy($id)
