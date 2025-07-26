@@ -693,7 +693,7 @@ class ContentController extends Controller
                         'body1' => $content->body1,
                         'image1' => $content->image1,
                         // Ensure image2 is always an array, even if null
-                        'image2' => is_array($content->image2) ? $content->image2 : [],
+                        'image2' => $content->image2 ? $content->image2 : [],
                         'image2_url' => is_array($content->image2_url)
                             ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
                             : [],
@@ -2404,150 +2404,91 @@ class ContentController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        // return "update";
-        $content = Content::find($id);
+{
+    $user = auth()->user();
 
-        if (!$content) {
-            return response()->json([
-                'status' => false,
-                'message' => 'No Available Content Found.',
-            ], 404);
-        }
+    $content = Content::findOrFail($id);
 
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'required|exists:sub_categories,id',
-            'heading' => 'nullable|string',
-            'author' => 'nullable|string',
-            'date' => 'nullable|date',
-            'sub_heading' => 'nullable|string',
-            'body1' => 'nullable|string',
-            'image1' => 'nullable',
-            'image2' => 'nullable|array',
-            'image2.*' => 'nullable',
-            'image2_url' => 'nullable|array',
-            'image2_url.*' => 'nullable|url',
-            'advertising_image' => 'nullable',
-            'imageLink' => 'nullable|string',
-            'advertisingLink' => 'nullable|string',
-            // 'status' => 'required|in:active,pending',
-        ]);
-
-        try {
-            // $user = auth()->user();
-
-            // Handle image1 upload
-            if ($request->hasFile('image1')) {
-                if ($content->image1 && File::exists(public_path($content->image1))) {
-                    File::delete(public_path($content->image1));
-                }
-
-                $file = $request->file('image1');
-                $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $image1Name);
-                $validated['image1'] = 'uploads/Blogs/' . $image1Name;
-            }
-
-            // ✅ Handle image2 (multiple)
-            $image2Paths = [];
-            if ($request->hasFile('image2')) {
-                if ($content->image2 && is_array($content->image2)) {
-                    foreach ($content->image2 as $path) {
-                        if (File::exists(public_path($path))) {
-                            File::delete(public_path($path));
-                        }
-                    }
-                }
-
-                foreach ($request->file('image2') as $index => $file) {
-                    $image2Name = time() . "_image2_{$index}." . $file->getClientOriginalExtension();
-                    $file->move(public_path('uploads/Blogs'), $image2Name);
-                    $image2Paths[] = 'uploads/Blogs/' . $image2Name;
-                }
-
-                $validated['image2'] = $image2Paths;
-            } else {
-                $validated['image2'] = $content->image2;
-            }
-
-            // Handle image2_url (external URLs):
-            // This section is refined to correctly handle null, empty array, or array of URLs.
-            if ($request->has('image2_url')) {
-                if ($request->input('image2_url') === null) {
-                    $validated['image2_url'] = null;
-                } else {
-                    $validated['image2_url'] = array_filter($request->input('image2_url'));
-                }
-            } else {
-                $validated['image2_url'] = null;  // Default for new content if not provided
-            }
-
-            // Handle advertising_image upload
-            if ($request->hasFile('advertising_image')) {
-                if ($content->advertising_image && File::exists(public_path($content->advertising_image))) {
-                    File::delete(public_path($content->advertising_image));
-                }
-
-                $file = $request->file('advertising_image');
-                $advertisingImageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-                $file->move(public_path('uploads/Blogs'), $advertisingImageName);
-                $validated['advertising_image'] = 'uploads/Blogs/' . $advertisingImageName;
-            }
-
-            // Handle tags
-            $tagsInput = $request->input('tags');
-            if (is_string($tagsInput)) {
-                $tagsArray = array_filter(array_map('trim', explode(',', $tagsInput)));
-            } elseif (is_array($tagsInput)) {
-                $tagsArray = $tagsInput;
-            } else {
-                $tagsArray = null;
-            }
-
-            $validated['tags'] = $tagsArray;
-
-            // Map camelCase to snake_case for DB fields
-            $validated['image_link'] = $validated['imageLink'] ?? $content->image_link;
-            $validated['advertising_link'] = $validated['advertisingLink'] ?? $content->advertising_link;
-            unset($validated['imageLink'], $validated['advertisingLink']);
-
-            // Set user_id
-            $user = auth()->user();
-            $validated['user_id'] = $user->id;
-
-            // ✅ Role-based status control
-            $requestedStatus = $request->input('status');
-
-            if ($user->role === 'admin' || $user->role === 'editor') {
-                // Admin/Editor can use any valid status
-                $allowedStatuses = ['Draft', 'Review', 'Approved', 'Rejected', 'Archived'];
-                $validated['status'] = in_array($requestedStatus, $allowedStatuses) ? $requestedStatus : $content->status;
-            } elseif ($user->role === 'author') {
-                // Author can only set to Published or Draft
-                $allowedStatuses = ['Published', 'Draft'];
-                $validated['status'] = in_array($requestedStatus, $allowedStatuses) ? $requestedStatus : $content->status;
-            } else {
-                // Fallback for unknown role
-                $validated['status'] = $content->status;
-            }
-            $content->update($validated);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Content updated successfully.',
-                'data' => $content,
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Content update failed: ' . $e->getMessage());
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Failed to update content.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+    // Optional: authorize update (e.g., authors can only edit their own posts)
+    if ($user->role === 'author' && $content->user_id !== $user->id) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Unauthorized.'
+        ], 403);
     }
+
+    $validated = $request->validate([
+        'category_id' => 'required|exists:categories,id',
+        'subcategory_id' => 'required|exists:sub_categories,id',
+        'heading' => 'nullable|string',
+        'author' => 'nullable|string',
+        'date' => 'nullable|date',
+        'sub_heading' => 'nullable|string',
+        'body1' => 'nullable|string',
+        'image2' => 'nullable',
+        'tags' => 'nullable',
+        'status' => 'nullable|string',
+    ]);
+
+    // Role-based status logic
+    if (in_array($user->role, ['admin', 'editor'])) {
+        $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
+            ? $request->status
+            : $content->status;
+    } elseif ($user->role === 'author') {
+        $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+    }
+
+    // Handle image updates
+    $uploadedImages = [];
+    $uploadPath = public_path('uploads');
+
+    if (!file_exists($uploadPath)) {
+        mkdir($uploadPath, 0777, true);
+    }
+
+    if ($request->has('image2')) {
+        $imageInput = $request->image2;
+
+        if (is_array($imageInput)) {
+            foreach ($imageInput as $item) {
+                if ($item instanceof UploadedFile) {
+                    $filename = time() . '_' . uniqid() . '.' . $item->getClientOriginalExtension();
+                    if ($item->move($uploadPath, $filename)) {
+                        $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
+                    }
+                } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
+                    $uploadedImages[] = trim($item);
+                }
+            }
+        } elseif ($imageInput instanceof UploadedFile) {
+            $filename = time() . '_' . uniqid() . '.' . $imageInput->getClientOriginalExtension();
+            if ($imageInput->move($uploadPath, $filename)) {
+                $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
+            }
+        } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
+            $uploadedImages[] = trim($imageInput);
+        }
+
+        $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+    }
+
+    // Handle tags
+    $tagsInput = $request->input('tags');
+    $validated['tags'] = is_array($tagsInput)
+        ? $tagsInput
+        : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
+
+    // Update content
+    $content->update($validated);
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Content updated successfully.',
+        'data' => $content,
+    ]);
+}
+
 
     public function destroy($id)
     {
