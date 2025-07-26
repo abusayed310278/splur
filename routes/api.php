@@ -109,7 +109,7 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::middleware('role:admin,editor')->group(function () {
-
+        Route::get('all-content', [ContentController::class, 'allContents']);
         Route::get('dashboard-overview', [ContentController::class, 'dashboard']);  
     });
 

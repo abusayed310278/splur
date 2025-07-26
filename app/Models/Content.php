@@ -19,6 +19,8 @@ class Content extends Model
         'sub_heading',
         'body1',
         'image1',
+        'image2',
+        'image2_url',
         'advertising_image',
         'tags',
         'imageLink',
@@ -29,6 +31,8 @@ class Content extends Model
 
     protected $casts = [
         'tags' => 'array',
+        'image2' => 'array',
+        'image2_url' => 'array',
     ];
 
     // public function category()

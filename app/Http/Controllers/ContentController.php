@@ -103,11 +103,83 @@ class ContentController extends Controller
         return response()->json($contents);
     }
 
+    public function allContents()
+    {
+        try {
+            $perPage = request('per_page', 10);  // Default 10 per page
+
+            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage);
+
+            if ($contents->total() === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No content found.',
+                    'data' => [],
+                ], 404);
+            }
+
+            $data = $contents->getCollection()->map(function ($content) {
+                return [
+                    'id' => $content->id,
+                    'category_id' => $content->category_id,
+                    'subcategory_id' => $content->subcategory_id,
+                    'category_name' => optional($content->category)->category_name,
+                    'sub_category_name' => optional($content->subcategory)->name,
+                    'heading' => $content->heading,
+                    'author' => $content->author,
+                    'date' => $content->date ? \Carbon\Carbon::parse($content->date)->format('m-d-Y') : null,
+                    'sub_heading' => $content->sub_heading,
+                    'body1' => $content->body1,
+                    'image1' => $content->image1,
+                    'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
+                    'image2' => $content->image2,
+                    'image2_url' => is_array($content->image2)
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2)
+                        : [],
+                    'image2_url' => is_array($content->image2_url)
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
+                        : [],
+                    'advertising_image' => $content->advertising_image,
+                    'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
+                    'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
+                    'imageLink' => $content->image_link,
+                    'advertisingLink' => $content->advertising_link,
+                    'user_id' => $content->user_id,
+                    'status' => $content->status,
+                    'created_at' => $content->created_at,
+                    'updated_at' => $content->updated_at,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All contents fetched successfully.',
+                'data' => $data,
+                'meta' => [
+                    'current_page' => $contents->currentPage(),
+                    'per_page' => $contents->perPage(),
+                    'total' => $contents->total(),
+                    'last_page' => $contents->lastPage(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Fetching all contents failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch contents.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function dashboard()
     {
         $total_content = Content::count();
 
-        $total_pending_content = Content::where('status', 'pending')->count();
+        $total_pending_content = Content::where('status', 'Approved')->count();
 
         $total_author = User::where('role', 'author')->count();
 
@@ -475,8 +547,13 @@ class ContentController extends Controller
                     'body1' => $content->body1,
                     'image1' => $content->image1,
                     'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
+                    'image2' => $content->image2,
+                    'image2_url' => $content->image2 ? url('uploads/content/' . $content->image2) : null,
                     'advertising_image' => $content->advertising_image,
                     'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
+                    'image2_url' => is_array($content->image2_url)
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
+                        : [],
                     'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
                     'created_at' => $content->created_at,
                     'updated_at' => $content->updated_at,
@@ -594,7 +671,7 @@ class ContentController extends Controller
 
             $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
                 ->where('category_id', $category->id)
-                ->where('status', 'active')
+                ->where('status', 'Approved')
                 ->latest()
                 ->paginate($limit)
                 ->through(function ($content) {
@@ -610,6 +687,11 @@ class ContentController extends Controller
                         'sub_heading' => $content->sub_heading,
                         'body1' => $content->body1,
                         'image1' => $content->image1,
+                        // Ensure image2 is always an array, even if null
+                        'image2' => is_array($content->image2) ? $content->image2 : [],
+                        'image2_url' => is_array($content->image2_url)
+                            ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
+                            : [],
                         'advertising_image' => $content->advertising_image,
                         'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                         'created_at' => $content->created_at,
@@ -654,7 +736,7 @@ class ContentController extends Controller
             // Laravel's paginator will automatically detect 'page' from query string
 
             $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
-                ->where('status', 'active')
+                ->where('status', 'Approved')
                 ->latest()
                 ->paginate($limit)  // dynamic limit
                 ->through(function ($content) {
@@ -670,6 +752,11 @@ class ContentController extends Controller
                         'sub_heading' => $content->sub_heading,
                         'body1' => $content->body1,
                         'image1' => $content->image1,
+                        // Ensure image2 is always an array, even if null
+                        'image2' => is_array($content->image2) ? $content->image2 : [],
+                        'image2_url' => is_array($content->image2_url)
+                            ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
+                            : [],
                         'advertising_image' => $content->advertising_image,
                         'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                         'created_at' => $content->created_at,
@@ -815,6 +902,7 @@ class ContentController extends Controller
                 'date' => $item->date,
                 'tags' => $item->tags,
                 'image1' => $item->image1 ? url($item->image1) : null,
+                'image2' => $item->image2 ? url($item->image2) : null,
                 'imageLink' => $item->imageLink ? url($item->imageLink) : null,
             ];
         });
@@ -1378,6 +1466,7 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
+                    'image2' => $item->image2 ? url($item->image2) : null,
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
@@ -1513,7 +1602,7 @@ class ContentController extends Controller
         // Get latest active content for the category, including relations
         $latestContent = Content::with(['category', 'subcategory'])
             ->where('category_id', $cat_id)
-            ->where('status', 'active')
+            ->where('status', 'Approved')
             ->orderBy('created_at', 'desc')
             ->first();
 
@@ -1578,6 +1667,13 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
+                    // 'image2' => $item->image2 ? url($item->image2) : null,
+                    //                     'image2_url' => is_array($item->image2_url)
+                    //     ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
+                    //     : [],
+                    'image2_url' => is_array($item->image2_url) 
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url) 
+                        : [],
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
@@ -1627,7 +1723,12 @@ class ContentController extends Controller
                 'sub_heading' => $content->sub_heading,
                 'body1' => $content->body1,
                 'image1' => $content->image1,
+                // Ensure image2 is always an array, even if null
+                'image2' => is_array($content->image2) ? $content->image2 : [],
                 'advertising_image' => $content->advertising_image,
+                'image2_url' => is_array($content->image2_url) 
+                    ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url) 
+                    : [],
                 'tags' => $content->tags,
                 'created_at' => $content->created_at,
                 'updated_at' => $content->updated_at,
@@ -1743,20 +1844,27 @@ class ContentController extends Controller
     {
         $user = auth()->user();
 
+        // Unified allowed statuses
+        $allStatuses = ['Draft', 'Review', 'Approved', 'Rejected', 'Archived', 'Published'];
+        $authorStatuses = ['Draft', 'Published'];
+
         $request->validate([
-            'status' => 'required|string|in:active,pending',
+            'status' => 'required|string|in:' . implode(',', $allStatuses),
         ]);
 
         $requestedStatus = $request->input('status');
 
         // Only admins and editors can approve (set status to 'active')
-        if ($requestedStatus === 'active' && !in_array($user->role, ['admin', 'editor'])) {
+        // Check role-based permission
+        if (
+            $user->role === 'author' &&
+            !in_array($requestedStatus, $authorStatuses)
+        ) {
             return response()->json([
                 'status' => false,
-                'message' => 'You are not authorized to approve content.',
+                'message' => 'You are not authorized to set this status.',
             ], 403);
         }
-
         $content = Content::find($id);
 
         if ($content) {
@@ -1774,7 +1882,7 @@ class ContentController extends Controller
             $content->id = $id;
 
             // Author can only create with status 'pending'
-            $content->status = in_array($user->role, ['admin', 'editor']) ? $requestedStatus : 'pending';
+            $content->status = in_array($user->role, ['admin', 'editor']) ? $requestedStatus : 'Published';
 
             // Add required default values if needed
             $content->user_id = $user->id;  // just an example
@@ -1935,6 +2043,7 @@ class ContentController extends Controller
 
             // Add full URLs for images
             $content->image1_url = $content->image1 ? url($content->image1) : null;
+            $content->image2_url = $content->image2 ? url($content->image2) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
             // Add category_name and sub_category_name
@@ -2027,8 +2136,12 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
+                    'image2' => $item->image2 ? url($item->image2) : null,
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
+                    'image2_url' => is_array($item->image2_url) 
+                    ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url) 
+                    : [],
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'status' => $item->status,
                 ];
@@ -2168,6 +2281,10 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
+                    'image2' => $item->image2 ? url($item->image2) : null,
+                    'image2_url' => is_array($item->image2_url) 
+                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url) 
+                        : [],
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
@@ -2199,6 +2316,7 @@ class ContentController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
         // Validate everything except tags (which we'll handle separately)
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
@@ -2209,6 +2327,10 @@ class ContentController extends Controller
             'sub_heading' => 'nullable|string',
             'body1' => 'nullable|string',
             'image1' => 'nullable',
+            'image2' => 'nullable|array',
+            'image2.*' => 'nullable',
+            'image2_url' => 'nullable|array',
+            'image2_url.*' => 'nullable|url',
             'advertising_image' => 'nullable',
             'imageLink' => 'nullable|string',  // ✅ added
             'advertisingLink' => 'nullable|string',  // ✅ added
@@ -2216,6 +2338,20 @@ class ContentController extends Controller
         ]);
 
         try {
+            // ✅ Role-based status enforcement
+            if ($user->roles === 'admin' || $user->role === 'editor') {
+                // Admin/Editor can set 'Approved'
+                $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
+                    ? $request->status
+                    : 'Draft';
+            } elseif ($user->role === 'author') {
+                // Author can only set 'Published'
+                $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+            } else {
+                // Fallback for unknown roles
+                $validated['status'] = 'Draft';
+            }
+
             // Handle image1 upload
             if ($request->hasFile('image1')) {
                 $file = $request->file('image1');
@@ -2224,6 +2360,30 @@ class ContentController extends Controller
                 $validated['image1'] = 'uploads/Blogs/' . $image1Name;
             } else {
                 $validated['image1'] = null;
+            }
+
+            // Handle image2 upload
+            $image2Paths = [];
+
+            if ($request->hasFile('image2')) {
+                foreach ($request->file('image2') as $index => $file) {
+                    $image2Name = time() . "_image2_{$index}." . $file->getClientOriginalExtension();
+                    $file->move(public_path('uploads/Blogs'), $image2Name);
+                    $image2Paths[] = 'uploads/Blogs/' . $image2Name;
+                }
+                $validated['image2'] = $image2Paths;
+            } else {
+                $validated['image2'] = null;
+            }
+
+            // ✅ Handle image2_url (array of URLs from input)
+            $image2UrlInput = $request->input('image2_url');
+            if (is_array($image2UrlInput)) {
+                $validated['image2_url'] = array_filter(array_map('trim', $image2UrlInput));
+            } elseif (is_string($image2UrlInput)) {
+                $validated['image2_url'] = array_filter(array_map('trim', explode(',', $image2UrlInput)));
+            } else {
+                $validated['image2_url'] = null;
             }
 
             // Handle advertising_image upload
@@ -2272,6 +2432,7 @@ class ContentController extends Controller
 
     public function update(Request $request, $id)
     {
+        // return "update";
         $content = Content::find($id);
 
         if (!$content) {
@@ -2290,6 +2451,10 @@ class ContentController extends Controller
             'sub_heading' => 'nullable|string',
             'body1' => 'nullable|string',
             'image1' => 'nullable',
+            'image2' => 'nullable|array',
+            'image2.*' => 'nullable',
+            'image2_url' => 'nullable|array',
+            'image2_url.*' => 'nullable|url',
             'advertising_image' => 'nullable',
             'imageLink' => 'nullable|string',
             'advertisingLink' => 'nullable|string',
@@ -2297,6 +2462,8 @@ class ContentController extends Controller
         ]);
 
         try {
+            // $user = auth()->user();
+
             // Handle image1 upload
             if ($request->hasFile('image1')) {
                 if ($content->image1 && File::exists(public_path($content->image1))) {
@@ -2307,6 +2474,40 @@ class ContentController extends Controller
                 $image1Name = time() . '_image1.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/Blogs'), $image1Name);
                 $validated['image1'] = 'uploads/Blogs/' . $image1Name;
+            }
+
+            // ✅ Handle image2 (multiple)
+            $image2Paths = [];
+            if ($request->hasFile('image2')) {
+                if ($content->image2 && is_array($content->image2)) {
+                    foreach ($content->image2 as $path) {
+                        if (File::exists(public_path($path))) {
+                            File::delete(public_path($path));
+                        }
+                    }
+                }
+
+                foreach ($request->file('image2') as $index => $file) {
+                    $image2Name = time() . "_image2_{$index}." . $file->getClientOriginalExtension();
+                    $file->move(public_path('uploads/Blogs'), $image2Name);
+                    $image2Paths[] = 'uploads/Blogs/' . $image2Name;
+                }
+
+                $validated['image2'] = $image2Paths;
+            } else {
+                $validated['image2'] = $content->image2;
+            }
+
+            // Handle image2_url (external URLs):
+            // This section is refined to correctly handle null, empty array, or array of URLs.
+            if ($request->has('image2_url')) {
+                if ($request->input('image2_url') === null) {
+                    $validated['image2_url'] = null;
+                } else {
+                    $validated['image2_url'] = array_filter($request->input('image2_url'));
+                }
+            } else {
+                $validated['image2_url'] = null;  // Default for new content if not provided
             }
 
             // Handle advertising_image upload
@@ -2338,18 +2539,25 @@ class ContentController extends Controller
             $validated['advertising_link'] = $validated['advertisingLink'] ?? $content->advertising_link;
             unset($validated['imageLink'], $validated['advertisingLink']);
 
-            // ✅ Add authenticated user ID
-            // $validated['user_id'] = auth()->id();
-
             // Set user_id
             $user = auth()->user();
             $validated['user_id'] = $user->id;
 
-            // Role-based status control
-            if ($user->role === 'author') {
-                $validated['status'] = 'pending';
-            }
+            // ✅ Role-based status control
+            $requestedStatus = $request->input('status');
 
+            if ($user->role === 'admin' || $user->role === 'editor') {
+                // Admin/Editor can use any valid status
+                $allowedStatuses = ['Draft', 'Review', 'Approved', 'Rejected', 'Archived'];
+                $validated['status'] = in_array($requestedStatus, $allowedStatuses) ? $requestedStatus : $content->status;
+            } elseif ($user->role === 'author') {
+                // Author can only set to Published or Draft
+                $allowedStatuses = ['Published', 'Draft'];
+                $validated['status'] = in_array($requestedStatus, $allowedStatuses) ? $requestedStatus : $content->status;
+            } else {
+                // Fallback for unknown role
+                $validated['status'] = $content->status;
+            }
             $content->update($validated);
 
             return response()->json([
@@ -2376,6 +2584,15 @@ class ContentController extends Controller
             // Delete image1 if exists
             if ($content->image1 && File::exists(public_path($content->image1))) {
                 File::delete(public_path($content->image1));
+            }
+
+            // Delete image2 if exists and is array
+            if ($content->image2 && is_array($content->image2)) {
+                foreach ($content->image2 as $path) {
+                    if (File::exists(public_path($path))) {
+                        File::delete(public_path($path));
+                    }
+                }
             }
 
             // Delete advertising_image if exists
