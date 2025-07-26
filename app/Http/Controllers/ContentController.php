@@ -2363,18 +2363,36 @@ class ContentController extends Controller
             }
 
             // Handle image2 upload
-            $image2Paths = [];
+            $images2Input = $request->input('images2');
+$uploadedImages2 = [];
 
-            if ($request->hasFile('image2')) {
-                foreach ($request->file('image2') as $index => $file) {
-                    $image2Name = time() . "_image2_{$index}." . $file->getClientOriginalExtension();
-                    $file->move(public_path('uploads/Blogs'), $image2Name);
-                    $image2Paths[] = 'uploads/Blogs/' . $image2Name;
-                }
-                $validated['image2'] = $image2Paths;
-            } else {
-                $validated['image2'] = null;
+if (is_array($images2Input)) {
+    foreach ($images2Input as $index => $item) {
+        // Handle uploaded file
+        if ($request->hasFile("images2.$index.file")) {
+            $file = $request->file("images2.$index.file");
+            $filename = time() . "_images2_{$index}." . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/Blogs'), $filename);
+            $uploadedImages2[] = 'uploads/Blogs/' . $filename;
+        }
+        // Handle image from external link
+        elseif (!empty($item['link']) && filter_var($item['link'], FILTER_VALIDATE_URL)) {
+            try {
+                $imageContent = file_get_contents($item['link']);
+                $ext = pathinfo(parse_url($item['link'], PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+                $filename = 'uploads/Blogs/' . time() . "_link_{$index}." . $ext;
+                file_put_contents(public_path($filename), $imageContent);
+                $uploadedImages2[] = $filename;
+            } catch (\Exception $e) {
+                Log::error("Failed to download image link at index {$index}: " . $e->getMessage());
+                continue;
             }
+        }
+    }
+}
+
+$validated['image2'] = $uploadedImages2;
+
 
             // ✅ Handle image2_url (array of URLs from input)
             $image2UrlInput = $request->input('image2_url');
