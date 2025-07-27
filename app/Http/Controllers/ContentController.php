@@ -2400,8 +2400,8 @@ class ContentController extends Controller
         }
 
         // Store images array in validated data
-        // $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
-        $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : null;
+        $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+        // $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : null;
 
         // Handle tags
         $tagsInput = $request->input('tags');
