@@ -779,6 +779,7 @@ class ContentController extends Controller
                 ->paginate($limit)  // dynamic limit
                 ->through(function ($content) {
                     // Decode image2 if it's a JSON string
+                    // Handle image2 like HomeContent
                     $image2Array = [];
 
                     if (!empty($content->image2)) {
@@ -810,7 +811,6 @@ class ContentController extends Controller
                         'sub_heading' => $content->sub_heading,
                         'body1' => $content->body1,
                         'image1' => $content->image1,
-                        // Ensure image2 is always an array, even if null
                         'image2' => $image2Array,
                         'image2_url' => $image2Urls,
                         'advertising_image' => $content->advertising_image,
@@ -1710,6 +1710,26 @@ class ContentController extends Controller
             $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
 
             $transformedData = $contents->getCollection()->transform(function ($item) {
+                // Decode and clean image2 array
+                // Handle image2 like HomeContent
+                $image2Array = [];
+
+                if (!empty($item->image2)) {
+                    if (is_string($item->image2)) {
+                        $decoded = json_decode($item->image2, true);
+                        $image2Array = is_array($decoded) ? $decoded : [];
+                    } elseif (is_array($item->image2)) {
+                        $image2Array = $item->image2;
+                    }
+                }
+
+                $image2Urls = array_map(function ($img) {
+                    if (Str::startsWith($img, ['http://', 'https://'])) {
+                        return $img;
+                    }
+                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                    return url('uploads/content/' . ltrim($cleaned, '/'));
+                }, $image2Array);
                 return [
                     'id' => $item->id,
                     'heading' => $item->heading,
@@ -1723,13 +1743,8 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
-                    // 'image2' => $item->image2 ? url($item->image2) : null,
-                    //                     'image2_url' => is_array($item->image2_url)
-                    //     ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
-                    //     : [],
-                    'image2_url' => is_array($item->image2_url)
-                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
-                        : [],
+                    'image2' => $image2Array,
+                    'image2_url' => $image2Urls,
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
@@ -1978,8 +1993,6 @@ class ContentController extends Controller
             $contents->transform(function ($content) {
                 $content->image1_url = $content->image1 ? url($content->image1) : null;
                 $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
-
-                
 
                 // Handle image2 and generate clean URLs
                 $image2Array = [];
