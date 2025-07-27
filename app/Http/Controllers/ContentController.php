@@ -194,6 +194,34 @@ class ContentController extends Controller
         $perPage = $request->input('per_page', 10);  // Allow client to set per_page
         $recent_content = Content::latest()->paginate($perPage);
 
+            // Process image2 for each item without changing pagination structure
+    $recent_content->getCollection()->transform(function ($item) {
+        $image2Array = [];
+
+        if (!empty($item->image2)) {
+            if (is_string($item->image2)) {
+                $decoded = json_decode($item->image2, true);
+                $image2Array = is_array($decoded) ? $decoded : [];
+            } elseif (is_array($item->image2)) {
+                $image2Array = $item->image2;
+            }
+        }
+
+        $image2Urls = array_map(function ($img) {
+            if (Str::startsWith($img, ['http://', 'https://'])) {
+                return $img;
+            }
+            $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+            return url('uploads/content/' . ltrim($cleaned, '/'));
+        }, $image2Array);
+
+        // Attach processed fields to the model (optional: for frontend usage)
+        $item->image2 = $image2Array;
+        $item->image2_url = $image2Urls;
+
+        return $item;
+    });
+
         return response()->json([
             'success' => true,
             'data' => [
