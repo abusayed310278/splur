@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;  // If you need manual validation
 use Illuminate\Support\Carbon;
 use Exception;
+use Illuminate\Support\Str;
+
 
 class ContentController extends Controller
 {
@@ -190,7 +192,7 @@ class ContentController extends Controller
         $total_subscriber = Subscriber::count();
 
         // ✅ Paginate recent content (default 10 per page or as requested)
-        $perPage = $request->input('per_page', 10); // Allow client to set per_page
+        $perPage = $request->input('per_page', 10);  // Allow client to set per_page
         $recent_content = Content::latest()->paginate($perPage);
 
         return response()->json([
@@ -205,7 +207,6 @@ class ContentController extends Controller
             ]
         ]);
     }
-
 
     // this is effective method for viewPosts
     // public function viewPosts($user_id)
@@ -745,6 +746,26 @@ class ContentController extends Controller
                 ->latest()
                 ->paginate($limit)  // dynamic limit
                 ->through(function ($content) {
+                    // Decode image2 if it's a JSON string
+                    $image2Array = [];
+
+    if (!empty($content->image2)) {
+        if (is_string($content->image2)) {
+            $decoded = json_decode($content->image2, true);
+            $image2Array = is_array($decoded) ? $decoded : [];
+        } elseif (is_array($content->image2)) {
+            $image2Array = $content->image2;
+        }
+    }
+
+    $image2Urls = array_map(function ($img) {
+        if (Str::startsWith($img, ['http://', 'https://'])) {
+            return $img;
+        }
+        $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+        return url('uploads/content/' . ltrim($cleaned, '/'));
+    }, $image2Array);
+
                     return [
                         'id' => $content->id,
                         'category_id' => $content->category_id,
@@ -758,10 +779,8 @@ class ContentController extends Controller
                         'body1' => $content->body1,
                         'image1' => $content->image1,
                         // Ensure image2 is always an array, even if null
-                        'image2' => $content->image2 ? $content->image2 : [],
-                        // 'image2_url' => is_array($content->image2_url)
-                        //     ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
-                        //     : [],
+                        'image2' => $image2Array,
+                        'image2_url' => $image2Urls,
                         'advertising_image' => $content->advertising_image,
                         'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                         'created_at' => $content->created_at,
@@ -2319,7 +2338,7 @@ class ContentController extends Controller
         }
     }
 
- public function store(Request $request)
+    public function store(Request $request)
     {
         $user = auth()->user();
 
@@ -2404,91 +2423,90 @@ class ContentController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    $user = auth()->user();
+    {
+        $user = auth()->user();
 
-    $content = Content::findOrFail($id);
+        $content = Content::findOrFail($id);
 
-    // Optional: authorize update (e.g., authors can only edit their own posts)
-    if ($user->role === 'author' && $content->user_id !== $user->id) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Unauthorized.'
-        ], 403);
-    }
-
-    $validated = $request->validate([
-        'category_id' => 'required|exists:categories,id',
-        'subcategory_id' => 'required|exists:sub_categories,id',
-        'heading' => 'nullable|string',
-        'author' => 'nullable|string',
-        'date' => 'nullable|date',
-        'sub_heading' => 'nullable|string',
-        'body1' => 'nullable|string',
-        'image2' => 'nullable',
-        'tags' => 'nullable',
-        'status' => 'nullable|string',
-    ]);
-
-    // Role-based status logic
-    if (in_array($user->role, ['admin', 'editor'])) {
-        $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
-            ? $request->status
-            : $content->status;
-    } elseif ($user->role === 'author') {
-        $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
-    }
-
-    // Handle image updates
-    $uploadedImages = [];
-    $uploadPath = public_path('uploads');
-
-    if (!file_exists($uploadPath)) {
-        mkdir($uploadPath, 0777, true);
-    }
-
-    if ($request->has('image2')) {
-        $imageInput = $request->image2;
-
-        if (is_array($imageInput)) {
-            foreach ($imageInput as $item) {
-                if ($item instanceof UploadedFile) {
-                    $filename = time() . '_' . uniqid() . '.' . $item->getClientOriginalExtension();
-                    if ($item->move($uploadPath, $filename)) {
-                        $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
-                    }
-                } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
-                    $uploadedImages[] = trim($item);
-                }
-            }
-        } elseif ($imageInput instanceof UploadedFile) {
-            $filename = time() . '_' . uniqid() . '.' . $imageInput->getClientOriginalExtension();
-            if ($imageInput->move($uploadPath, $filename)) {
-                $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
-            }
-        } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
-            $uploadedImages[] = trim($imageInput);
+        // Optional: authorize update (e.g., authors can only edit their own posts)
+        if ($user->role === 'author' && $content->user_id !== $user->id) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized.'
+            ], 403);
         }
 
-        $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'subcategory_id' => 'required|exists:sub_categories,id',
+            'heading' => 'nullable|string',
+            'author' => 'nullable|string',
+            'date' => 'nullable|date',
+            'sub_heading' => 'nullable|string',
+            'body1' => 'nullable|string',
+            'image2' => 'nullable',
+            'tags' => 'nullable',
+            'status' => 'nullable|string',
+        ]);
+
+        // Role-based status logic
+        if (in_array($user->role, ['admin', 'editor'])) {
+            $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
+                ? $request->status
+                : $content->status;
+        } elseif ($user->role === 'author') {
+            $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+        }
+
+        // Handle image updates
+        $uploadedImages = [];
+        $uploadPath = public_path('uploads');
+
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
+        }
+
+        if ($request->has('image2')) {
+            $imageInput = $request->image2;
+
+            if (is_array($imageInput)) {
+                foreach ($imageInput as $item) {
+                    if ($item instanceof UploadedFile) {
+                        $filename = time() . '_' . uniqid() . '.' . $item->getClientOriginalExtension();
+                        if ($item->move($uploadPath, $filename)) {
+                            $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
+                        }
+                    } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
+                        $uploadedImages[] = trim($item);
+                    }
+                }
+            } elseif ($imageInput instanceof UploadedFile) {
+                $filename = time() . '_' . uniqid() . '.' . $imageInput->getClientOriginalExtension();
+                if ($imageInput->move($uploadPath, $filename)) {
+                    $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
+                }
+            } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
+                $uploadedImages[] = trim($imageInput);
+            }
+
+            $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+        }
+
+        // Handle tags
+        $tagsInput = $request->input('tags');
+        $validated['tags'] = is_array($tagsInput)
+            ? $tagsInput
+            : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
+
+        // Update content
+        $content->update($validated);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Content updated successfully.',
+            'data' => $content,
+        ]);
     }
-
-    // Handle tags
-    $tagsInput = $request->input('tags');
-    $validated['tags'] = is_array($tagsInput)
-        ? $tagsInput
-        : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
-
-    // Update content
-    $content->update($validated);
-
-    return response()->json([
-        'status' => true,
-        'message' => 'Content updated successfully.',
-        'data' => $content,
-    ]);
-}
-
 
     public function destroy($id)
     {
