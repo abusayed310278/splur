@@ -780,7 +780,7 @@ class ContentController extends Controller
                         'image1' => $content->image1,
                         // Ensure image2 is always an array, even if null
                         'image2' => $image2Array,
-                        'image2_url' => $image2Urls,
+                        // 'image2_url' => $image2Urls,
                         'advertising_image' => $content->advertising_image,
                         'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                         'created_at' => $content->created_at,
