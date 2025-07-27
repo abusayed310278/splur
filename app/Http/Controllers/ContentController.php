@@ -1979,19 +1979,7 @@ class ContentController extends Controller
                 $content->image1_url = $content->image1 ? url($content->image1) : null;
                 $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
 
-                // Handle tags: sanitize and return as array
-            if (!empty($content->tags)) {
-                $tagsDecoded = json_decode($content->tags, true);
-                if (is_array($tagsDecoded)) {
-                    $content->tags = array_map(function ($tag) {
-                        return preg_replace('/[^a-zA-Z0-9\s\-]/', '', $tag);
-                    }, $tagsDecoded);
-                } else {
-                    $content->tags = [];
-                }
-            } else {
-                $content->tags = [];
-            }
+                
 
                 // Handle image2 and generate clean URLs
                 $image2Array = [];
