@@ -124,6 +124,28 @@ class ContentController extends Controller
             }
 
             $data = $contents->getCollection()->map(function ($content) {
+
+                            // Handle image2 like HomeContent
+             // Handle image2 like HomeContent
+            $image2Array = [];
+
+            if (!empty($content->image2)) {
+                if (is_string($content->image2)) {
+                    $decoded = json_decode($content->image2, true);
+                    $image2Array = is_array($decoded) ? $decoded : [];
+                } elseif (is_array($content->image2)) {
+                    $image2Array = $content->image2;
+                }
+            }
+
+            $image2Urls = array_map(function ($img) {
+                if (Str::startsWith($img, ['http://', 'https://'])) {
+                    return $img;
+                }
+                $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                return url('uploads/content/' . ltrim($cleaned, '/'));
+            }, $image2Array);
+            
                 return [
                     'id' => $content->id,
                     'category_id' => $content->category_id,
@@ -137,13 +159,9 @@ class ContentController extends Controller
                     'body1' => $content->body1,
                     'image1' => $content->image1,
                     'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
-                    'image2' => $content->image2,
-                    'image2_url' => is_array($content->image2)
-                        ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2)
-                        : [],
-                    'image2_url' => is_array($content->image2_url)
-                        ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
-                        : [],
+                    'image2' => $image2Array,
+                'image2_url' => $image2Urls,
+                   
                     'advertising_image' => $content->advertising_image,
                     'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
                     'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
