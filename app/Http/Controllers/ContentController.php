@@ -552,7 +552,8 @@ class ContentController extends Controller
                     'body1' => $content->body1,
                     'image1' => $content->image1,
                     'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
-                    'image2' => $content->image2,
+                    // Convert image2 to array if stored as JSON string in DB
+            'image2' => is_string($content->image2) ? json_decode($content->image2, true) : ($content->image2 ?? []),
                     'image2_url' => $content->image2 ? url('uploads/content/' . $content->image2) : null,
                     'advertising_image' => $content->advertising_image,
                     'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
