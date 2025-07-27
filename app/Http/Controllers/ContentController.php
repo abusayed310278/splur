@@ -2349,7 +2349,7 @@ class ContentController extends Controller
             'date' => 'nullable|date',
             'sub_heading' => 'nullable|string',
             'body1' => 'nullable|string',
-            'image2.*' => 'nullable',
+            'image2' => 'nullable',
             'tags' => 'nullable',
             'status' => 'nullable|string',
         ]);
