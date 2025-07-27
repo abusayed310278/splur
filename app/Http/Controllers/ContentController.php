@@ -697,8 +697,7 @@ class ContentController extends Controller
                 ->latest()
                 ->paginate($limit)
                 ->through(function ($content) {
-
-                                        $image2Array = [];
+                    $image2Array = [];
 
                     if (!empty($content->image2)) {
                         if (is_string($content->image2)) {
@@ -782,22 +781,22 @@ class ContentController extends Controller
                     // Decode image2 if it's a JSON string
                     $image2Array = [];
 
-                if (!empty($content->image2)) {
-                    if (is_string($content->image2)) {
-                        $decoded = json_decode($content->image2, true);
-                        $image2Array = is_array($decoded) ? $decoded : [];
-                    } elseif (is_array($content->image2)) {
-                        $image2Array = $content->image2;
+                    if (!empty($content->image2)) {
+                        if (is_string($content->image2)) {
+                            $decoded = json_decode($content->image2, true);
+                            $image2Array = is_array($decoded) ? $decoded : [];
+                        } elseif (is_array($content->image2)) {
+                            $image2Array = $content->image2;
+                        }
                     }
-                }
 
-                $image2Urls = array_map(function ($img) {
-                    if (Str::startsWith($img, ['http://', 'https://'])) {
-                        return $img;
-                    }
-                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-                    return url('uploads/content/' . ltrim($cleaned, '/'));
-                }, $image2Array);
+                    $image2Urls = array_map(function ($img) {
+                        if (Str::startsWith($img, ['http://', 'https://'])) {
+                            return $img;
+                        }
+                        $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                        return url('uploads/content/' . ltrim($cleaned, '/'));
+                    }, $image2Array);
 
                     return [
                         'id' => $content->id,
@@ -2180,9 +2179,26 @@ class ContentController extends Controller
 
             // Transform each content item
             $transformedData = $contents->getCollection()->transform(function ($item) {
+                // Decode image2
+                $image2Array = [];
+                if (!empty($item->image2)) {
+                    if (is_string($item->image2)) {
+                        $decoded = json_decode($item->image2, true);
+                        $image2Array = is_array($decoded) ? $decoded : [];
+                    } elseif (is_array($item->image2)) {
+                        $image2Array = $item->image2;
+                    }
+                }
 
-                
-                
+                // Create clean image URLs
+                $image2Urls = array_map(function ($img) {
+                    if (Str::startsWith($img, ['http://', 'https://'])) {
+                        return $img;
+                    }
+                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                    return url('uploads/content/' . ltrim($cleaned, '/'));
+                }, $image2Array);
+
                 return [
                     'id' => $item->id,
                     'heading' => $item->heading,
@@ -2196,12 +2212,10 @@ class ContentController extends Controller
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
                     'image1' => $item->image1 ? url($item->image1) : null,
-                    'image2' => $item->image2 ? $item->image2 : null,
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
-                    'image2_url' => is_array($item->image2_url)
-                        ? array_map(fn($img) => url('uploads/content/' . $img), $item->image2_url)
-                        : [],
+                    'image2' => $image2Array,
+                    'image2_url' => $image2Urls,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'status' => $item->status,
                 ];
