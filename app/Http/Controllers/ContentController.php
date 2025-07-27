@@ -575,9 +575,7 @@ class ContentController extends Controller
                     'image2_url' => $content->image2 ? url('uploads/content/' . $content->image2) : null,
                     'advertising_image' => $content->advertising_image,
                     'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
-                    // 'image2_url' => is_array($content->image2_url)
-                    //     ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
-                    //     : [],
+                    'image2_url' => $image2Urls,
                     'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
                     'created_at' => $content->created_at,
                     'updated_at' => $content->updated_at,
