@@ -92,6 +92,7 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
+            Route::get('/dashboard-content/{id}',[ContentController::class,'show']);
         });
         Route::apiResource('comment', CommentController::class)->only(['store']);
     });

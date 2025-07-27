@@ -124,28 +124,27 @@ class ContentController extends Controller
             }
 
             $data = $contents->getCollection()->map(function ($content) {
+                // Handle image2 like HomeContent
+                // Handle image2 like HomeContent
+                $image2Array = [];
 
-                            // Handle image2 like HomeContent
-             // Handle image2 like HomeContent
-            $image2Array = [];
-
-            if (!empty($content->image2)) {
-                if (is_string($content->image2)) {
-                    $decoded = json_decode($content->image2, true);
-                    $image2Array = is_array($decoded) ? $decoded : [];
-                } elseif (is_array($content->image2)) {
-                    $image2Array = $content->image2;
+                if (!empty($content->image2)) {
+                    if (is_string($content->image2)) {
+                        $decoded = json_decode($content->image2, true);
+                        $image2Array = is_array($decoded) ? $decoded : [];
+                    } elseif (is_array($content->image2)) {
+                        $image2Array = $content->image2;
+                    }
                 }
-            }
 
-            $image2Urls = array_map(function ($img) {
-                if (Str::startsWith($img, ['http://', 'https://'])) {
-                    return $img;
-                }
-                $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-                return url('uploads/content/' . ltrim($cleaned, '/'));
-            }, $image2Array);
-            
+                $image2Urls = array_map(function ($img) {
+                    if (Str::startsWith($img, ['http://', 'https://'])) {
+                        return $img;
+                    }
+                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                    return url('uploads/content/' . ltrim($cleaned, '/'));
+                }, $image2Array);
+
                 return [
                     'id' => $content->id,
                     'category_id' => $content->category_id,
@@ -160,8 +159,7 @@ class ContentController extends Controller
                     'image1' => $content->image1,
                     'image1_url' => $content->image1 ? url('uploads/content/' . $content->image1) : null,
                     'image2' => $image2Array,
-                'image2_url' => $image2Urls,
-                   
+                    'image2_url' => $image2Urls,
                     'advertising_image' => $content->advertising_image,
                     'advertising_image_url' => $content->advertising_image ? url('uploads/content/' . $content->advertising_image) : null,
                     'tags' => $content->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $content->tags) : null,
@@ -212,33 +210,33 @@ class ContentController extends Controller
         $perPage = $request->input('per_page', 10);  // Allow client to set per_page
         $recent_content = Content::latest()->paginate($perPage);
 
-            // Process image2 for each item without changing pagination structure
-    $recent_content->getCollection()->transform(function ($item) {
-        $image2Array = [];
+        // Process image2 for each item without changing pagination structure
+        $recent_content->getCollection()->transform(function ($item) {
+            $image2Array = [];
 
-        if (!empty($item->image2)) {
-            if (is_string($item->image2)) {
-                $decoded = json_decode($item->image2, true);
-                $image2Array = is_array($decoded) ? $decoded : [];
-            } elseif (is_array($item->image2)) {
-                $image2Array = $item->image2;
+            if (!empty($item->image2)) {
+                if (is_string($item->image2)) {
+                    $decoded = json_decode($item->image2, true);
+                    $image2Array = is_array($decoded) ? $decoded : [];
+                } elseif (is_array($item->image2)) {
+                    $image2Array = $item->image2;
+                }
             }
-        }
 
-        $image2Urls = array_map(function ($img) {
-            if (Str::startsWith($img, ['http://', 'https://'])) {
-                return $img;
-            }
-            $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-            return url('uploads/content/' . ltrim($cleaned, '/'));
-        }, $image2Array);
+            $image2Urls = array_map(function ($img) {
+                if (Str::startsWith($img, ['http://', 'https://'])) {
+                    return $img;
+                }
+                $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                return url('uploads/content/' . ltrim($cleaned, '/'));
+            }, $image2Array);
 
-        // Attach processed fields to the model (optional: for frontend usage)
-        $item->image2 = $image2Array;
-        $item->image2_url = $image2Urls;
+            // Attach processed fields to the model (optional: for frontend usage)
+            $item->image2 = $image2Array;
+            $item->image2_url = $image2Urls;
 
-        return $item;
-    });
+            return $item;
+        });
 
         return response()->json([
             'success' => true,
@@ -888,6 +886,65 @@ class ContentController extends Controller
                 'success' => false,
                 'message' => 'Failed to fetch contents.',
                 'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function show($contentId)
+    {
+        try {
+            $content = Content::with(['category', 'subcategory'])
+                ->where('id', $contentId)
+                ->first();
+
+            if (!$content) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Content not found.',
+                    'data' => null,
+                ], 404);
+            }
+
+            // Transform content (similar to relatedContents)
+            $content->image1_url = $content->image1 ? url($content->image1) : null;
+            $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+
+            // Handle image2
+            $image2Array = [];
+            if (!empty($content->image2)) {
+                if (is_string($content->image2)) {
+                    $decoded = json_decode($content->image2, true);
+                    $image2Array = is_array($decoded) ? $decoded : [];
+                } elseif (is_array($content->image2)) {
+                    $image2Array = $content->image2;
+                }
+            }
+
+            $image2Urls = array_map(function ($img) {
+                if (Str::startsWith($img, ['http://', 'https://'])) {
+                    return $img;
+                }
+                $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                return url('uploads/content/' . ltrim($cleaned, '/'));
+            }, $image2Array);
+
+            $content->image2_url = $image2Urls;
+
+            // Format date
+            $content->date = $content->created_at ? Carbon::parse($content->date)->format('m-d-Y') : null;
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Content fetched successfully.',
+                'data' => $content,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Fetching single content failed: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to fetch content.',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
