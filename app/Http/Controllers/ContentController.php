@@ -2096,33 +2096,31 @@ class ContentController extends Controller
                     'data' => null,
                 ], 404);
             }
-
-        $content->image1_url = $content->image1 ? url('uploads/content/' . ltrim($content->image1, '/')) : null;
-
-        // Decode and clean image2 array
-        $image2Array = [];
-        if (!empty($content->image2)) {
-            if (is_string($content->image2)) {
-                $decoded = json_decode($content->image2, true);
-                $image2Array = is_array($decoded) ? $decoded : [];
-            } elseif (is_array($content->image2)) {
-                $image2Array = $content->image2;
+            // Clean image2
+            $image2Array = [];
+            if (!empty($content->image2)) {
+                if (is_string($content->image2)) {
+                    $decoded = json_decode($content->image2, true);
+                    $image2Array = is_array($decoded) ? $decoded : [];
+                } elseif (is_array($content->image2)) {
+                    $image2Array = $content->image2;
+                }
             }
-        }
 
-        // Generate cleaned URLs
-        $content->image2_url = array_map(function ($img) {
-            if (Str::startsWith($img, ['http://', 'https://'])) {
-                return $img;
-            }
-            $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-            return url('uploads/content/' . ltrim($cleaned, '/'));
-        }, $image2Array);
+            $image2Urls = array_map(function ($img) {
+                if (Str::startsWith($img, ['http://', 'https://'])) {
+                    return $img;
+                }
+                $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                return url('uploads/content/' . ltrim($cleaned, '/'));
+            }, $image2Array);
 
-        // Advertising image
-        $content->advertising_image_url = $content->advertising_image
-            ? url('uploads/content/' . ltrim($content->advertising_image, '/'))
-            : null;
+            $content->image2_url = $image2Urls;
+
+            // Advertising image
+            $content->advertising_image_url = $content->advertising_image
+                ? url('uploads/content/' . ltrim($content->advertising_image, '/'))
+                : null;
 
             // Add category_name and sub_category_name
             $content->category_name = $content->category ? $content->category->category_name : null;
