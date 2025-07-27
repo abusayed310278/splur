@@ -19,9 +19,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;  // If you need manual validation
 use Illuminate\Support\Carbon;
-use Exception;
 use Illuminate\Support\Str;
-
+use Exception;
 
 class ContentController extends Controller
 {
@@ -749,22 +748,22 @@ class ContentController extends Controller
                     // Decode image2 if it's a JSON string
                     $image2Array = [];
 
-    if (!empty($content->image2)) {
-        if (is_string($content->image2)) {
-            $decoded = json_decode($content->image2, true);
-            $image2Array = is_array($decoded) ? $decoded : [];
-        } elseif (is_array($content->image2)) {
-            $image2Array = $content->image2;
-        }
-    }
+                    if (!empty($content->image2)) {
+                        if (is_string($content->image2)) {
+                            $decoded = json_decode($content->image2, true);
+                            $image2Array = is_array($decoded) ? $decoded : [];
+                        } elseif (is_array($content->image2)) {
+                            $image2Array = $content->image2;
+                        }
+                    }
 
-    $image2Urls = array_map(function ($img) {
-        if (Str::startsWith($img, ['http://', 'https://'])) {
-            return $img;
-        }
-        $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-        return url('uploads/content/' . ltrim($cleaned, '/'));
-    }, $image2Array);
+                    $image2Urls = array_map(function ($img) {
+                        if (Str::startsWith($img, ['http://', 'https://'])) {
+                            return $img;
+                        }
+                        $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                        return url('uploads/content/' . ltrim($cleaned, '/'));
+                    }, $image2Array);
 
                     return [
                         'id' => $content->id,
@@ -2456,7 +2455,12 @@ class ContentController extends Controller
                 ? $request->status
                 : $content->status;
         } elseif ($user->role === 'author') {
-            $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+            // If the content was Approved, keep it Approved even after update
+            if ($content->status === 'Approved') {
+                $validated['status'] = 'Approved';
+            } else {
+                $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+            }
         }
 
         // Handle image updates
