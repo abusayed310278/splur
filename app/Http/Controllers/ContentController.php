@@ -697,6 +697,25 @@ class ContentController extends Controller
                 ->latest()
                 ->paginate($limit)
                 ->through(function ($content) {
+
+                                        $image2Array = [];
+
+                    if (!empty($content->image2)) {
+                        if (is_string($content->image2)) {
+                            $decoded = json_decode($content->image2, true);
+                            $image2Array = is_array($decoded) ? $decoded : [];
+                        } elseif (is_array($content->image2)) {
+                            $image2Array = $content->image2;
+                        }
+                    }
+
+                    $image2Urls = array_map(function ($img) {
+                        if (Str::startsWith($img, ['http://', 'https://'])) {
+                            return $img;
+                        }
+                        $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                        return url('uploads/content/' . ltrim($cleaned, '/'));
+                    }, $image2Array);
                     return [
                         'id' => $content->id,
                         'category_id' => $content->category_id,
@@ -710,10 +729,8 @@ class ContentController extends Controller
                         'body1' => $content->body1,
                         'image1' => $content->image1,
                         // Ensure image2 is always an array, even if null
-                        'image2' => $content->image2 ? $content->image2 : [],
-                        'image2_url' => is_array($content->image2_url)
-                            ? array_map(fn($img) => url('uploads/content/' . $img), $content->image2_url)
-                            : [],
+                        'image2' => $image2Array,
+                        'image2_url' => $image2Urls,
                         'advertising_image' => $content->advertising_image,
                         'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                         'created_at' => $content->created_at,
