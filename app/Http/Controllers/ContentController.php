@@ -22,7 +22,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Exception;
 
-
 class ContentController extends Controller
 {
     // for postgresql
@@ -207,9 +206,10 @@ class ContentController extends Controller
 
         $total_subscriber = Subscriber::count();
 
-        // ✅ Paginate recent content (default 10 per page or as requested)
-        $perPage = $request->input('per_page', 10);  // Allow client to set per_page
-        $recent_content = Content::latest()->paginate($perPage);
+        $perPage = min((int) $request->input('per_page', 10), 20);  // Max 20 per page
+        $recent_content = Content::select('id', 'title', 'image2', 'created_at')
+            ->latest()
+            ->paginate($perPage);
 
         // Process image2 for each item without changing pagination structure
         $recent_content->getCollection()->transform(function ($item) {
