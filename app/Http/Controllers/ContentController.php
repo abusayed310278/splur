@@ -207,7 +207,7 @@ class ContentController extends Controller
         $total_subscriber = Subscriber::count();
 
         $perPage = min((int) $request->input('per_page', 10), 20);  // Max 20 per page
-        $recent_content = Content::select('id', 'title', 'image2', 'created_at')
+        $recent_content = Content::select('*')
             ->latest()
             ->paginate($perPage);
 
