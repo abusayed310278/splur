@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Exception;
 
+
 class ContentController extends Controller
 {
     // for postgresql
@@ -198,7 +199,7 @@ class ContentController extends Controller
     {
         $total_content = Content::count();
 
-        $total_pending_content = Content::where('status', 'Approved')->count();
+        $total_pending_content = Content::where('status', 'Published')->count();
 
         $total_author = User::where('role', 'author')->count();
 
