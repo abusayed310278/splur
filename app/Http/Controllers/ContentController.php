@@ -194,63 +194,63 @@ class ContentController extends Controller
         }
     }
 
-    public function dashboard(Request $request)
-    {
-        $total_content = Content::count();
+    // public function dashboard(Request $request)
+    // {
+    //     $total_content = Content::count();
 
-        $total_pending_content = Content::where('status', 'Published')->count();
+    //     $total_pending_content = Content::where('status', 'Published')->count();
 
-        $total_author = User::where('role', 'author')->count();
+    //     $total_author = User::where('role', 'author')->count();
 
-        $total_user = User::where('role', 'user')->count();
+    //     $total_user = User::where('role', 'user')->count();
 
-        $total_subscriber = Subscriber::count();
+    //     $total_subscriber = Subscriber::count();
 
-        $perPage = min((int) $request->input('per_page', 10), 20);  // Max 20 per page
-        $recent_content = Content::select('*')
-            ->latest()
-            ->paginate($perPage);
+    //     $perPage = min((int) $request->input('per_page', 10), 20);  // Max 20 per page
+    //     $recent_content = Content::select('*')
+    //         ->latest()
+    //         ->paginate($perPage);
 
-        // Process image2 for each item without changing pagination structure
-        $recent_content->getCollection()->transform(function ($item) {
-            $image2Array = [];
+    //     // Process image2 for each item without changing pagination structure
+    //     $recent_content->getCollection()->transform(function ($item) {
+    //         $image2Array = [];
 
-            if (!empty($item->image2)) {
-                if (is_string($item->image2)) {
-                    $decoded = json_decode($item->image2, true);
-                    $image2Array = is_array($decoded) ? $decoded : [];
-                } elseif (is_array($item->image2)) {
-                    $image2Array = $item->image2;
-                }
-            }
+    //         if (!empty($item->image2)) {
+    //             if (is_string($item->image2)) {
+    //                 $decoded = json_decode($item->image2, true);
+    //                 $image2Array = is_array($decoded) ? $decoded : [];
+    //             } elseif (is_array($item->image2)) {
+    //                 $image2Array = $item->image2;
+    //             }
+    //         }
 
-            $image2Urls = array_map(function ($img) {
-                if (Str::startsWith($img, ['http://', 'https://'])) {
-                    return $img;
-                }
-                $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-                return url('uploads/content/' . ltrim($cleaned, '/'));
-            }, $image2Array);
+    //         $image2Urls = array_map(function ($img) {
+    //             if (Str::startsWith($img, ['http://', 'https://'])) {
+    //                 return $img;
+    //             }
+    //             $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+    //             return url('uploads/content/' . ltrim($cleaned, '/'));
+    //         }, $image2Array);
 
-            // Attach processed fields to the model (optional: for frontend usage)
-            $item->image2 = $image2Array;
-            $item->image2_url = $image2Urls;
+    //         // Attach processed fields to the model (optional: for frontend usage)
+    //         $item->image2 = $image2Array;
+    //         $item->image2_url = $image2Urls;
 
-            return $item;
-        });
+    //         return $item;
+    //     });
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'total_content' => $total_content,
-                'total_pending_content' => $total_pending_content,
-                'total_author' => $total_author,
-                'total_user' => $total_user,
-                'total_subscriber' => $total_subscriber,
-                'recent_content' => $recent_content
-            ]
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => [
+    //             'total_content' => $total_content,
+    //             'total_pending_content' => $total_pending_content,
+    //             'total_author' => $total_author,
+    //             'total_user' => $total_user,
+    //             'total_subscriber' => $total_subscriber,
+    //             'recent_content' => $recent_content
+    //         ]
+    //     ]);
+    // }
 
     // this is effective method for viewPosts
     // public function viewPosts($user_id)
@@ -563,6 +563,70 @@ class ContentController extends Controller
     //         ], 500);
     //     }
     // }
+
+    use Illuminate\Support\Str;
+
+    public function dashboard(Request $request)
+    {
+        $total_content = Content::count();
+        $total_pending_content = Content::where('status', 'Published')->count();
+        $total_author = User::where('role', 'author')->count();
+        $total_user = User::where('role', 'user')->count();
+        $total_subscriber = Subscriber::count();
+
+        // ✅ Limit per page to avoid memory issues
+        $perPage = min((int) $request->input('per_page', 10), 10);  // hard limit to 10 items
+
+        // ✅ Select all fields safely
+        $recent_content = Content::latest()->paginate($perPage);
+
+        // ✅ Safely transform `image2`
+        $recent_content->getCollection()->transform(function ($item) {
+            $image2Array = [];
+
+            if (!empty($item->image2)) {
+                // Safely decode JSON
+                if (is_string($item->image2)) {
+                    $decoded = json_decode($item->image2, true);
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        $image2Array = is_array($decoded) ? $decoded : [];
+                    }
+                } elseif (is_array($item->image2)) {
+                    $image2Array = $item->image2;
+                }
+            }
+
+            // ✅ Safely build URLs
+            $image2Urls = [];
+            foreach ($image2Array as $img) {
+                if (Str::startsWith($img, ['http://', 'https://'])) {
+                    $image2Urls[] = $img;
+                } else {
+                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                    $image2Urls[] = url('uploads/content/' . ltrim($cleaned, '/'));
+                }
+            }
+
+            // ✅ Attach processed data without breaking pagination
+            $item->image2 = $image2Array;
+            $item->image2_url = $image2Urls;
+
+            return $item;
+        });
+
+        // ✅ Final JSON Response (unchanged)
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_content' => $total_content,
+                'total_pending_content' => $total_pending_content,
+                'total_author' => $total_author,
+                'total_user' => $total_user,
+                'total_subscriber' => $total_subscriber,
+                'recent_content' => $recent_content
+            ]
+        ]);
+    }
 
     public function viewPosts($user_id)
     {
