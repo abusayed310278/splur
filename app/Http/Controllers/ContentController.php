@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Exception;
 
+
 class ContentController extends Controller
 {
     // for postgresql
@@ -564,7 +565,7 @@ class ContentController extends Controller
     //     }
     // }
 
-    use Illuminate\Support\Str;
+    
 
     public function dashboard(Request $request)
     {
