@@ -908,6 +908,8 @@ class ContentController extends Controller
             // Transform content (similar to relatedContents)
             $content->image1_url = $content->image1 ? url($content->image1) : null;
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
+            // Clean and format tags
+            $content->tags = $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null;
 
             // Handle image2
             $image2Array = [];
