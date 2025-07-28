@@ -15,7 +15,7 @@ class FooterSectionController extends Controller
 
         // Optionally include page data
         $sections = $sections->map(function ($section) {
-            $section->page_data = Page::whereIn('name', $section->pages)->get();
+            $section->page_data = Page::whereIn('name', $section->pages)->where('name', '!=', 'about')->get();
             return $section;
         });
 
