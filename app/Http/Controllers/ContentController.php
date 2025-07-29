@@ -584,7 +584,7 @@ class ContentController extends Controller
 
         // ✅ Restrict if user is an author
         if ($user->role === 'author') {
-            $recentQuery->where('user_id', $user->id);
+            $recentQuery->where('user_id', $user->id)->whereIn('status', ['Published', 'Draft']);;
         }
 
         // ✅ Get paginated content
