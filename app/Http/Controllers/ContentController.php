@@ -22,7 +22,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Exception;
 
-
 class ContentController extends Controller
 {
     // for postgresql
@@ -565,10 +564,9 @@ class ContentController extends Controller
     //     }
     // }
 
-    
-
     public function dashboard(Request $request)
     {
+        $user = Auth::user();
         $total_content = Content::count();
         $total_pending_content = Content::where('status', 'Published')->count();
         $total_author = User::where('role', 'author')->count();
@@ -579,7 +577,18 @@ class ContentController extends Controller
         $perPage = min((int) $request->input('per_page', 10), 10);  // hard limit to 10 items
 
         // ✅ Select all fields safely
-        $recent_content = Content::latest()->paginate($perPage);
+        // $recent_content = Content::latest()->paginate($perPage);
+
+        // ✅ Base query
+        $recentQuery = Content::latest();
+
+        // ✅ Restrict if user is an author
+        if ($user->role === 'author') {
+            $recentQuery->where('user_id', $user->id);
+        }
+
+        // ✅ Get paginated content
+        $recent_content = $recentQuery->paginate($perPage);
 
         // ✅ Safely transform `image2`
         $recent_content->getCollection()->transform(function ($item) {
