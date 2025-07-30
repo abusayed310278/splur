@@ -574,7 +574,7 @@ class ContentController extends Controller
         $total_subscriber = Subscriber::count();
 
         // ✅ Limit per page to avoid memory issues
-        $perPage = min((int) $request->input('per_page', 10), 10);  // hard limit to 10 items
+        $perPage = min((int) $request->input('per_page', 10), 100);  // hard limit to 10 items
 
         // ✅ Select all fields safely
         // $recent_content = Content::latest()->paginate($perPage);
