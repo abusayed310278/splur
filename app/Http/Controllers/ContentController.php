@@ -2096,7 +2096,7 @@ class ContentController extends Controller
         $user = auth()->user();
 
         // Unified allowed statuses
-        $allStatuses = ['Draft', 'Review', 'Approved', 'Rejected', 'Archived', 'Published'];
+        $allStatuses = ['Draft', 'Review', 'Approved', 'Rejected', 'Archived', 'Published','Needs Revision'];
         $authorStatuses = ['Draft', 'Published'];
 
         $request->validate([
