@@ -38,6 +38,7 @@ class User extends Authenticatable implements JWTSubject
         'youtube_link',
         'twitter_icon',
         'twitter_link',
+        'google_id'
     ];
 
     /**

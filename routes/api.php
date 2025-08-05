@@ -7,14 +7,16 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\FooterController;
+use App\Http\Controllers\FooterSectionController;
+use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\NewsletterApiController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\SubscriberController;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\FooterSectionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -64,7 +66,7 @@ Route::middleware('auth:api')->group(function () {
             Route::post('terms-conditions', [PolicyController::class, 'storeOrUpdateTermsConditions']);
             Route::post('cookie-policy', [PolicyController::class, 'storeOrUpdateCookiesPolicy']);
             Route::post('investment-disclaimer', [PolicyController::class, 'storeOrUpdateInvestmentDisclaimer']);
-            
+
             Route::apiResource('footer-menu', FooterController::class);
             Route::post('header/update', [SettingController::class, 'storeOrUpdateHeader']);
             Route::post('footer/update', [SettingController::class, 'storeOrUpdateFooter']);
@@ -79,7 +81,6 @@ Route::middleware('auth:api')->group(function () {
 
             Route::apiResource('newsletters', NewsletterApiController::class);
 
-
             // Route::post('advertising/vertical'  , [SettingController::class,'storeOrUpdateVerticalAdvertising']);
             // Route::post('advertising/{s'  , [SettingController::class,'storeOrUpdate']);
         });
@@ -92,7 +93,7 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/', [ContentController::class, 'store']);
             Route::put('/{id}', [ContentController::class, 'update']);
             Route::delete('/{id}', [ContentController::class, 'destroy']);
-            Route::get('/dashboard-content/{id}',[ContentController::class,'show']);
+            Route::get('/dashboard-content/{id}', [ContentController::class, 'show']);
         });
         Route::apiResource('comment', CommentController::class)->only(['store']);
     });
@@ -111,17 +112,14 @@ Route::middleware('auth:api')->group(function () {
 
     Route::middleware('role:admin,editor,author')->group(function () {
         Route::get('all-content', [ContentController::class, 'allContents']);
-        Route::get('dashboard-overview', [ContentController::class, 'dashboard']);  
+        Route::get('dashboard-overview', [ContentController::class, 'dashboard']);
     });
 
     Route::post('upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 
-
     Route::get('content-dashbaord/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategoryForDashboard']);
 
     Route::post('status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
-
-
 });
 
 // Public GET routes
@@ -198,18 +196,23 @@ Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
 Route::get('header', [SettingController::class, 'getHeader']);
 Route::get('footer', [SettingController::class, 'getFooter']);
 Route::get('advertising/{slug}', [SettingController::class, 'getAdvertising']);
-Route::get('view-posts/{user_id}', [ContentController::class,'viewPosts']);
+Route::get('view-posts/{user_id}', [ContentController::class, 'viewPosts']);
 
 Route::get('privacy-policy', [PolicyController::class, 'getPrivacyPolicy']);
 Route::get('terms-conditions', [PolicyController::class, 'getTermsConditions']);
 Route::get('cookies-policy', [PolicyController::class, 'getCookiesPolicy']);
 Route::get('investment-disclaimer', [PolicyController::class, 'getInvestmentDisclaimer']);
 
-
 Route::get('search', [ContentController::class, 'search']);
 
 Route::get('/pages', [PageController::class, 'index']);
 Route::get('/pages/{id}', [PageController::class, 'show']);
-Route::get('/pages/slug/{name}', [PageController::class, 'showByName']); 
+Route::get('/pages/slug/{name}', [PageController::class, 'showByName']);
 
 Route::get('/footer-sections', [FooterSectionController::class, 'index']);
+
+
+// Route::get('auth/google/redirect', [GoogleAuthController::class, 'redirect']);
+// Route::get('auth/google/callback', [GoogleAuthController::class, 'callback']);
+
+Route::post('google/auth/jwt-process', [GoogleController::class, 'process']);
