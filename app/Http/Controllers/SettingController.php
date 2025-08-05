@@ -264,6 +264,7 @@ class SettingController extends Controller
                 'message' => 'Footer data fetched successfully.',
                 'data' => [
                     'footer_links' => $footerLinks,
+                    'youtube_link' => $setting->youtube_link,
                     'facebook_link' => $setting->facebook_link ?? null,
                     'instagram_link' => $setting->instagram_link ?? null,
                     'linkedin_link' => $setting->linkedin_link ?? null,
@@ -273,7 +274,7 @@ class SettingController extends Controller
                     'bg_color' => $setting->bg_color ?? null,  // <-- added background color
                     'copyright' => $setting->copyright ?? null,
                     'text_color' => $setting->text_color ?? null,  // <-- added text color
-                    'active_text_color'=>$setting->active_text_color ?? null,
+                    'active_text_color' => $setting->active_text_color ?? null,
                 ]
             ]);
         } catch (Exception $e) {
@@ -369,8 +370,8 @@ class SettingController extends Controller
             'copyright' => 'nullable|string',
             'bg_color' => 'nullable|string',
             'text_color' => 'nullable|string',
-            'active_text_color'=>'nullable | string'
-
+            'active_text_color' => 'nullable | string',
+            'youtube_link' => 'nullable|url'
         ]);
 
         $setting = Setting::firstOrNew(['key' => 'footer']);
@@ -378,7 +379,7 @@ class SettingController extends Controller
         // Handle each icon upload if present
         foreach ([
             'facebook_icon', 'twitter_icon', 'linkedin_icon', 'instagram_icon',
-            'app_store_icon', 'google_play_icon','text_color','active_text_color'
+            'app_store_icon', 'google_play_icon', 'text_color', 'active_text_color', 'youtube_link'
         ] as $iconField) {
             if ($request->hasFile($iconField)) {
                 $file = $request->file($iconField);
@@ -390,6 +391,7 @@ class SettingController extends Controller
 
         // Set links and copyright
         $setting->facebook_link = $request->facebook_link;
+        $setting->youtube_link = $request->youtube_link;
         $setting->twitter_link = $request->twitter_link;
         $setting->linkedin_link = $request->linkedin_link;
         $setting->instagram_link = $request->instagram_link;
