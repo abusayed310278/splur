@@ -796,96 +796,7 @@ class ContentController extends Controller
     // }
 
     // change today(05/08/2025)
-    // public function HomeCategoryContent(Request $request, $cat_name)
-    // {
-    //     try {
-    //         $category = Category::where('category_name', 'like', $cat_name)->first();
-
-    //         if (!$category) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Category not found.',
-    //             ], 404);
-    //         }
-
-    //         $limit = (int) $request->query('limit', 10);  // default to 10 if not provided
-    //         $limit = $limit > 0 ? $limit : 10;  // ensure valid value
-
-    //         $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
-    //             ->where('category_id', $category->id)
-    //             ->where('status', 'Approved')
-    //             ->latest()
-    //             ->paginate($limit)
-    //             ->through(function ($content) {
-    //                 $image2Array = [];
-
-    //                 if (!empty($content->image2)) {
-    //                     if (is_string($content->image2)) {
-    //                         $decoded = json_decode($content->image2, true);
-    //                         $image2Array = is_array($decoded) ? $decoded : [];
-    //                     } elseif (is_array($content->image2)) {
-    //                         $image2Array = $content->image2;
-    //                     }
-    //                 }
-
-    //                 $image2Urls = array_map(function ($img) {
-    //                     if (Str::startsWith($img, ['http://', 'https://'])) {
-    //                         return $img;
-    //                     }
-    //                     $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-    //                     return url('uploads/content/' . ltrim($cleaned, '/'));
-    //                 }, $image2Array);
-    //                 return [
-    //                     'id' => $content->id,
-    //                     'category_id' => $content->category_id,
-    //                     'subcategory_id' => $content->subcategory_id,
-    //                     'category_name' => optional($content->category)->category_name,
-    //                     'sub_category_name' => optional($content->subcategory)->name,
-    //                     'heading' => $content->heading,
-    //                     'author' => $content->author,
-    //                     'date' => $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null,
-    //                     'sub_heading' => $content->sub_heading,
-    //                     'body1' => $content->body1,
-    //                     'image1' => $content->image1,
-    //                     // Ensure image2 is always an array, even if null
-    //                     'image2' => $image2Array,
-    //                     'image2_url' => $image2Urls,
-    //                     'advertising_image' => $content->advertising_image,
-    //                     'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
-    //                     'created_at' => $content->created_at,
-    //                     'updated_at' => $content->updated_at,
-    //                     'imageLink' => $content->imageLink,
-    //                     'advertisingLink' => $content->advertisingLink,
-    //                     'user_id' => $content->user_id,
-    //                     'status' => $content->status,
-    //                 ];
-    //             });
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Category contents fetched successfully.',
-    //             'category_id' => $category->id,
-    //             'category_name' => $category->category_name,
-    //             'data' => $contents->items(),
-    //             'pagination' => [
-    //                 'current_page' => $contents->currentPage(),
-    //                 'per_page' => $contents->perPage(),
-    //                 'total' => $contents->total(),
-    //                 'last_page' => $contents->lastPage(),
-    //             ]
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         Log::error('HomeCategoryContent Error: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to fetch category contents.',
-    //             'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
-
-    public function HomeCategoryContent(Request $request, string $cat_name): \Illuminate\Http\JsonResponse
+    public function HomeCategoryContent(Request $request, $cat_name)
     {
         try {
             $category = Category::where('category_name', 'like', $cat_name)->first();
@@ -897,9 +808,8 @@ class ContentController extends Controller
                 ], 404);
             }
 
-            // Set a default and maximum limit for pagination to prevent performance issues.
-            $limit = (int) $request->query('limit', 5);
-            $limit = ($limit > 0 && $limit <= 5) ? $limit : 5;
+            $limit = (int) $request->query('limit', 10);  // default to 10 if not provided
+            $limit = $limit > 0 ? $limit : 10;  // ensure valid value
 
             $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
                 ->where('category_id', $category->id)
@@ -907,26 +817,24 @@ class ContentController extends Controller
                 ->latest()
                 ->paginate($limit)
                 ->through(function ($content) {
-                    // Optimized: Decode image2 field. It can be a JSON string or null.
-                    $image2Array = is_string($content->image2) ? json_decode($content->image2, true) : ($content->image2 ?? []);
-                    if (!is_array($image2Array)) {
-                        $image2Array = [];
+                    $image2Array = [];
+
+                    if (!empty($content->image2)) {
+                        if (is_string($content->image2)) {
+                            $decoded = json_decode($content->image2, true);
+                            $image2Array = is_array($decoded) ? $decoded : [];
+                        } elseif (is_array($content->image2)) {
+                            $image2Array = $content->image2;
+                        }
                     }
 
-                    // Generate fully qualified URLs for image2.
-                    $image2Urls = collect($image2Array)->map(function (string $img) {
+                    $image2Urls = array_map(function ($img) {
                         if (Str::startsWith($img, ['http://', 'https://'])) {
                             return $img;
                         }
-                        $cleaned = ltrim($img, '/');
-                        return url('uploads/content/' . $cleaned);
-                    })->toArray();
-
-                    // Process tags: convert a comma-separated string into an array.
-                    // This handles null or empty strings gracefully.
-                    $tagsArray = $content->tags ? array_map('trim', explode(',', $content->tags)) : [];
-                    $tagsArray = array_filter($tagsArray);  // Remove any empty values
-
+                        $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                        return url('uploads/content/' . ltrim($cleaned, '/'));
+                    }, $image2Array);
                     return [
                         'id' => $content->id,
                         'category_id' => $content->category_id,
@@ -939,10 +847,11 @@ class ContentController extends Controller
                         'sub_heading' => $content->sub_heading,
                         'body1' => $content->body1,
                         'image1' => $content->image1,
+                        // Ensure image2 is always an array, even if null
                         'image2' => $image2Array,
                         'image2_url' => $image2Urls,
                         'advertising_image' => $content->advertising_image,
-                        'tags' => $tagsArray,
+                        'tags' => $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null,
                         'created_at' => $content->created_at,
                         'updated_at' => $content->updated_at,
                         'imageLink' => $content->imageLink,
@@ -954,7 +863,9 @@ class ContentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Contents fetched successfully.',
+                'message' => 'Category contents fetched successfully.',
+                'category_id' => $category->id,
+                'category_name' => $category->category_name,
                 'data' => $contents->items(),
                 'pagination' => [
                     'current_page' => $contents->currentPage(),
@@ -964,7 +875,7 @@ class ContentController extends Controller
                 ]
             ], 200);
         } catch (\Exception $e) {
-            \Log::error('HomeCategoryContent Error: ' . $e->getMessage());
+            Log::error('HomeCategoryContent Error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -973,6 +884,8 @@ class ContentController extends Controller
             ], 500);
         }
     }
+
+
 
     public function HomeContent(Request $request)
     {
