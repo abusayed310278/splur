@@ -198,10 +198,10 @@ Route::get('footer', [SettingController::class, 'getFooter']);
 Route::get('advertising/{slug}', [SettingController::class, 'getAdvertising']);
 Route::get('view-posts/{user_id}', [ContentController::class, 'viewPosts']);
 
-Route::get('privacy-policy', [PolicyController::class, 'getPrivacyPolicy']);
-Route::get('terms-conditions', [PolicyController::class, 'getTermsConditions']);
-Route::get('cookies-policy', [PolicyController::class, 'getCookiesPolicy']);
-Route::get('investment-disclaimer', [PolicyController::class, 'getInvestmentDisclaimer']);
+// Route::get('privacy-policy', [PolicyController::class, 'getPrivacyPolicy']);
+// Route::get('terms-conditions', [PolicyController::class, 'getTermsConditions']);
+// Route::get('cookies-policy', [PolicyController::class, 'getCookiesPolicy']);
+// Route::get('investment-disclaimer', [PolicyController::class, 'getInvestmentDisclaimer']);
 
 Route::get('search', [ContentController::class, 'search']);
 
