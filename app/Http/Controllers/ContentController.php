@@ -931,7 +931,7 @@ class ContentController extends Controller
                         'author' => $content->author,
                         'date' => $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null,
                         'sub_heading' => $content->sub_heading,
-                        'body1' => $content->body1,
+                        // 'body1' => $content->body1,
                         'image1' => $content->image1,
                         'image2' => $image2Array,
                         'image2_url' => $image2Urls,
