@@ -592,6 +592,7 @@ class ContentController extends Controller
 
         // ✅ Safely transform `image2`
         $recent_content->getCollection()->transform(function ($item) {
+            unset($item->body1);
             $image2Array = [];
 
             if (!empty($item->image2)) {
