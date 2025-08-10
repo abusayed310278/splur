@@ -592,8 +592,14 @@ class ContentController extends Controller
 
         // ✅ Safely transform `image2`
         $recent_content->getCollection()->transform(function ($item) {
-            unset($item->body1);
-            unset($item->sub_heading);
+            unset(
+                $item->body1,
+                $item->sub_heading,
+                $item->advertising_image,
+                $item->advertisingLink,
+                $item->image1,
+                $item->author,
+            );
             $image2Array = [];
 
             if (!empty($item->image2)) {
@@ -886,8 +892,6 @@ class ContentController extends Controller
             ], 500);
         }
     }
-
-
 
     public function HomeContent(Request $request)
     {
