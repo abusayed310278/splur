@@ -608,19 +608,19 @@ class ContentController extends Controller
             }
 
             // ✅ Safely build URLs
-            $image2Urls = [];
-            foreach ($image2Array as $img) {
-                if (Str::startsWith($img, ['http://', 'https://'])) {
-                    $image2Urls[] = $img;
-                } else {
-                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-                    $image2Urls[] = url('uploads/content/' . ltrim($cleaned, '/'));
-                }
-            }
+            // $image2Urls = [];
+            // foreach ($image2Array as $img) {
+            //     if (Str::startsWith($img, ['http://', 'https://'])) {
+            //         $image2Urls[] = $img;
+            //     } else {
+            //         $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+            //         $image2Urls[] = url('uploads/content/' . ltrim($cleaned, '/'));
+            //     }
+            // }
 
             // ✅ Attach processed data without breaking pagination
             $item->image2 = $image2Array;
-            $item->image2_url = $image2Urls;
+            // $item->image2_url = $image2Urls;
 
             return $item;
         });
