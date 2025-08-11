@@ -994,6 +994,8 @@ class ContentController extends Controller
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
             // Clean and format tags
             $content->tags = $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null;
+            // $content->meta_title = $content->meta_title;
+            // $content->meta_description = $content->meta_description;
 
             // Handle image2
             $image2Array = [];
@@ -2665,6 +2667,8 @@ class ContentController extends Controller
             'image2' => 'nullable',
             'tags' => 'nullable',
             'status' => 'nullable|string',
+            'meta_title' => 'nullable|string',
+            'meta_description' => 'nullable|string',
         ]);
 
         // Determine status based on user role
@@ -2760,6 +2764,8 @@ class ContentController extends Controller
             'image2.*' => 'nullable',
             'tags' => 'nullable',
             'status' => 'nullable|string',
+            'meta_title' => 'nullable|string',
+            'meta_description' => 'nullable|string',
         ]);
 
         // Role-based status logic

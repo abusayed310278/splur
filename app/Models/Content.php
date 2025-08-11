@@ -27,6 +27,8 @@ class Content extends Model
         'advertisingLink',
         'user_id',
         'status',
+        'meta_title',
+        'meta_description',
     ];
 
     protected $casts = [
