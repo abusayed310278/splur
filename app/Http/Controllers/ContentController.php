@@ -949,6 +949,8 @@ class ContentController extends Controller
                         'advertisingLink' => $content->advertisingLink,
                         'user_id' => $content->user_id,
                         'status' => $content->status,
+                        'meta_title' => $content->meta_title,
+                        'meta_description' => $content->meta_description,
                     ];
                 });
 
