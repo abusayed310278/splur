@@ -2465,6 +2465,8 @@ class ContentController extends Controller
                     'image2_url' => $image2Urls,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'status' => $item->status,
+                    'meta_title' => $item->meta_title,
+                    'meta_description' => $item->meta_description,
                 ];
             });
 
