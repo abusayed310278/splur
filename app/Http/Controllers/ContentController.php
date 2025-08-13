@@ -167,6 +167,8 @@ class ContentController extends Controller
                     'advertisingLink' => $content->advertising_link,
                     'user_id' => $content->user_id,
                     'status' => $content->status,
+                    'meta_title'=> $content->meta_title,
+                    'meta_description' => $content->meta_description,
                     'created_at' => $content->created_at,
                     'updated_at' => $content->updated_at,
                 ];
@@ -628,6 +630,7 @@ class ContentController extends Controller
             // ✅ Attach processed data without breaking pagination
             $item->image2 = $image2Array;
             // $item->image2_url = $image2Urls;
+            
 
             return $item;
         });
@@ -710,6 +713,8 @@ class ContentController extends Controller
                     'advertisingLink' => $content->advertisingLink,
                     'user_id' => $content->user_id,
                     'status' => $content->status,
+                    'meta_title' => $content->meta_title,
+                    'meta_description' => $content->meta_description,
                 ];
             });
 
@@ -866,6 +871,8 @@ class ContentController extends Controller
                         'advertisingLink' => $content->advertisingLink,
                         'user_id' => $content->user_id,
                         'status' => $content->status,
+                        'meta_title' => $content->meta_title,
+                        'meta_description' => $content->meta_description,
                     ];
                 });
 
@@ -996,8 +1003,8 @@ class ContentController extends Controller
             $content->advertising_image_url = $content->advertising_image ? url($content->advertising_image) : null;
             // Clean and format tags
             $content->tags = $content->tags ? preg_replace('/[^A-Za-z0-9, ]/', '', $content->tags) : null;
-            // $content->meta_title = $content->meta_title;
-            // $content->meta_description = $content->meta_description;
+            $content->meta_title = $content->meta_title;
+            $content->meta_description = $content->meta_description;
 
             // Handle image2
             $image2Array = [];
@@ -1879,6 +1886,8 @@ class ContentController extends Controller
             'advertising_image' => $latestContent->advertising_image ? url($latestContent->advertising_image) : null,
             'advertisingLink' => $latestContent->advertisingLink ? url($latestContent->advertisingLink) : null,
             'body1' => $latestContent->body1,
+            'meta_title' => $latestContent->meta_title,
+            'meta_description' => $latestContent->meta_description,
         ];
 
         return response()->json([
@@ -1941,6 +1950,8 @@ class ContentController extends Controller
                     'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+                    'meta_title' => $item->meta_title,
+                    'meta_description' => $item->meta_description,
                 ];
             });
 
@@ -2000,6 +2011,8 @@ class ContentController extends Controller
                 'advertisingLink' => $content->advertisingLink,
                 'user_id' => $content->user_id,
                 'status' => $content->status,
+                'meta_title'=> $content->meta_title,
+                'meta_description' => $content->meta_description,
             ];
         });
 
@@ -2631,6 +2644,8 @@ class ContentController extends Controller
                     'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'status' => $item->status,
+                    'meta_title' => $item->meta_title,
+                    'meta_description' => $item->meta_description,
                 ];
             });
 
