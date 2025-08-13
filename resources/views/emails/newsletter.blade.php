@@ -76,14 +76,15 @@
 
         <div class="content">
             <!-- {!! nl2br(e($messageContent)) !!} -->
-             {{ $messageContent }}
+            {!! $messageContent !!}
+
 
         </div>
 
-        <!-- <div class="footer">
+        <div class="footer">
             <p>You received this email because you subscribed to Splurjj updates.</p>
-            <p><a href="#">Unsubscribe</a> | <a href="#">View Online</a></p>
-        </div> -->
+            <!-- <p><a href="#">Unsubscribe</a> | <a href="#">View Online</a></p> -->
+        </div>
     </div>
 </body>
 </html>
