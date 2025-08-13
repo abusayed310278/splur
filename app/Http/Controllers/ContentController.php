@@ -167,7 +167,7 @@ class ContentController extends Controller
                     'advertisingLink' => $content->advertising_link,
                     'user_id' => $content->user_id,
                     'status' => $content->status,
-                    'meta_title'=> $content->meta_title,
+                    'meta_title' => $content->meta_title,
                     'meta_description' => $content->meta_description,
                     'created_at' => $content->created_at,
                     'updated_at' => $content->updated_at,
@@ -630,7 +630,6 @@ class ContentController extends Controller
             // ✅ Attach processed data without breaking pagination
             $item->image2 = $image2Array;
             // $item->image2_url = $image2Urls;
-            
 
             return $item;
         });
@@ -978,6 +977,35 @@ class ContentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch contents.',
+                'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function HomeContentById($id)
+    {
+        try {
+            $content = Content::where('id', $id)
+                ->where('status', 'Approved')
+                ->firstOrFail();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'meta_title' => $content->meta_title,
+                    'meta_description' => $content->meta_description,
+                ],
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Content not found.',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('HomeContentById Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch content.',
                 'error' => app()->environment('production') ? 'Internal server error' : $e->getMessage(),
             ], 500);
         }
@@ -2011,7 +2039,7 @@ class ContentController extends Controller
                 'advertisingLink' => $content->advertisingLink,
                 'user_id' => $content->user_id,
                 'status' => $content->status,
-                'meta_title'=> $content->meta_title,
+                'meta_title' => $content->meta_title,
                 'meta_description' => $content->meta_description,
             ];
         });

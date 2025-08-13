@@ -190,6 +190,7 @@ Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class
 
 // Landing page content by category
 Route::get('home', [ContentController::class, 'HomeContent']);
+Route::get('home/{id}', [ContentController::class, 'HomeContentByIc']);
 
 Route::get('home/{cat_name}', [ContentController::class, 'HomeCategoryContent']);
 Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
