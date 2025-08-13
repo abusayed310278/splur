@@ -65,6 +65,47 @@ class ContentController extends Controller
 
     // for mysql
 
+    // public function search(Request $request)
+    // {
+    //     $query = $request->input('q');
+
+    //     // Check if input is a valid date
+    //     $isDate = false;
+    //     try {
+    //         $isDate = $query && Carbon::parse($query);
+    //     } catch (Exception $e) {
+    //         $isDate = false;
+    //     }
+
+    //     $lowerQuery = strtolower($query);
+
+    //     $contents = Content::with(['category', 'subcategory'])
+    //         ->when($query, function ($q) use ($lowerQuery, $isDate, $query) {
+    //             $q->where(function ($subQuery) use ($lowerQuery, $isDate, $query) {
+    //                 $subQuery
+    //                     ->whereRaw('LOWER(author) LIKE ?', ["%$lowerQuery%"])
+    //                     ->orWhereRaw('LOWER(tags) LIKE ?', ["%$lowerQuery%"])  // assume tags is a string or CSV
+    //                     ->orWhereRaw('LOWER(heading) LIKE ?', ["%$lowerQuery%"])
+    //                     ->orWhereRaw('LOWER(sub_heading) LIKE ?', ["%$lowerQuery%"])
+    //                     ->orWhereRaw('LOWER(body1) LIKE ?', ["%$lowerQuery%"])
+    //                     ->orWhereHas('category', function ($catQuery) use ($lowerQuery) {
+    //                         $catQuery->whereRaw('LOWER(category_name) LIKE ?', ["%$lowerQuery%"]);
+    //                     })
+    //                     ->orWhereHas('subcategory', function ($subCatQuery) use ($lowerQuery) {
+    //                         $subCatQuery->whereRaw('LOWER(name) LIKE ?', ["%$lowerQuery%"]);
+    //                     });
+
+    //                 if ($isDate) {
+    //                     $subQuery->orWhereDate('date', $query);
+    //                 }
+    //             });
+    //         })
+    //         ->orderBy('created_at', 'desc')
+    //         ->paginate(10);
+
+    //     return response()->json($contents);
+    // }
+
     public function search(Request $request)
     {
         $query = $request->input('q');
@@ -84,7 +125,7 @@ class ContentController extends Controller
                 $q->where(function ($subQuery) use ($lowerQuery, $isDate, $query) {
                     $subQuery
                         ->whereRaw('LOWER(author) LIKE ?', ["%$lowerQuery%"])
-                        ->orWhereRaw('LOWER(tags) LIKE ?', ["%$lowerQuery%"])  // assume tags is a string or CSV
+                        ->orWhereRaw('LOWER(tags) LIKE ?', ["%$lowerQuery%"])
                         ->orWhereRaw('LOWER(heading) LIKE ?', ["%$lowerQuery%"])
                         ->orWhereRaw('LOWER(sub_heading) LIKE ?', ["%$lowerQuery%"])
                         ->orWhereRaw('LOWER(body1) LIKE ?', ["%$lowerQuery%"])
@@ -101,7 +142,40 @@ class ContentController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->through(function ($content) {
+                // Process image2 into cleaned URLs
+                $imageArray = [];
+
+                if (!empty($content->image2)) {
+                    if (is_string($content->image2)) {
+                        $decoded = json_decode($content->image2, true);
+                        $imageArray = is_array($decoded) ? $decoded : [];
+                    } elseif (is_array($content->image2)) {
+                        $imageArray = $content->image2;
+                    }
+                }
+
+                $image2Urls = array_map(function ($img) {
+                    if (Str::startsWith($img, ['http://', 'https://'])) {
+                        return $img;
+                    }
+                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+                    return url('uploads/content/' . ltrim($cleaned, '/'));
+                }, $imageArray);
+
+                return [
+                    'id' => $content->id,
+                    'heading' => $content->heading,
+                    'author' => $content->author,
+                    'category_name' => optional($content->category)->category_name,
+                    'sub_category_name' => optional($content->subcategory)->name,
+                    'date' => $content->date,
+                    'tags' => $content->tags,
+                    'image2' => $image2Urls,  // ✅ now included
+                    'created_at' => $content->created_at,
+                ];
+            });
 
         return response()->json($contents);
     }
