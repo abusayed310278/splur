@@ -2805,33 +2805,22 @@ class ContentController extends Controller
 
         // Handle image uploads and URLs
         $uploadedImages = [];
-        $uploadPath = public_path('uploads');
 
-        // Create uploads directory if it doesn't exist
-        if (!file_exists($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-        }
-
-        // Handle different types of image input
         if ($request->has('image2')) {
             $imageInput = $request->image2;
 
             if (is_array($imageInput)) {
                 foreach ($imageInput as $item) {
                     if ($item instanceof UploadedFile) {
-                        $filename = time() . '_' . uniqid() . '.' . $item->getClientOriginalExtension();
-                        if ($item->move($uploadPath, $filename)) {
-                            $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
-                        }
+                        $path = Storage::disk('s3')->put('images', $item);
+                        $uploadedImages[] = Storage::disk('s3')->url($path);
                     } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
                         $uploadedImages[] = trim($item);
                     }
                 }
             } elseif ($imageInput instanceof UploadedFile) {
-                $filename = time() . '_' . uniqid() . '.' . $imageInput->getClientOriginalExtension();
-                if ($imageInput->move($uploadPath, $filename)) {
-                    $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
-                }
+                $path = Storage::disk('s3')->put('images', $imageInput);
+                $uploadedImages[] = Storage::disk('s3')->url($path);
             } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
                 $uploadedImages[] = trim($imageInput);
             }
@@ -2839,6 +2828,7 @@ class ContentController extends Controller
 
         // Store images array in validated data
         $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+
         // $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : null;
 
         // Handle tags
@@ -2905,11 +2895,6 @@ class ContentController extends Controller
 
         // Handle image updates
         $uploadedImages = [];
-        $uploadPath = public_path('uploads');
-
-        if (!file_exists($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-        }
 
         if ($request->has('image2')) {
             $imageInput = $request->image2;
@@ -2917,25 +2902,21 @@ class ContentController extends Controller
             if (is_array($imageInput)) {
                 foreach ($imageInput as $item) {
                     if ($item instanceof UploadedFile) {
-                        $filename = time() . '_' . uniqid() . '.' . $item->getClientOriginalExtension();
-                        if ($item->move($uploadPath, $filename)) {
-                            $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
-                        }
+                        // Upload to S3
+                        $path = Storage::disk('s3')->put('images', $item);
+                        $uploadedImages[] = Storage::disk('s3')->url($path);
                     } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
                         $uploadedImages[] = trim($item);
                     }
                 }
             } elseif ($imageInput instanceof UploadedFile) {
-                $filename = time() . '_' . uniqid() . '.' . $imageInput->getClientOriginalExtension();
-                if ($imageInput->move($uploadPath, $filename)) {
-                    $uploadedImages[] = env('BACKEND_URL') . '/uploads/' . $filename;
-                }
+                $path = Storage::disk('s3')->put('images', $imageInput);
+                $uploadedImages[] = Storage::disk('s3')->url($path);
             } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
                 $uploadedImages[] = trim($imageInput);
             }
 
-            // $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
-            $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : null;
+            $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : $content->image2;
         }
 
         // Handle tags
