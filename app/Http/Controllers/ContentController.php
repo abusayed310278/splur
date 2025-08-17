@@ -2940,26 +2940,25 @@ class ContentController extends Controller
         try {
             $content = Content::findOrFail($id);
 
-            // Delete image1 if exists
-            if ($content->image1 && File::exists(public_path($content->image1))) {
-                File::delete(public_path($content->image1));
-            }
+            // Delete image2 if exists (array or JSON)
+            if ($content->image2) {
+                $images = is_array($content->image2) ? $content->image2 : json_decode($content->image2, true);
 
-            // Delete image2 if exists and is array
-            if ($content->image2 && is_array($content->image2)) {
-                foreach ($content->image2 as $path) {
-                    if (File::exists(public_path($path))) {
-                        File::delete(public_path($path));
+                if (is_array($images)) {
+                    foreach ($images as $img) {
+                        $path = str_replace(Storage::disk('s3')->url(''), '', $img);
+                        Storage::disk('s3')->delete($path);
                     }
                 }
             }
 
             // Delete advertising_image if exists
-            if ($content->advertising_image && File::exists(public_path($content->advertising_image))) {
-                File::delete(public_path($content->advertising_image));
+            if ($content->advertising_image) {
+                $path = str_replace(Storage::disk('s3')->url(''), '', $content->advertising_image);
+                Storage::disk('s3')->delete($path);
             }
 
-            // Delete content
+            // Finally delete content
             $content->delete();
 
             return response()->json([
