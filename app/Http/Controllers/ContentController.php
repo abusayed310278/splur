@@ -2942,16 +2942,19 @@ class ContentController extends Controller
 
             // Delete image2 if exists (array or JSON)
             if ($content->image2) {
-                return $content->image2;
-                $images = is_array($content->image2) ? $content->image2 : json_decode($content->image2, true);
+                $images = json_decode($content->image2, true);
 
                 if (is_array($images)) {
                     foreach ($images as $img) {
-                        $path = str_replace(Storage::disk('s3')->url(''), '', $img);
+                        // Parse path from full URL
+                        $parsedUrl = parse_url($img);
+                        $path = ltrim($parsedUrl['path'], '/'); // remove leading slash
+                        
                         Storage::disk('s3')->delete($path);
                     }
                 }
             }
+
 
             // Finally delete content
             $content->delete();
