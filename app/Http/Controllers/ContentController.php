@@ -2952,12 +2952,6 @@ class ContentController extends Controller
                 }
             }
 
-            // Delete advertising_image if exists
-            if ($content->advertising_image) {
-                $path = str_replace(Storage::disk('s3')->url(''), '', $content->advertising_image);
-                Storage::disk('s3')->delete($path);
-            }
-
             // Finally delete content
             $content->delete();
 
