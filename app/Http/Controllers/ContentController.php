@@ -2940,28 +2940,21 @@ class ContentController extends Controller
         try {
             $content = Content::findOrFail($id);
 
-            // Delete image2 (multiple or single)
+            // Delete image2 if exists (array or JSON)
             if ($content->image2) {
                 $images = json_decode($content->image2, true);
 
-                // Case 1: Proper JSON array
                 if (is_array($images)) {
                     foreach ($images as $img) {
+                        // Parse path from full URL
                         $parsedUrl = parse_url($img);
-                        if (isset($parsedUrl['path'])) {
-                            $path = ltrim($parsedUrl['path'], '/');
-                            Storage::disk('s3')->delete($path);
-                        }
-                    }
-                } else {
-                    // Case 2: Just a single URL string
-                    $parsedUrl = parse_url($content->image2);
-                    if (isset($parsedUrl['path'])) {
-                        $path = ltrim($parsedUrl['path'], '/');
+                        $path = ltrim($parsedUrl['path'], '/'); // remove leading slash
+                        
                         Storage::disk('s3')->delete($path);
                     }
                 }
             }
+
 
             // Finally delete content
             $content->delete();
@@ -2980,7 +2973,6 @@ class ContentController extends Controller
             ], 500);
         }
     }
-
 
     // public function update(Request $request, $id)
     // {
