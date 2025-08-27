@@ -2807,27 +2807,24 @@ class ContentController extends Controller
         $uploadedImages = [];
 
         if ($request->has('image2')) {
-            $imageInput = $request->image2;
+    $imageInput = $request->image2;
 
-            if (is_array($imageInput)) {
-                foreach ($imageInput as $item) {
-                    if ($item instanceof UploadedFile) {
-                        $path = Storage::disk('s3')->put('images', $item);
-                        $uploadedImages[] = Storage::disk('s3')->url($path);
-                    } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
-                        $uploadedImages[] = trim($item);
-                    }
-                }
-            } elseif ($imageInput instanceof UploadedFile) {
-                $path = Storage::disk('s3')->put('images', $imageInput);
-                $uploadedImages[] = Storage::disk('s3')->url($path);
-            } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
-                $uploadedImages[] = trim($imageInput);
+    if (is_array($imageInput)) {
+        foreach ($imageInput as $item) {
+            if ($item instanceof UploadedFile) {
+                $path = Storage::disk('s3')->put('images', $item);
+                $uploadedImages[] = $path; // store only key
+            } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
+                // Optional: parse URL back to key if user passes CDN/S3 URL
+                $parsed = parse_url($item);
+                $uploadedImages[] = ltrim($parsed['path'], '/');
             }
         }
+    }
+}
 
-        // Store images array in validated data
-        $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+$validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+
 
         // $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : null;
 
@@ -2897,27 +2894,19 @@ class ContentController extends Controller
         $uploadedImages = [];
 
         if ($request->has('image2')) {
-            $imageInput = $request->image2;
-
-            if (is_array($imageInput)) {
-                foreach ($imageInput as $item) {
-                    if ($item instanceof UploadedFile) {
-                        // Upload to S3
-                        $path = Storage::disk('s3')->put('images', $item);
-                        $uploadedImages[] = Storage::disk('s3')->url($path);
-                    } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
-                        $uploadedImages[] = trim($item);
-                    }
-                }
-            } elseif ($imageInput instanceof UploadedFile) {
-                $path = Storage::disk('s3')->put('images', $imageInput);
-                $uploadedImages[] = Storage::disk('s3')->url($path);
-            } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
-                $uploadedImages[] = trim($imageInput);
-            }
-
-            $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : $content->image2;
+    $uploadedImages = [];
+    foreach ($request->image2 as $item) {
+        if ($item instanceof UploadedFile) {
+            $path = Storage::disk('s3')->put('images', $item);
+            $uploadedImages[] = $path;
+        } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
+            $parsed = parse_url($item);
+            $uploadedImages[] = ltrim($parsed['path'], '/');
         }
+    }
+    $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : $content->image2;
+}
+
 
         // Handle tags
         $tagsInput = $request->input('tags');
@@ -2942,18 +2931,14 @@ class ContentController extends Controller
 
             // Delete image2 if exists (array or JSON)
             if ($content->image2) {
-                $images = json_decode($content->image2, true);
+    $images = json_decode($content->image2, true);
+    if (is_array($images)) {
+        foreach ($images as $path) {
+            Storage::disk('s3')->delete($path);
+        }
+    }
+}
 
-                if (is_array($images)) {
-                    foreach ($images as $img) {
-                        // Parse path from full URL
-                        $parsedUrl = parse_url($img);
-                        $path = ltrim($parsedUrl['path'], '/'); // remove leading slash
-                        
-                        Storage::disk('s3')->delete($path);
-                    }
-                }
-            }
 
 
             // Finally delete content
