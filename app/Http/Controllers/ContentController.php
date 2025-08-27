@@ -2940,33 +2940,27 @@ class ContentController extends Controller
         try {
             $content = Content::findOrFail($id);
 
-            // Helper to delete S3 images from full URLs
-            $deleteFromS3 = function ($img) {
-                if (!$img) return;
-                $parsedUrl = parse_url($img);
-                if (isset($parsedUrl['path'])) {
-                    $path = ltrim($parsedUrl['path'], '/'); // remove leading slash
-                    Storage::disk('s3')->delete($path);
-                }
-            };
-
-            // Delete image2 (single or multiple)
+            // Delete image2 (multiple or single)
             if ($content->image2) {
                 $images = json_decode($content->image2, true);
 
+                // Case 1: Proper JSON array
                 if (is_array($images)) {
                     foreach ($images as $img) {
-                        $deleteFromS3($img);
+                        $parsedUrl = parse_url($img);
+                        if (isset($parsedUrl['path'])) {
+                            $path = ltrim($parsedUrl['path'], '/');
+                            Storage::disk('s3')->delete($path);
+                        }
                     }
                 } else {
-                    // fallback if it's just a single string
-                    $deleteFromS3($content->image2);
+                    // Case 2: Just a single URL string
+                    $parsedUrl = parse_url($content->image2);
+                    if (isset($parsedUrl['path'])) {
+                        $path = ltrim($parsedUrl['path'], '/');
+                        Storage::disk('s3')->delete($path);
+                    }
                 }
-            }
-
-            // If you also have a main image field
-            if ($content->image) {
-                $deleteFromS3($content->image);
             }
 
             // Finally delete content
