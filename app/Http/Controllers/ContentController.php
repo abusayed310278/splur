@@ -168,6 +168,8 @@ class ContentController extends Controller
                     'id' => $content->id,
                     'heading' => $content->heading,
                     'author' => $content->author,
+                    'category_id' => $content->category_id,
+                    'subcategory_id' => $content->subcategory_id,
                     'category_name' => optional($content->category)->category_name,
                     'sub_category_name' => optional($content->subcategory)->name,
                     'date' => $content->date,
