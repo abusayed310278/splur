@@ -2773,167 +2773,172 @@ class ContentController extends Controller
         }
     }
 
+    private function normalizeToS3(string $url): string
+    {
+        $cdnBaseUrl = "https://dsfua14fu9fn0.cloudfront.net/images";
+        $s3BaseUrl  = "https://s3.amazonaws.com/splurjjimages/images";
+
+        if (str_starts_with($url, $cdnBaseUrl)) {
+            return str_replace($cdnBaseUrl, $s3BaseUrl, $url);
+        }
+
+        return $url;
+    }
+
+
     public function store(Request $request)
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'required|exists:sub_categories,id',
-            'heading' => 'nullable|string',
-            'author' => 'nullable|string',
-            'date' => 'nullable|date',
-            'sub_heading' => 'nullable|string',
-            'body1' => 'nullable|string',
-            'image2' => 'nullable',
-            'tags' => 'nullable',
-            'status' => 'nullable|string',
-            'meta_title' => 'nullable|string',
-            'meta_description' => 'nullable|string',
-        ]);
+    $validated = $request->validate([
+        'category_id' => 'required|exists:categories,id',
+        'subcategory_id' => 'required|exists:sub_categories,id',
+        'heading' => 'nullable|string',
+        'author' => 'nullable|string',
+        'date' => 'nullable|date',
+        'sub_heading' => 'nullable|string',
+        'body1' => 'nullable|string',
+        'image2' => 'nullable',
+        'tags' => 'nullable',
+        'status' => 'nullable|string',
+        'meta_title' => 'nullable|string',
+        'meta_description' => 'nullable|string',
+    ]);
 
-        // Determine status based on user role
-        if (in_array($user->role, ['admin', 'editor'])) {
-            $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
-                ? $request->status
-                : 'Draft';
-        } elseif ($user->role === 'author') {
-            $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
-        } else {
-            $validated['status'] = 'Draft';
-        }
-
-        // Handle image uploads and URLs
-        $uploadedImages = [];
-
-        if ($request->has('image2')) {
-            $imageInput = $request->image2;
-
-            if (is_array($imageInput)) {
-                foreach ($imageInput as $item) {
-                    if ($item instanceof UploadedFile) {
-                        $path = Storage::disk('s3')->put('images', $item);
-                        $uploadedImages[] = Storage::disk('s3')->url($path);
-                    } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
-                        $uploadedImages[] = trim($item);
-                    }
-                }
-            } elseif ($imageInput instanceof UploadedFile) {
-                $path = Storage::disk('s3')->put('images', $imageInput);
-                $uploadedImages[] = Storage::disk('s3')->url($path);
-            } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
-                $uploadedImages[] = trim($imageInput);
-            }
-        }
-
-        // Store images array in validated data
-        $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
-
-        // $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : null;
-
-        // Handle tags
-        $tagsInput = $request->input('tags');
-        $validated['tags'] = is_array($tagsInput)
-            ? $tagsInput
-            : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
-
-        // Set user ID
-        $validated['user_id'] = $user->id;
-
-        // Save to database
-        $content = Content::create($validated);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Content created successfully.',
-            'data' => $content,
-        ], 201);
+    // Role-based status
+    if (in_array($user->role, ['admin', 'editor'])) {
+        $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
+            ? $request->status
+            : 'Draft';
+    } elseif ($user->role === 'author') {
+        $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+    } else {
+        $validated['status'] = 'Draft';
     }
 
-    public function update(Request $request, $id)
-    {
-        $user = auth()->user();
+    // Handle image uploads and URLs
+    $uploadedImages = [];
 
-        $content = Content::findOrFail($id);
+    if ($request->has('image2')) {
+        $imageInput = $request->image2;
 
-        // Optional: authorize update (e.g., authors can only edit their own posts)
-        if ($user->role === 'author' && $content->user_id !== $user->id) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Unauthorized.'
-            ], 403);
-        }
-
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'required|exists:sub_categories,id',
-            'heading' => 'nullable|string',
-            'author' => 'nullable|string',
-            'date' => 'nullable|date',
-            'sub_heading' => 'nullable|string',
-            'body1' => 'nullable|string',
-            'image2.*' => 'nullable',
-            'tags' => 'nullable',
-            'status' => 'nullable|string',
-            'meta_title' => 'nullable|string',
-            'meta_description' => 'nullable|string',
-        ]);
-
-        // Role-based status logic
-        if (in_array($user->role, ['admin', 'editor'])) {
-            $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
-                ? $request->status
-                : $content->status;
-        } elseif ($user->role === 'author') {
-            // If the content was Approved, keep it Approved even after update
-            if ($content->status === 'Approved') {
-                $validated['status'] = 'Approved';
-            } else {
-                $validated['status'] = $request->status === 'Published' ? 'Published' : 'Draft';
+        if (is_array($imageInput)) {
+            foreach ($imageInput as $item) {
+                if ($item instanceof UploadedFile) {
+                    $path = Storage::disk('s3')->put('images', $item);
+                    $uploadedImages[] = Storage::disk('s3')->url($path);
+                } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
+                    $uploadedImages[] = $this->normalizeToS3(trim($item));
+                }
             }
+        } elseif ($imageInput instanceof UploadedFile) {
+            $path = Storage::disk('s3')->put('images', $imageInput);
+            $uploadedImages[] = Storage::disk('s3')->url($path);
+        } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
+            $uploadedImages[] = $this->normalizeToS3(trim($imageInput));
         }
+    }
 
-        // Handle image updates
+    $validated['image2'] = !empty($uploadedImages) ? json_encode($uploadedImages) : null;
+
+    // Handle tags
+    $tagsInput = $request->input('tags');
+    $validated['tags'] = is_array($tagsInput)
+        ? $tagsInput
+        : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
+
+    // Set user ID
+    $validated['user_id'] = $user->id;
+
+    $content = Content::create($validated);
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Content created successfully.',
+        'data' => $content,
+    ], 201);
+}
+
+
+public function update(Request $request, $id)
+{
+    $user = auth()->user();
+    $content = Content::findOrFail($id);
+
+    if ($user->role === 'author' && $content->user_id !== $user->id) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Unauthorized.'
+        ], 403);
+    }
+
+    $validated = $request->validate([
+        'category_id' => 'required|exists:categories,id',
+        'subcategory_id' => 'required|exists:sub_categories,id',
+        'heading' => 'nullable|string',
+        'author' => 'nullable|string',
+        'date' => 'nullable|date',
+        'sub_heading' => 'nullable|string',
+        'body1' => 'nullable|string',
+        'image2' => 'nullable',
+        'tags' => 'nullable',
+        'status' => 'nullable|string',
+        'meta_title' => 'nullable|string',
+        'meta_description' => 'nullable|string',
+    ]);
+
+    // Role-based status
+    if (in_array($user->role, ['admin', 'editor'])) {
+        $validated['status'] = in_array($request->status, ['Approved', 'Draft', 'Review', 'Rejected', 'Archived'])
+            ? $request->status
+            : $content->status;
+    } elseif ($user->role === 'author') {
+        $validated['status'] = $content->status === 'Approved'
+            ? 'Approved'
+            : ($request->status === 'Published' ? 'Published' : 'Draft');
+    }
+
+    // Handle image updates
+    if ($request->has('image2')) {
+        $imageInput = $request->image2;
         $uploadedImages = [];
 
-        if ($request->has('image2')) {
-            $imageInput = $request->image2;
-
-            if (is_array($imageInput)) {
-                foreach ($imageInput as $item) {
-                    if ($item instanceof UploadedFile) {
-                        // Upload to S3
-                        $path = Storage::disk('s3')->put('images', $item);
-                        $uploadedImages[] = Storage::disk('s3')->url($path);
-                    } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
-                        $uploadedImages[] = trim($item);
-                    }
+        if (is_array($imageInput)) {
+            foreach ($imageInput as $item) {
+                if ($item instanceof UploadedFile) {
+                    $path = Storage::disk('s3')->put('images', $item);
+                    $uploadedImages[] = Storage::disk('s3')->url($path);
+                } elseif (is_string($item) && filter_var($item, FILTER_VALIDATE_URL)) {
+                    $uploadedImages[] = $this->normalizeToS3(trim($item));
                 }
-            } elseif ($imageInput instanceof UploadedFile) {
-                $path = Storage::disk('s3')->put('images', $imageInput);
-                $uploadedImages[] = Storage::disk('s3')->url($path);
-            } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
-                $uploadedImages[] = trim($imageInput);
             }
-
-            $validated['image2'] = !empty($uploadedImages) ? $uploadedImages : $content->image2;
+        } elseif ($imageInput instanceof UploadedFile) {
+            $path = Storage::disk('s3')->put('images', $imageInput);
+            $uploadedImages[] = Storage::disk('s3')->url($path);
+        } elseif (is_string($imageInput) && filter_var($imageInput, FILTER_VALIDATE_URL)) {
+            $uploadedImages[] = $this->normalizeToS3(trim($imageInput));
         }
 
-        // Handle tags
-        $tagsInput = $request->input('tags');
-        $validated['tags'] = is_array($tagsInput)
-            ? $tagsInput
-            : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
-
-        // Update content
-        $content->update($validated);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Content updated successfully.',
-            'data' => $content,
-        ]);
+        $validated['image2'] = !empty($uploadedImages) 
+            ? json_encode($uploadedImages) 
+            : $content->image2;
     }
+
+    // Handle tags
+    $tagsInput = $request->input('tags');
+    $validated['tags'] = is_array($tagsInput)
+        ? $tagsInput
+        : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
+
+    $content->update($validated);
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Content updated successfully.',
+        'data' => $content,
+    ]);
+}
+
 
     public function destroy($id)
     {
