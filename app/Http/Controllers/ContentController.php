@@ -2573,7 +2573,7 @@ class ContentController extends Controller
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
                     'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
-                    // 'body1' => $item->body1,
+                    'body1' => $item->body1,
                     'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
                     'category_id' => $item->category_id,
                     'subcategory_id' => $item->subcategory_id,
