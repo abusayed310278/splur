@@ -1132,6 +1132,8 @@ class ContentController extends Controller
             // Format date
             $content->date = $content->created_at ? Carbon::parse($content->date)->format('m-d-Y') : null;
 
+            $content->body1 = $content->body1;
+
             return response()->json([
                 'status' => true,
                 'message' => 'Content fetched successfully.',
