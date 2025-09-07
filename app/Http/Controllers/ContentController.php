@@ -2719,7 +2719,7 @@ class ContentController extends Controller
 
     // use Illuminate\Support\Facades\Auth;
 
-    public function indexForSubCategoryForDashboard($cat_id, $sub_id, Request $request)
+    public function indexForSubCategoryForDashboard($cat_name,$sub_name, Request $request)
     {
         try {
             // Validate input
@@ -2741,10 +2741,27 @@ class ContentController extends Controller
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Base query with relationships
-            $query = Content::with(['category', 'subcategory'])
-                ->where('category_id', $cat_id)
-                ->where('subcategory_id', $sub_id);
+            // // Base query with relationships
+            // $query = Content::with(['category', 'subcategory'])
+            //     ->where('category_id', $cat_id)
+            //     ->where('subcategory_id', $sub_id);
+
+                    // Base query with relationships
+        $query = Content::with(['category', 'subcategory'])
+            // filter by CATEGORY NAME (case-insensitive)
+            ->whereHas('category', function ($q) use ($cat_name) {
+                // Postgres:
+                $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                // MySQL alternative:
+                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+            })
+            // filter by SUBCATEGORY NAME (case-insensitive)
+            ->whereHas('subcategory', function ($q) use ($sub_name) {
+                // Postgres:
+                $q->where('name', 'ILIKE', urldecode($sub_name));
+                // MySQL alternative:
+                // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+            });
 
             // Role-based filtering
             if ($user->role === 'author') {
