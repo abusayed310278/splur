@@ -2618,14 +2618,35 @@ class ContentController extends Controller
     //     }
     // }
 
-    public function index($cat_id, $sub_id, $id)
+    public function index($cat_name, $sub_name, $id)
     {
         try {
-            $content = Content::with(['user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link'])
-                ->where('category_id', $cat_id)
-                ->where('subcategory_id', $sub_id)
-                ->where('id', $id)
-                ->first();
+            // $content = Content::with(['user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link'])
+            //     ->where('category_id', $cat_id)
+            //     ->where('subcategory_id', $sub_id)
+            //     ->where('id', $id)
+            //     ->first();
+
+                    // Fetch by category/subcategory NAMES + id
+        $content = Content::with([
+                'user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link',
+                'category:id,category_name',
+                'subcategory:id,name',
+            ])
+            ->withCount(['comments as comment_count']) // so comment_count is populated
+            ->where('id', $id)
+            // Category by NAME (case-insensitive; Postgres ILIKE)
+            ->whereHas('category', function ($q) use ($cat_name) {
+                $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                // If you're on MySQL, use this instead:
+                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+            })
+            // Subcategory by NAME (case-insensitive)
+            ->whereHas('subcategory', function ($q) use ($sub_name) {
+                $q->where('name', 'ILIKE', urldecode($sub_name));
+                // MySQL: $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+            })
+            ->first();
 
             // If content not found
             if (!$content) {
