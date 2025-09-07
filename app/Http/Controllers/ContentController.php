@@ -136,61 +136,161 @@ class ContentController extends Controller
     // }
 
     // POST /api/contents/{content}/like
+    // public function toggleLike(Request $request, Content $content)
+    // {
+    //     $user = $request->user();
+    //     abort_unless($user, 401);
+
+    //     $liked = false;
+
+    //     DB::transaction(function () use ($content, $user, &$liked) {
+    //         $existing = ContentLike::where('content_id', $content->id)
+    //             ->where('user_id', $user->id)
+    //             ->lockForUpdate()
+    //             ->first();
+
+    //         if ($existing) {
+    //             $existing->delete();
+    //             $content->where('id', $content->id)->update([
+    //                 'likes_count' => DB::raw('GREATEST(likes_count - 1, 0)')
+    //             ]);
+    //             $liked = false;
+    //         } else {
+    //             ContentLike::create([
+    //                 'content_id' => $content->id,
+    //                 'user_id' => $user->id,
+    //             ]);
+    //             $content->where('id', $content->id)->update([
+    //                 'likes_count' => DB::raw('likes_count + 1')
+    //             ]);
+    //             $liked = true;
+    //         }
+    //     });
+
+    //     $content->refresh();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'liked' => $liked,
+    //         'likes_count' => $content->likes_count,
+    //     ]);
+    // }
+
     public function toggleLike(Request $request, Content $content)
     {
+        // Handle auth up front so we don't swallow 401s in the catch block
         $user = $request->user();
-        abort_unless($user, 401);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.',
+            ], 401);
+        }
 
-        $liked = false;
+        try {
+            $liked = false;
 
-        DB::transaction(function () use ($content, $user, &$liked) {
-            $existing = ContentLike::where('content_id', $content->id)
-                ->where('user_id', $user->id)
-                ->lockForUpdate()
-                ->first();
+            DB::transaction(function () use ($content, $user, &$liked) {
+                $existing = ContentLike::where('content_id', $content->id)
+                    ->where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            if ($existing) {
-                $existing->delete();
-                $content->where('id', $content->id)->update([
-                    'likes_count' => DB::raw('GREATEST(likes_count - 1, 0)')
-                ]);
-                $liked = false;
-            } else {
-                ContentLike::create([
-                    'content_id' => $content->id,
-                    'user_id' => $user->id,
-                ]);
-                $content->where('id', $content->id)->update([
-                    'likes_count' => DB::raw('likes_count + 1')
-                ]);
-                $liked = true;
-            }
-        });
+                if ($existing) {
+                    // Unlike
+                    $existing->delete();
+                    $content->where('id', $content->id)->update([
+                        'likes_count' => DB::raw('GREATEST(likes_count - 1, 0)')
+                    ]);
+                    $liked = false;
+                } else {
+                    // Like
+                    ContentLike::create([
+                        'content_id' => $content->id,
+                        'user_id' => $user->id,
+                    ]);
+                    $content->where('id', $content->id)->update([
+                        'likes_count' => DB::raw('likes_count + 1')
+                    ]);
+                    $liked = true;
+                }
+            });
 
-        $content->refresh();
+            $content->refresh();
 
-        return response()->json([
-            'success' => true,
-            'liked' => $liked,
-            'likes_count' => $content->likes_count,
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => $liked ? 'Liked successfully.' : 'Unliked successfully.',
+                'data' => [
+                    'content_id' => (int) $content->id,
+                    'liked' => $liked,
+                    'likes_count' => (int) $content->likes_count,
+                ],
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Like error', [
+                'content_id' => $content->id ?? null,
+                'user_id' => $user->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to  like.',
+                'error' => app()->environment('production') ? null : $e->getMessage(),
+            ], 500);
+        }
     }
 
     // POST /api/contents/{content}/share
+    // public function share(Request $request, Content $content)
+    // {
+    //     DB::transaction(function () use ($content) {
+    //         $content->where('id', $content->id)->update([
+    //             'shares_count' => DB::raw('shares_count + 1')
+    //         ]);
+    //     });
+
+    //     $content->refresh();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'shares_count' => (int) $content->shares_count,
+    //     ]);
+    // }
+
     public function share(Request $request, Content $content)
     {
-        DB::transaction(function () use ($content) {
-            $content->where('id', $content->id)->update([
-                'shares_count' => DB::raw('shares_count + 1')
+        try {
+            DB::transaction(function () use ($content) {
+                // atomic increment to avoid race conditions
+                Content::whereKey($content->id)->update([
+                    'shares_count' => DB::raw('shares_count + 1'),
+                ]);
+            });
+
+            $content->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Share recorded successfully.',
+                'data' => [
+                    'content_id' => (int) $content->id,
+                    'shares_count' => (int) $content->shares_count,
+                ],
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('share error', [
+                'content_id' => $content->id ?? null,
+                'error' => $e->getMessage(),
             ]);
-        });
 
-        $content->refresh();
-
-        return response()->json([
-            'success' => true,
-            'shares_count' => (int) $content->shares_count,
-        ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record share.',
+                'error' => app()->environment('production') ? null : $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function search(Request $request)
@@ -1123,7 +1223,7 @@ class ContentController extends Controller
                         'meta_description' => $content->meta_description,
                         'likes_count' => (int) $content->likes_count,  // from contents table
                         'shares_count' => (int) $content->shares_count,
-                        'comment_count'      => (int) $content->comment_count,
+                        'comment_count' => (int) $content->comment_count,
                     ];
                 });
 
@@ -2564,6 +2664,9 @@ class ContentController extends Controller
             // Add category_name and sub_category_name
             $content->category_name = $content->category ? $content->category->category_name : null;
             $content->sub_category_name = $content->subcategory ? $content->subcategory->name : null;
+            $content->likes_count = $content->likes_count ? $content->likes_count : null;
+            $content->shares_count = $content->shares_count ? $content->shares_count : null;
+            $content->comment_count = $content->comment_count ? $content->comment_count : null;
 
             // Format date
             $content->date = $content->date ? Carbon::parse($content->date)->format('m-d-Y') : null;
@@ -2843,6 +2946,9 @@ class ContentController extends Controller
                     'status' => $item->status,
                     'meta_title' => $item->meta_title,
                     'meta_description' => $item->meta_description,
+                    'likes_count' => (int) $item->likes_count,  // from contents table
+                    'shares_count' => (int) $item->shares_count,
+                    'comment_count' => (int) $item->comment_count,
                 ];
             });
 
