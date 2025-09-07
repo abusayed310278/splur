@@ -2881,7 +2881,7 @@ class ContentController extends Controller
     //     }
     // }
 
-    public function indexForSubCategory($cat_id, $sub_id, Request $request)
+    public function indexForSubCategory($cat_name, $sub_name, Request $request)
     {
         try {
             // Validate query parameters
@@ -2893,10 +2893,23 @@ class ContentController extends Controller
             $perPage = $validated['paginate_count'] ?? 10;
             $search = $validated['search'] ?? null;
 
-            // Build the query
-            $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
-                ->where('category_id', $cat_id)
-                ->where('subcategory_id', $sub_id);
+            // // Build the query
+            // $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            //     ->where('category_id', $cat_id)
+            //     ->where('subcategory_id', $sub_id);
+
+                    // Build the query: filter by category.name and subcategory.name (case-insensitive)
+        $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            ->withCount(['comments as comment_count'])
+            ->whereHas('category', function ($q) use ($cat_name) {
+                // Postgres (ILIKE). If you're on MySQL, swap to the LOWER() line below.
+                $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]); // MySQL
+            })
+            ->whereHas('subcategory', function ($q) use ($sub_name) {
+                $q->where('name', 'ILIKE', urldecode($sub_name));
+                // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]); // MySQL
+            });
 
             if ($search) {
                 $query->where('heading', 'like', '%' . $search . '%');
