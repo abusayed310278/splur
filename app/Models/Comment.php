@@ -30,6 +30,11 @@ class Comment extends Model
         return $this->belongsTo(Content::class);
     }
 
+    public function comments()
+    {
+        return $this->hasMany(\App\Models\Comment::class, 'content_id');
+    }
+
     public function votes()
     {
         return $this->hasMany(CommentVote::class);
@@ -49,6 +54,4 @@ class Comment extends Model
     {
         return $this->votes()->where('user_id', $userId)->value('vote');
     }
-
-    
 }

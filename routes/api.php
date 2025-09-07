@@ -41,6 +41,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
 
+    Route::post('/contents/{content}/like', [ContentController::class, 'toggleLike']);
+    Route::post('/contents/{content}/share', [ContentController::class, 'share']);
+
     // Settings (accessible by all authenticated users)
     Route::middleware('role:admin,author,editor')->prefix('settings')->group(function () {
         Route::put('password', [SettingController::class, 'storeOrUpdatePassword']);
@@ -212,8 +215,9 @@ Route::get('/pages/slug/{name}', [PageController::class, 'showByName']);
 
 Route::get('/footer-sections', [FooterSectionController::class, 'index']);
 
-
 // Route::get('auth/google/redirect', [GoogleAuthController::class, 'redirect']);
 // Route::get('auth/google/callback', [GoogleAuthController::class, 'callback']);
 
 Route::post('google/auth/jwt-process', [GoogleController::class, 'process']);
+
+// Route::get('/contents/{content}/stats', [ContentController::class, 'stats']);

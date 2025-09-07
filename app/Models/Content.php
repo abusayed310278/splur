@@ -47,6 +47,25 @@ class Content extends Model
     //     return $this->belongsTo(SubCategory::class);
     // }
 
+    // App/Models/Content.php
+
+    public function likes()
+    {
+        return $this->hasMany(\App\Models\ContentLike::class);
+    }
+
+    public function shares()
+    {
+        return $this->hasMany(\App\Models\ContentShare::class);
+    }
+
+    public function isLikedBy($user): bool
+    {
+        if (!$user)
+            return false;
+        return $this->likes()->where('user_id', $user->id)->exists();
+    }
+
     public function comments()
     {
         return $this->hasMany(Comment::class);
