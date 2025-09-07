@@ -131,7 +131,7 @@ Route::get('/shows', [ContentController::class, 'showContents']);  // List all c
 // Route::get('contents/', [ContentController::class, 'index']);
 Route::get('contents/{cat_name}/{sub_name}/{id}', [ContentController::class, 'index']);  // single content for edit
 Route::get('contents/{cat_name}/{sub_name}', [ContentController::class, 'indexForSubCategory']);
-Route::get('contents/details/{cat_id}/{sub_id}/{contentId}', [ContentController::class, 'relatedContents']);
+Route::get('contents/details/{cat_name}/{sub_name}/{contentId}', [ContentController::class, 'relatedContents']);
 Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
 
 Route::get('categories', [CategoryController::class, 'index']);

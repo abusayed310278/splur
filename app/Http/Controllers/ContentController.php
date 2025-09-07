@@ -2472,17 +2472,35 @@ class ContentController extends Controller
         }
     }
 
-    public function relatedContents($cat_id, $sub_id, $contentId)
+    public function relatedContents($cat_name, $sub_name, $contentId)
     {
         try {
             // Get latest 10 related contents (same category and subcategory, excluding current)
-            $contents = Content::with(['category', 'subcategory'])
-                ->where('category_id', $cat_id)
-                ->where('subcategory_id', $sub_id)
-                ->where('id', '!=', $contentId)
-                ->latest()
-                ->take(10)
-                ->get();
+            // $contents = Content::with(['category', 'subcategory'])
+            //     ->where('category_id', $cat_id)
+            //     ->where('subcategory_id', $sub_id)
+            //     ->where('id', '!=', $contentId)
+            //     ->latest()
+            //     ->take(10)
+            //     ->get();
+
+                    // Latest 10 related contents (same category & subcategory names, excluding current)
+        $contents = Content::with(['category', 'subcategory'])
+            ->whereHas('category', function ($q) use ($cat_name) {
+                // Postgres case-insensitive exact match
+                $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                // MySQL alternative:
+                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+            })
+            ->whereHas('subcategory', function ($q) use ($sub_name) {
+                $q->where('name', 'ILIKE', urldecode($sub_name));
+                // MySQL alternative:
+                // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+            })
+            ->where('id', '!=', $contentId)
+            ->latest()     // by created_at desc
+            ->take(10)
+            ->get();
 
             if ($contents->isEmpty()) {
                 return response()->json([
