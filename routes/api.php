@@ -162,34 +162,7 @@ Route::get('content-2nd-page-right-side/{cat_id}', [ContentController::class, 's
 Route::get('content-3rd-page-top-portion/{cat_id}', [ContentController::class, 'showCategoryExcept5LatestContent']);  // 2nd page of content for a category
 Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class, 'showCategoryExcept8LatestContent']);  // 2nd page of content for a category
 
-// ---------------------------latest ---------------------------//
 
-// Route::get('landing-page/top-portion', [ContentController::class, 'landingPageTopPortion']);
-// Route::get('landing-page/bottom-portion', [ContentController::class, 'landingPageBottomPortion']);
-
-// //art & culture
-// Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
-// Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
-
-// //quiet calm
-// Route::get('landing-page/2nd-page-top-portion', [ContentController::class, 'landingPage2ndPageTopPortion']);
-// Route::get('landing-page/2nd-page-bottom-portion', [ContentController::class, 'landingPage2ndPageBottomPortion']);
-
-// //gear
-// Route::get('landing-page/3rd-page-top-portion', [ContentController::class, 'landingPage3rdPageTopPortion']);
-// Route::get('landing-page/3rd-page-bottom-portion', [ContentController::class, 'landingPage3rdPageBottomPortion']);
-
-// //ride
-// Route::get('landing-page/4th-page-top-portion', [ContentController::class, 'landingPage4thPageTopPortion']);
-// Route::get('landing-page/4th-page-bottom-portion', [ContentController::class, 'landingPage4thPageBottomPortion']);
-
-// //music
-// Route::get('landing-page/5th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
-// Route::get('landing-page/5th-page-bottom-portion', [ContentController::class, 'landingPage5thPageBottomPortion']);
-
-// //video
-// Route::get('landing-page/6th-page-top-portion', [ContentController::class, 'landingPage6thPageTopPortion']);
-// Route::get('landing-page/6th-page-bottom-portion', [ContentController::class, 'landingPage6thPageBottomPortion']);
 
 // Landing page content by category
 Route::get('home', [ContentController::class, 'HomeContent']);
