@@ -308,6 +308,7 @@ class SettingController extends Controller
                 'bg_color' => $setting->color,
                 'menu_item_color' => $setting->menu_item_color,
                 'menu_item_active_color' => $setting->menu_item_active_color,
+                'dark_logo' => $setting->dark_logo,
             ],
         ]);
     }
@@ -320,6 +321,7 @@ class SettingController extends Controller
             'menu_item_color' => 'nullable|string',
             'menu_item_active_color' => 'nullable|string',
             'logo' => 'nullable|image',
+            'dark_logo' => 'nullable|image',
         ]);
 
         $setting = Setting::firstOrNew(['key' => 'header']);
@@ -337,6 +339,14 @@ class SettingController extends Controller
             $setting->logo = 'uploads/Header/' . $logoName;
         }
 
+        // ✅ handle dark logo
+        if ($request->hasFile('dark_logo')) {
+            $file = $request->file('dark_logo');
+            $darkLogoName = time() . '_dark_logo.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/Header'), $darkLogoName);
+            $setting->dark_logo = 'uploads/Header/' . $darkLogoName;
+        }
+
         $setting->save();
 
         return response()->json([
@@ -348,6 +358,7 @@ class SettingController extends Controller
                 'menu_item_color' => $setting->menu_item_color,
                 'menu_item_active_color' => $setting->menu_item_active_color,
                 'logo' => $setting->logo,
+                'dark_logo' => $setting->dark_logo,
             ],
         ]);
     }

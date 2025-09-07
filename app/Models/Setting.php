@@ -13,6 +13,7 @@ class Setting extends Model
         'key',
         'logo',
         'profile_pic',
+        'dark_logo',
         'color',
         'border_color',
         'bg_color',
