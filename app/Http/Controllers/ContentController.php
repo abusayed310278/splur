@@ -180,10 +180,17 @@ class ContentController extends Controller
     {
         // Handle auth up front so we don't swallow 401s in the catch block
         $user = $request->user();
-        if (!$user) {
+        // if (!$user) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Unauthorized.',
+        //     ], 401);
+        // }
+
+        if ( !$user || $request->expectsJson()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized.',
+                'message' => 'Please Login Before Like.',
             ], 401);
         }
 
@@ -261,6 +268,23 @@ class ContentController extends Controller
 
     public function share(Request $request, Content $content)
     {
+
+                // Handle auth up front so we don't swallow 401s in the catch block
+        $user = $request->user();
+        // if (!$user) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Unauthorized.',
+        //     ], 401);
+        // }
+
+        if ( !$user || $request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please Login Before Share.',
+            ], 401);
+        }
+
         try {
             DB::transaction(function () use ($content) {
                 // atomic increment to avoid race conditions
@@ -1223,13 +1247,12 @@ class ContentController extends Controller
                         'advertisingLink' => $content->advertisingLink,
                         'user_id' => $content->user_id,
                         'status' => $content->status,
-                        'slug'=> $content->slug,
+                        'slug' => $content->slug,
                         'meta_title' => $content->meta_title,
                         'meta_description' => $content->meta_description,
                         'likes_count' => (int) $content->likes_count,  // from contents table
                         'shares_count' => (int) $content->shares_count,
                         'comment_count' => (int) $content->comment_count,
-
                     ];
                 });
 
