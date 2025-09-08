@@ -187,7 +187,7 @@ class ContentController extends Controller
         //     ], 401);
         // }
 
-        if ( !$user || $request->expectsJson()) {
+        if ( !$user && $request->expectsJson()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Please Login Before Like.',
@@ -278,7 +278,7 @@ class ContentController extends Controller
         //     ], 401);
         // }
 
-        if ( !$user || $request->expectsJson()) {
+        if ( !$user && $request->expectsJson()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Please Login Before Share.',
