@@ -3032,6 +3032,7 @@ class ContentController extends Controller
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'status' => $item->status,
                     'meta_title' => $item->meta_title,
+                    'slug'=> $item->slug,
                     'meta_description' => $item->meta_description,
                     'likes_count' => (int) $item->likes_count,  // from contents table
                     'shares_count' => (int) $item->shares_count,
