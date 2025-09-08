@@ -1253,10 +1253,10 @@ class ContentController extends Controller
         }
     }
 
-    public function HomeContentById($id)
+    public function HomeContentById($slug)
     {
         try {
-            $content = Content::where('id', $id)
+            $content = Content::where('slug', $slug)
                 ->where('status', 'Approved')
                 ->firstOrFail();
 

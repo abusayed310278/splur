@@ -166,7 +166,7 @@ Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class
 
 // Landing page content by category
 Route::get('home', [ContentController::class, 'HomeContent']);
-Route::get('details/{id}', [ContentController::class, 'HomeContentById']);
+Route::get('details/{slug}', [ContentController::class, 'HomeContentById']);
 
 Route::get('home/{slug}', [ContentController::class, 'HomeCategoryContent']);
 Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
