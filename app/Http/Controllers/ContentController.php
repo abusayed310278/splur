@@ -2941,7 +2941,7 @@ class ContentController extends Controller
     //     }
     // }
 
-    public function indexForSubCategory($cat_name, $sub_name, Request $request)
+    public function indexForSubCategory($slug1, $slug2, Request $request)
     {
         try {
             // Validate query parameters

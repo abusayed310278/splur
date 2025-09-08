@@ -38,9 +38,9 @@ class CategoryController extends Controller
     {
         try {
             $categories = Category::with(['subcategories' => function ($query) {
-                $query->select('id', 'category_id', 'name');
+                $query->select('id', 'category_id', 'name','slug');
             }])
-                ->select('id', 'category_name', 'category_icon')
+                ->select('id', 'category_name', 'category_icon','slug')
                 ->when($request->search, function ($query, $search) {
                     return $query->where('category_name', 'like', "%{$search}%");
                 })
@@ -52,6 +52,7 @@ class CategoryController extends Controller
                 return [
                     'category_id' => $category->id,
                     'category_name' => $category->category_name,
+                    'cat_slug'=>$category->slug,
                     'category_icon' => $category->category_icon
                         ? url($category->category_icon)
                         : null,
@@ -59,6 +60,7 @@ class CategoryController extends Controller
                         return [
                             'id' => $sub->id,
                             'name' => $sub->name,
+                            'sub_slug' => $sub->slug,
                         ];
                     })->values(),  // Even if empty, it will return an array
                 ];
