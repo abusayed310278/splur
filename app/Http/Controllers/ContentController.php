@@ -1223,11 +1223,13 @@ class ContentController extends Controller
                         'advertisingLink' => $content->advertisingLink,
                         'user_id' => $content->user_id,
                         'status' => $content->status,
+                        'slug'=> $content->slug,
                         'meta_title' => $content->meta_title,
                         'meta_description' => $content->meta_description,
                         'likes_count' => (int) $content->likes_count,  // from contents table
                         'shares_count' => (int) $content->shares_count,
                         'comment_count' => (int) $content->comment_count,
+
                     ];
                 });
 
