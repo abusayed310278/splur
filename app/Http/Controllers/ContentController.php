@@ -1071,10 +1071,10 @@ class ContentController extends Controller
     // }
 
     // change today(05/08/2025)
-    public function HomeCategoryContent(Request $request, $cat_name)
+    public function HomeCategoryContent(Request $request, $slug)
     {
         try {
-            $category = Category::where('category_name', 'like', $cat_name)->first();
+            $category = Category::where('slug', 'like', $slug)->first();
 
             if (!$category) {
                 return response()->json([

@@ -168,7 +168,7 @@ Route::get('content-3nd-page-bottom-portion/{cat_id}', [ContentController::class
 Route::get('home', [ContentController::class, 'HomeContent']);
 Route::get('details/{id}', [ContentController::class, 'HomeContentById']);
 
-Route::get('home/{cat_name}', [ContentController::class, 'HomeCategoryContent']);
+Route::get('home/{slug}', [ContentController::class, 'HomeCategoryContent']);
 Route::get('/subscribe', [SubscriberController::class, 'showSubscribers']);
 Route::get('header', [SettingController::class, 'getHeader']);
 Route::get('footer', [SettingController::class, 'getFooter']);
