@@ -1256,9 +1256,18 @@ class ContentController extends Controller
     public function HomeContentById($slug)
     {
         try {
-            $content = Content::where('slug', $slug)
-                ->where('status', 'Approved')
-                ->firstOrFail();
+            // $content = Content::where('slug', $slug)
+            //     ->where('status', 'Approved')
+            //     ->firstOrFail();
+
+            $content = Content::with([
+                'category:id,category_name,slug',
+                'subcategory:id,name,slug',
+                'user:id,first_name,profile_pic'
+            ])
+            ->where('slug', $slug)
+            ->where('status', 'Approved')
+            ->firstOrFail();
 
             return response()->json([
                 'success' => true,
