@@ -2640,7 +2640,7 @@ class ContentController extends Controller
     //     }
     // }
 
-    public function index($cat_name, $sub_name, $id)
+    public function index($slug1, $slug2, $slug3)
     {
         try {
             // $content = Content::with(['user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link'])
@@ -2650,25 +2650,50 @@ class ContentController extends Controller
             //     ->first();
 
             // Fetch by category/subcategory NAMES + id
+            // $content = Content::with([
+            //     'user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link',
+            //     'category:id,category_name,slug',
+            //     'subcategory:id,name,slug',
+            // ])
+            //     ->withCount(['comments as comment_count'])  // so comment_count is populated
+            //     ->where('id', $id)
+            //     // Category by NAME (case-insensitive; Postgres ILIKE)
+            //     ->whereHas('category', function ($q) use ($cat_name) {
+            //         $q->where('category_name', 'ILIKE', urldecode($cat_name));
+            //         // If you're on MySQL, use this instead:
+            //         // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+            //     })
+            //     // Subcategory by NAME (case-insensitive)
+            //     ->whereHas('subcategory', function ($q) use ($sub_name) {
+            //         $q->where('name', 'ILIKE', urldecode($sub_name));
+            //         // MySQL: $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+            //     })
+            //     ->first();
+
             $content = Content::with([
-                'user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link',
-                'category:id,category_name',
-                'subcategory:id,name',
+                'user:id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link',
+                'category:id,category_name,slug',
+                'subcategory:id,name,slug',
             ])
-                ->withCount(['comments as comment_count'])  // so comment_count is populated
-                ->where('id', $id)
-                // Category by NAME (case-insensitive; Postgres ILIKE)
-                ->whereHas('category', function ($q) use ($cat_name) {
-                    $q->where('category_name', 'ILIKE', urldecode($cat_name));
-                    // If you're on MySQL, use this instead:
-                    // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+                ->withCount(['comments as comment_count'])
+                ->whereHas('category', function ($q) use ($slug1) {
+                    // Portable case-insensitive match for MySQL/Postgres
+                    $q->whereRaw('LOWER(slug) = ?', [mb_strtolower(urldecode($slug1))]);
                 })
-                // Subcategory by NAME (case-insensitive)
-                ->whereHas('subcategory', function ($q) use ($sub_name) {
-                    $q->where('name', 'ILIKE', urldecode($sub_name));
-                    // MySQL: $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+                ->whereHas('subcategory', function ($q) use ($slug2) {
+                    $q->whereRaw('LOWER(slug) = ?', [mb_strtolower(urldecode($slug2))]);
                 })
+                ->whereRaw('LOWER(slug) = ?', [mb_strtolower(urldecode($slug3))])  // content slug
+                // ->where('status', 'Approved') // uncomment if you only want approved items
                 ->first();
+
+            if (!$content) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No Content Found.',
+                    'data' => null,
+                ], 404);
+            }
 
             // If content not found
             if (!$content) {
@@ -3032,7 +3057,7 @@ class ContentController extends Controller
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'status' => $item->status,
                     'meta_title' => $item->meta_title,
-                    'slug'=> $item->slug,
+                    'slug' => $item->slug,
                     'meta_description' => $item->meta_description,
                     'likes_count' => (int) $item->likes_count,  // from contents table
                     'shares_count' => (int) $item->shares_count,

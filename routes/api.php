@@ -129,7 +129,7 @@ Route::middleware('auth:api')->group(function () {
 Route::get('/shows', [ContentController::class, 'showContents']);  // List all content
 
 // Route::get('contents/', [ContentController::class, 'index']);
-Route::get('contents/{cat_name}/{sub_name}/{id}', [ContentController::class, 'index']);  // single content for edit
+Route::get('contents/{slug1}/{slug2}/{slug3}', [ContentController::class, 'index']);  // single content for edit
 Route::get('contents/{slug1}/{slug2}', [ContentController::class, 'indexForSubCategory']);
 Route::get('contents/details/{cat_name}/{sub_name}/{contentId}', [ContentController::class, 'relatedContents']);
 Route::get('contents/{cat_id}', [ContentController::class, 'indexFrontend']);
