@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SubCategoryController extends Controller
 {
@@ -23,6 +24,20 @@ class SubCategoryController extends Controller
                 'category_id' => 'required|exists:categories,id',
                 'name' => 'required|string|max:255',
             ]);
+
+            // Generate unique slug scoped to category_id
+            $baseSlug = Str::slug($validated['name']);
+            $slug = $baseSlug ?: 'subcategory';
+            $count = 2;
+
+            while (SubCategory::where('category_id', $validated['category_id'])
+                    ->where('slug', $slug)
+                    ->exists()) {
+                $slug = $baseSlug . '-' . $count;
+                $count++;
+            }
+
+            $validated['slug'] = $slug;
 
             $subcategory = SubCategory::create($validated);
 
@@ -66,6 +81,20 @@ class SubCategoryController extends Controller
                 'category_id' => 'sometimes|exists:categories,id',
                 'name' => 'sometimes|string|max:255',
             ]);
+
+            // Generate unique slug scoped to category_id
+            $baseSlug = Str::slug($validated['name']);
+            $slug = $baseSlug ?: 'subcategory';
+            $count = 2;
+
+            while (SubCategory::where('category_id', $validated['category_id'])
+                    ->where('slug', $slug)
+                    ->exists()) {
+                $slug = $baseSlug . '-' . $count;
+                $count++;
+            }
+
+            $validated['slug'] = $slug;
 
             $subcategory->update($validated);
 

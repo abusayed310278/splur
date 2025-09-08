@@ -1088,6 +1088,7 @@ class ContentController extends Controller
 
             $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
                 ->where('category_id', $category->id)
+                ->withCount(['comments as comment_count'])
                 ->where('status', 'Approved')
                 ->latest()
                 ->paginate($limit)
@@ -1135,6 +1136,9 @@ class ContentController extends Controller
                         'status' => $content->status,
                         'meta_title' => $content->meta_title,
                         'meta_description' => $content->meta_description,
+                        'likes_count' => (int) $content->likes_count,  // from contents table
+                        'shares_count' => (int) $content->shares_count,
+                        'comment_count' => (int) $content->comment_count,
                     ];
                 });
 
@@ -2484,23 +2488,23 @@ class ContentController extends Controller
             //     ->take(10)
             //     ->get();
 
-                    // Latest 10 related contents (same category & subcategory names, excluding current)
-        $contents = Content::with(['category', 'subcategory'])
-            ->whereHas('category', function ($q) use ($cat_name) {
-                // Postgres case-insensitive exact match
-                $q->where('category_name', 'ILIKE', urldecode($cat_name));
-                // MySQL alternative:
-                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
-            })
-            ->whereHas('subcategory', function ($q) use ($sub_name) {
-                $q->where('name', 'ILIKE', urldecode($sub_name));
-                // MySQL alternative:
-                // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
-            })
-            ->where('id', '!=', $contentId)
-            ->latest()     // by created_at desc
-            ->take(10)
-            ->get();
+            // Latest 10 related contents (same category & subcategory names, excluding current)
+            $contents = Content::with(['category', 'subcategory'])
+                ->whereHas('category', function ($q) use ($cat_name) {
+                    // Postgres case-insensitive exact match
+                    $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                    // MySQL alternative:
+                    // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+                })
+                ->whereHas('subcategory', function ($q) use ($sub_name) {
+                    $q->where('name', 'ILIKE', urldecode($sub_name));
+                    // MySQL alternative:
+                    // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+                })
+                ->where('id', '!=', $contentId)
+                ->latest()  // by created_at desc
+                ->take(10)
+                ->get();
 
             if ($contents->isEmpty()) {
                 return response()->json([
@@ -2645,26 +2649,26 @@ class ContentController extends Controller
             //     ->where('id', $id)
             //     ->first();
 
-                    // Fetch by category/subcategory NAMES + id
-        $content = Content::with([
+            // Fetch by category/subcategory NAMES + id
+            $content = Content::with([
                 'user:id,id,description,first_name,facebook_link,profile_pic,instagram_link,youtube_link,twitter_link',
                 'category:id,category_name',
                 'subcategory:id,name',
             ])
-            ->withCount(['comments as comment_count']) // so comment_count is populated
-            ->where('id', $id)
-            // Category by NAME (case-insensitive; Postgres ILIKE)
-            ->whereHas('category', function ($q) use ($cat_name) {
-                $q->where('category_name', 'ILIKE', urldecode($cat_name));
-                // If you're on MySQL, use this instead:
-                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
-            })
-            // Subcategory by NAME (case-insensitive)
-            ->whereHas('subcategory', function ($q) use ($sub_name) {
-                $q->where('name', 'ILIKE', urldecode($sub_name));
-                // MySQL: $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
-            })
-            ->first();
+                ->withCount(['comments as comment_count'])  // so comment_count is populated
+                ->where('id', $id)
+                // Category by NAME (case-insensitive; Postgres ILIKE)
+                ->whereHas('category', function ($q) use ($cat_name) {
+                    $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                    // If you're on MySQL, use this instead:
+                    // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+                })
+                // Subcategory by NAME (case-insensitive)
+                ->whereHas('subcategory', function ($q) use ($sub_name) {
+                    $q->where('name', 'ILIKE', urldecode($sub_name));
+                    // MySQL: $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+                })
+                ->first();
 
             // If content not found
             if (!$content) {
@@ -2737,7 +2741,7 @@ class ContentController extends Controller
 
     // use Illuminate\Support\Facades\Auth;
 
-    public function indexForSubCategoryForDashboard($cat_name,$sub_name, Request $request)
+    public function indexForSubCategoryForDashboard($cat_name, $sub_name, Request $request)
     {
         try {
             // Validate input
@@ -2764,22 +2768,22 @@ class ContentController extends Controller
             //     ->where('category_id', $cat_id)
             //     ->where('subcategory_id', $sub_id);
 
-                    // Base query with relationships
-        $query = Content::with(['category', 'subcategory'])
-            // filter by CATEGORY NAME (case-insensitive)
-            ->whereHas('category', function ($q) use ($cat_name) {
-                // Postgres:
-                $q->where('category_name', 'ILIKE', urldecode($cat_name));
-                // MySQL alternative:
-                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
-            })
-            // filter by SUBCATEGORY NAME (case-insensitive)
-            ->whereHas('subcategory', function ($q) use ($sub_name) {
-                // Postgres:
-                $q->where('name', 'ILIKE', urldecode($sub_name));
-                // MySQL alternative:
-                // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
-            });
+            // Base query with relationships
+            $query = Content::with(['category', 'subcategory'])
+                // filter by CATEGORY NAME (case-insensitive)
+                ->whereHas('category', function ($q) use ($cat_name) {
+                    // Postgres:
+                    $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                    // MySQL alternative:
+                    // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+                })
+                // filter by SUBCATEGORY NAME (case-insensitive)
+                ->whereHas('subcategory', function ($q) use ($sub_name) {
+                    // Postgres:
+                    $q->where('name', 'ILIKE', urldecode($sub_name));
+                    // MySQL alternative:
+                    // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+                });
 
             // Role-based filtering
             if ($user->role === 'author') {
@@ -2954,18 +2958,18 @@ class ContentController extends Controller
             //     ->where('category_id', $cat_id)
             //     ->where('subcategory_id', $sub_id);
 
-                    // Build the query: filter by category.name and subcategory.name (case-insensitive)
-        $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
-            ->withCount(['comments as comment_count'])
-            ->whereHas('category', function ($q) use ($cat_name) {
-                // Postgres (ILIKE). If you're on MySQL, swap to the LOWER() line below.
-                $q->where('category_name', 'ILIKE', urldecode($cat_name));
-                // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]); // MySQL
-            })
-            ->whereHas('subcategory', function ($q) use ($sub_name) {
-                $q->where('name', 'ILIKE', urldecode($sub_name));
-                // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]); // MySQL
-            });
+            // Build the query: filter by category.name and subcategory.name (case-insensitive)
+            $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
+                ->withCount(['comments as comment_count'])
+                ->whereHas('category', function ($q) use ($cat_name) {
+                    // Postgres (ILIKE). If you're on MySQL, swap to the LOWER() line below.
+                    $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                    // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]); // MySQL
+                })
+                ->whereHas('subcategory', function ($q) use ($sub_name) {
+                    $q->where('name', 'ILIKE', urldecode($sub_name));
+                    // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]); // MySQL
+                });
 
             if ($search) {
                 $query->where('heading', 'like', '%' . $search . '%');
@@ -3119,6 +3123,19 @@ class ContentController extends Controller
         // Set user ID
         $validated['user_id'] = $user->id;
 
+        // ✅ Generate Slug
+        if (!empty($validated['heading'])) {
+            $slug = Str::slug($validated['heading']);
+
+            // Ensure uniqueness
+            $originalSlug = $slug;
+            $count = 1;
+            while (Content::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+            $validated['slug'] = $slug;
+        }
+
         $content = Content::create($validated);
 
         return response()->json([
@@ -3197,6 +3214,19 @@ class ContentController extends Controller
         $validated['tags'] = is_array($tagsInput)
             ? $tagsInput
             : array_filter(array_map('trim', explode(',', $tagsInput ?? '')));
+
+        // ✅ Generate Slug
+        if (!empty($validated['heading'])) {
+            $slug = Str::slug($validated['heading']);
+
+            // Ensure uniqueness
+            $originalSlug = $slug;
+            $count = 1;
+            while (Content::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+            $validated['slug'] = $slug;
+        }
 
         $content->update($validated);
 

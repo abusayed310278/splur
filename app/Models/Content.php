@@ -29,6 +29,7 @@ class Content extends Model
         'status',
         'meta_title',
         'meta_description',
+        'slug'
     ];
 
     protected $casts = [
