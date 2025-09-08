@@ -2958,17 +2958,31 @@ class ContentController extends Controller
             //     ->where('category_id', $cat_id)
             //     ->where('subcategory_id', $sub_id);
 
-            // Build the query: filter by category.name and subcategory.name (case-insensitive)
-            $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            // // Build the query: filter by category.name and subcategory.name (case-insensitive)
+            // $query = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            //     ->withCount(['comments as comment_count'])
+            //     ->whereHas('category', function ($q) use ($cat_name) {
+            //         // Postgres (ILIKE). If you're on MySQL, swap to the LOWER() line below.
+            //         $q->where('category_name', 'ILIKE', urldecode($cat_name));
+            //         // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]); // MySQL
+            //     })
+            //     ->whereHas('subcategory', function ($q) use ($sub_name) {
+            //         $q->where('name', 'ILIKE', urldecode($sub_name));
+            //         // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]); // MySQL
+            //     });
+
+            // Build the query: filter by category.slug and subcategory.slug
+            $query = Content::with([
+                'category:id,category_name,slug',
+                'subcategory:id,name,slug'
+            ])
                 ->withCount(['comments as comment_count'])
-                ->whereHas('category', function ($q) use ($cat_name) {
-                    // Postgres (ILIKE). If you're on MySQL, swap to the LOWER() line below.
-                    $q->where('category_name', 'ILIKE', urldecode($cat_name));
-                    // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]); // MySQL
+                ->whereHas('category', function ($q) use ($slug1) {
+                    // Slugs should be exact match (case-insensitive safety)
+                    $q->whereRaw('LOWER(slug) = ?', [mb_strtolower(urldecode($slug1))]);
                 })
-                ->whereHas('subcategory', function ($q) use ($sub_name) {
-                    $q->where('name', 'ILIKE', urldecode($sub_name));
-                    // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]); // MySQL
+                ->whereHas('subcategory', function ($q) use ($slug2) {
+                    $q->whereRaw('LOWER(slug) = ?', [mb_strtolower(urldecode($slug2))]);
                 });
 
             if ($search) {
