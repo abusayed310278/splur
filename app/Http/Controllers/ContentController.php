@@ -1198,7 +1198,7 @@ class ContentController extends Controller
 
             // Laravel's paginator will automatically detect 'page' from query string
 
-            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            $contents = Content::with(['category:id,category_name,slug', 'subcategory:id,name,slug'])
                 ->where('status', 'Approved')
                 ->withCount(['comments as comment_count'])
                 ->latest()
@@ -1247,6 +1247,8 @@ class ContentController extends Controller
                         'advertisingLink' => $content->advertisingLink,
                         'user_id' => $content->user_id,
                         'status' => $content->status,
+                        'cat_slug'=> optional($content->category)->slug,
+                        'sub_slug'=> optional($content->subcategory)->slug,
                         'slug' => $content->slug,
                         'meta_title' => $content->meta_title,
                         'meta_description' => $content->meta_description,
