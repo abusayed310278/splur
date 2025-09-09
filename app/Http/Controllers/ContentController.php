@@ -1110,7 +1110,7 @@ class ContentController extends Controller
             $limit = (int) $request->query('limit', 10);  // default to 10 if not provided
             $limit = $limit > 0 ? $limit : 10;  // ensure valid value
 
-            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            $contents = Content::with(['category:id,category_name,slug', 'subcategory:id,name,slug'])
                 ->where('category_id', $category->id)
                 ->withCount(['comments as comment_count'])
                 ->where('status', 'Approved')
