@@ -375,7 +375,11 @@ class ContentController extends Controller
 
         $lowerQuery = strtolower($query);
 
-        $contents = Content::with(['category', 'subcategory'])
+        $contents = Content::with([
+            'category:id,slug,category_name',
+            'subcategory:id,slug,name',
+        ])
+            ->withCount('likes')
             ->when($query, function ($q) use ($lowerQuery, $isDate, $query) {
                 $q->where(function ($subQuery) use ($lowerQuery, $isDate, $query) {
                     $subQuery
@@ -429,6 +433,12 @@ class ContentController extends Controller
                     'sub_category_name' => optional($content->subcategory)->name,
                     'date' => $content->date,
                     'tags' => $content->tags,
+                    'slug' => $content->slug,
+                    'cat_slug' => $content->slug,
+                    'sub_slug' => $content->slug,
+                    'likes_count' => (int) $content->likes_count,  // from contents table
+                    'shares_count' => (int) $content->shares_count,
+                    'comment_count' => (int) $content->comment_count,
                     'image2' => $image2Urls,  // ✅ now included
                     'created_at' => $content->created_at,
                 ];
