@@ -1021,6 +1021,12 @@ class ContentController extends Controller
                     'status' => $content->status,
                     'meta_title' => $content->meta_title,
                     'meta_description' => $content->meta_description,
+                    'slug' => $content->slug,
+                    'cat_slug' => optional($content->category)->slug,
+                    'sub_slug' => optional($content->subcategory)->slug,
+                    'likes_count' => (int) $content->likes_count,  // from contents table
+                    'shares_count' => (int) $content->shares_count,
+                    'comment_count' => (int) $content->comment_count,
                 ];
             });
 
