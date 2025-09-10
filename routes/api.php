@@ -43,6 +43,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/contents/{content}/like', [ContentController::class, 'toggleLike']);
     Route::post('/contents/{content}/share', [ContentController::class, 'share']);
+    Route::get('/content/{content}/like-status', [ContentController::class, 'getLikeStatus']);
 
     // Settings (accessible by all authenticated users)
     Route::middleware('role:admin,author,editor')->prefix('settings')->group(function () {
@@ -196,5 +197,5 @@ Route::post('google/auth/jwt-process', [GoogleController::class, 'process']);
 // Route::get('/contents/{content}/stats', [ContentController::class, 'stats']);
 
 // routes/api.php
-Route::get('/content/{content}/like-status', [ContentController::class, 'getLikeStatus']);
+
 
