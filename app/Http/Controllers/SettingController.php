@@ -18,6 +18,52 @@ use Exception;
 
 class SettingController extends Controller
 {
+    // public function getAdvertising($slug)
+    // {
+    //     try {
+    //         // Validate slug input
+    //         if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Invalid or missing slug.'
+    //             ], 400);
+    //         }
+
+    //         // Find the advertising record by slug
+    //         $advertising = Advertising::where('slug', $slug)->first();
+
+    //         if (!$advertising) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Advertising setting not found.'
+    //             ], 404);
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Advertising setting fetched successfully.',
+    //             'data' => [
+    //                 'id' => $advertising->id,
+    //                 'slug' => $advertising->slug,
+    //                 'link' => $advertising->link,
+    //                 'image' => $advertising->image ? asset($advertising->image) : null,
+    //                 'code' => $advertising->code,
+    //                 'image_path' => $advertising->image_url, // relative path in storage
+    //                 'created_at' => $advertising->created_at,
+    //                 'updated_at' => $advertising->updated_at,
+    //             ]
+    //         ], 200);
+    //     } catch (Exception $e) {
+    //         Log::error('Error fetching advertising: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to fetch advertising setting.',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
     public function getAdvertising($slug)
     {
         try {
@@ -30,36 +76,45 @@ class SettingController extends Controller
             }
 
             // Find the advertising record by slug
-            $advertising = Advertising::where('slug', $slug)->first();
+            $ad = Advertising::where('slug', $slug)->first();
 
-            if (!$advertising) {
+            if (!$ad) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Advertising setting not found.'
                 ], 404);
             }
 
+            // Build URLs from your configured filesystem disk
+            $disk = config('filesystems.default', 'public');  // or hardcode 'public' / 's3'
+            // We store a relative path in DB (e.g. 'advertisings/169435_advertising.jpg')
+            $imagePath = $ad->image ?: null;
+            $imageUrl = $imagePath ? Storage::disk($disk)->url($imagePath) : null;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Advertising setting fetched successfully.',
                 'data' => [
-                    'id' => $advertising->id,
-                    'slug' => $advertising->slug,
-                    'link' => $advertising->link,
-                    'image' => $advertising->image ? asset($advertising->image) : null,
-                    'code' => $advertising->code,
-                    'image_path' => $advertising->image, // relative path in storage
-                    'created_at' => $advertising->created_at,
-                    'updated_at' => $advertising->updated_at,
+                    'id' => $ad->id,
+                    'slug' => $ad->slug,
+                    'link' => $ad->link,
+                    'code' => $ad->code,
+                    // CDN/public URL for frontend consumption
+                    'image' => $imageUrl,
+                    'image_url' => $imageUrl,  // kept for compatibility
+                    // Relative storage path (useful for admin panels / future updates)
+                    'image_path' => $imagePath,
+                    'created_at' => $ad->created_at,
+                    'updated_at' => $ad->updated_at,
                 ]
             ], 200);
-        } catch (Exception $e) {
-            Log::error('Error fetching advertising: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Error fetching advertising', ['slug' => $slug, 'error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch advertising setting.',
-                'error' => $e->getMessage()
+                'error' => app()->environment('production') ? null : $e->getMessage()
             ], 500);
         }
     }
