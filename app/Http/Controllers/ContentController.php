@@ -434,8 +434,8 @@ class ContentController extends Controller
                     'date' => $content->date,
                     'tags' => $content->tags,
                     'slug' => $content->slug,
-                    'cat_slug' => $content->slug,
-                    'sub_slug' => $content->slug,
+                    'cat_slug' => optional($content->category)->slug,
+                    'sub_slug' => optional($content->subcategory)->slug,
                     'likes_count' => (int) $content->likes_count,  // from contents table
                     'shares_count' => (int) $content->shares_count,
                     'comment_count' => (int) $content->comment_count,
