@@ -960,7 +960,7 @@ class ContentController extends Controller
         try {
             $perPage = request('per_page', 10);
 
-            $contents = Content::with(['category:id,category_name', 'subcategory:id,name'])
+            $contents = Content::with(['category:id,category_name,slug', 'subcategory:id,name,slug'])
                 ->where('user_id', $user_id)
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage);
