@@ -2877,7 +2877,7 @@ class ContentController extends Controller
 
     // use Illuminate\Support\Facades\Auth;
 
-    public function indexForSubCategoryForDashboard($cat_name, $sub_name, Request $request)
+    public function indexForSubCategoryForDashboard($cat_id, $sub_id, Request $request)
     {
         try {
             // Validate input
@@ -2907,16 +2907,16 @@ class ContentController extends Controller
             // Base query with relationships
             $query = Content::with(['category', 'subcategory'])
                 // filter by CATEGORY NAME (case-insensitive)
-                ->whereHas('category', function ($q) use ($cat_name) {
+                ->whereHas('category', function ($q) use ($cat_id) {
                     // Postgres:
-                    $q->where('category_name', 'ILIKE', urldecode($cat_name));
+                    $q->where('id', 'ILIKE', urldecode($cat_id));
                     // MySQL alternative:
                     // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
                 })
                 // filter by SUBCATEGORY NAME (case-insensitive)
-                ->whereHas('subcategory', function ($q) use ($sub_name) {
+                ->whereHas('subcategory', function ($q) use ($sub_id) {
                     // Postgres:
-                    $q->where('name', 'ILIKE', urldecode($sub_name));
+                    $q->where('id', 'ILIKE', urldecode($sub_id));
                     // MySQL alternative:
                     // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
                 });

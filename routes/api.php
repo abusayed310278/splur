@@ -121,7 +121,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('upvote-downvote/{commentId}/vote', [ContentController::class, 'vote']);
 
-    Route::get('content-dashbaord/{cat_name}/{sub_name}', [ContentController::class, 'indexForSubCategoryForDashboard']);
+    Route::get('content-dashbaord/{cat_id}/{sub_id}', [ContentController::class, 'indexForSubCategoryForDashboard']);
 
     Route::post('status/{id}', [ContentController::class, 'storeOrUpdateStatus']);
 });
