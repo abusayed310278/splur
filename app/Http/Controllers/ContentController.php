@@ -2312,6 +2312,12 @@ class ContentController extends Controller
                     'imageLink' => $item->imageLink ? url($item->imageLink) : null,
                     'meta_title' => $item->meta_title,
                     'meta_description' => $item->meta_description,
+                    'slug' => $item->slug,
+                    'cat_slug' => optional($item->category)->slug,
+                    'sub_slug' => optional($item->subcategory)->slug,
+                    'likes_count' => (int) $item->likes_count,  // from contents table
+                    'shares_count' => (int) $item->shares_count,
+                    'comment_count' => (int) $item->comment_count,
                 ];
             });
 
