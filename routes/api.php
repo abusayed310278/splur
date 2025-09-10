@@ -194,3 +194,7 @@ Route::get('/footer-sections', [FooterSectionController::class, 'index']);
 Route::post('google/auth/jwt-process', [GoogleController::class, 'process']);
 
 // Route::get('/contents/{content}/stats', [ContentController::class, 'stats']);
+
+// routes/api.php
+Route::get('/content/{content}/like-status', [ContentController::class, 'getLikeStatus']);
+

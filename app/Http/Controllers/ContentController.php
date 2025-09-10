@@ -176,6 +176,27 @@ class ContentController extends Controller
     //     ]);
     // }
 
+    public function getLikeStatus(Request $request, Content $content)
+    {
+        $user = $request->user();
+
+        $liked = false;
+        if ($user) {
+            $liked = ContentLike::where('content_id', $content->id)
+                ->where('user_id', $user->id)
+                ->exists();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'content_id' => (int) $content->id,
+                'liked' => $liked,
+                'likes_count' => (int) $content->likes_count,
+            ],
+        ], 200);
+    }
+
     public function toggleLike(Request $request, Content $content)
     {
         // Handle auth up front so we don't swallow 401s in the catch block
@@ -187,7 +208,7 @@ class ContentController extends Controller
         //     ], 401);
         // }
 
-        if ( !$user && $request->expectsJson()) {
+        if (!$user && $request->expectsJson()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Please Login Before Like.',
@@ -268,8 +289,7 @@ class ContentController extends Controller
 
     public function share(Request $request, Content $content)
     {
-
-                // Handle auth up front so we don't swallow 401s in the catch block
+        // Handle auth up front so we don't swallow 401s in the catch block
         $user = $request->user();
         // if (!$user) {
         //     return response()->json([
@@ -278,7 +298,7 @@ class ContentController extends Controller
         //     ], 401);
         // }
 
-        if ( !$user && $request->expectsJson()) {
+        if (!$user && $request->expectsJson()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Please Login Before Share.',
@@ -1159,8 +1179,8 @@ class ContentController extends Controller
                         'user_id' => $content->user_id,
                         'status' => $content->status,
                         'slug' => $content->slug,
-                        'cat_slug'=> optional($content->category)->slug,
-                        'sub_slug'=> optional($content->subcategory)->slug,
+                        'cat_slug' => optional($content->category)->slug,
+                        'sub_slug' => optional($content->subcategory)->slug,
                         'meta_title' => $content->meta_title,
                         'meta_description' => $content->meta_description,
                         'likes_count' => (int) $content->likes_count,  // from contents table
@@ -1250,8 +1270,8 @@ class ContentController extends Controller
                         'advertisingLink' => $content->advertisingLink,
                         'user_id' => $content->user_id,
                         'status' => $content->status,
-                        'cat_slug'=> optional($content->category)->slug,
-                        'sub_slug'=> optional($content->subcategory)->slug,
+                        'cat_slug' => optional($content->category)->slug,
+                        'sub_slug' => optional($content->subcategory)->slug,
                         'slug' => $content->slug,
                         'meta_title' => $content->meta_title,
                         'meta_description' => $content->meta_description,
