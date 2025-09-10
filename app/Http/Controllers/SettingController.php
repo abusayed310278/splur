@@ -48,6 +48,7 @@ class SettingController extends Controller
                     'link' => $advertising->link,
                     'image' => $advertising->image ? asset($advertising->image) : null,
                     'code' => $advertising->code,
+                    'image_path' => $advertising->image, // relative path in storage
                     'created_at' => $advertising->created_at,
                     'updated_at' => $advertising->updated_at,
                 ]
