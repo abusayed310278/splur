@@ -3117,6 +3117,8 @@ class ContentController extends Controller
                     'status' => $item->status,
                     'meta_title' => $item->meta_title,
                     'slug' => $item->slug,
+                    'cat_slug'=> optional($item->category)->slug,
+                    'sub_slug'=> optional($item->subcategory)->slug,
                     'meta_description' => $item->meta_description,
                     'likes_count' => (int) $item->likes_count,  // from contents table
                     'shares_count' => (int) $item->shares_count,
