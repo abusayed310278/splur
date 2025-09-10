@@ -176,25 +176,49 @@ class ContentController extends Controller
     //     ]);
     // }
 
+    // 10/09/2025
+    // public function getLikeStatus(Request $request, Content $content)
+    // {
+    //     $user = $request->user();
+
+    //     $liked = false;
+    //     if ($user) {
+    //         $liked = ContentLike::where('content_id', $content->id)
+    //             ->where('user_id', $user->id)
+    //             ->exists();
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => [
+    //             'content_id' => (int) $content->id,
+    //             'liked' => $liked,
+    //             'likes_count' => (int) $content->likes_count,
+    //         ],
+    //     ], 200);
+    // }
+
     public function getLikeStatus(Request $request, Content $content)
     {
-        $user = $request->user();
+        $user = $request->user('api');  // <- use the api guard
 
-        $liked = false;
-        if ($user) {
-            $liked = ContentLike::where('content_id', $content->id)
+        $liked = $user
+            ? ContentLike::where('content_id', $content->id)
                 ->where('user_id', $user->id)
-                ->exists();
-        }
+                ->exists()
+            : false;
+
+        // Get a live, authoritative count from the join table
+        $likesCount = ContentLike::where('content_id', $content->id)->count();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'content_id' => (int) $content->id,
-                'liked' => $liked,
-                'likes_count' => (int) $content->likes_count,
+                'liked' => (bool) $liked,
+                'likes_count' => (int) $likesCount,
             ],
-        ], 200);
+        ]);
     }
 
     public function toggleLike(Request $request, Content $content)
