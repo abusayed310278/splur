@@ -3112,7 +3112,7 @@ class ContentController extends Controller
                     'heading' => $item->heading,
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
-                    'date' => optional($item->date)->format('m-d-Y'),
+                    'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
                     'body1' => $item->body1,
                     'tags' => $tags,
                     'category_id' => $item->category_id,
