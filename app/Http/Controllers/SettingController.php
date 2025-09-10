@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Exception;
-use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
 {
@@ -63,12 +63,103 @@ class SettingController extends Controller
         }
     }
 
+    // public function storeOrUpdateAdvertising(Request $request, $slug)
+    // {
+    //     try {
+    //         // Validate slug value first
+    //         if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Invalid or missing slug.'
+    //             ], 400);
+    //         }
 
+    //         // Validation rules with conditional logic
+    //         $validated = $request->validate([
+    //             'link' => [
+    //                 'nullable',
+    //                 'string',
+    //                 'url',
+    //                 function ($attribute, $value, $fail) use ($request) {
+    //                     if (!is_null($value) && !is_null($request->input('code'))) {
+    //                         $fail('You cannot submit both code and link.');
+    //                     }
+    //                 },
+    //             ],
+    //             'image' => [
+    //                 'nullable',
+    //                 'image',
+    //                 function ($attribute, $value, $fail) use ($request) {
+    //                     if ($request->hasFile('image') && !is_null($request->input('code'))) {
+    //                         $fail('You cannot submit both code and image.');
+    //                     }
+    //                 },
+    //             ],
+    //             'code' => [
+    //                 'nullable',
+    //                 'string',
+    //                 function ($attribute, $value, $fail) use ($request) {
+    //                     if (!is_null($value) && ($request->filled('link') || $request->hasFile('image'))) {
+    //                         $fail('You cannot submit code along with link or image.');
+    //                     }
+    //                 },
+    //             ],
+    //         ]);
+
+    //         $validated['slug'] = $slug;
+
+    //         // Automatically nullify fields based on the input
+    //         if (!empty($validated['code'])) {
+    //             $validated['link'] = null;
+    //             $validated['image'] = null;
+    //         } else {
+    //             $validated['code'] = null;
+    //         }
+
+    //         // Handle image upload to /public/uploads/Advertisings
+    //         if ($request->hasFile('image')) {
+    //             $file = $request->file('image');
+    //             $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+    //             $destination = public_path('uploads/Advertisings');
+
+    //             if (!file_exists($destination)) {
+    //                 mkdir($destination, 0755, true);
+    //             }
+
+    //             $file->move($destination, $imageName);
+    //             $validated['image'] = 'uploads/Advertisings/' . $imageName;
+    //         }
+
+    //         $model = Advertising::updateOrCreate(
+    //             ['slug' => $slug],
+    //             $validated
+    //         );
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $model->wasRecentlyCreated ? 'Advertising created successfully.' : 'Advertising updated successfully.',
+    //             'data' => [
+    //                 'id' => $model->id,
+    //                 'slug' => $model->slug,
+    //                 'link' => $model->link,
+    //                 'image' => $model->image ? asset($model->image) : null,
+    //                 'code' => $model->code,
+    //                 'created_at' => $model->created_at,
+    //                 'updated_at' => $model->updated_at,
+    //             ],
+    //         ], 200);
+    //     } catch (Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to store or update advertising.',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     public function storeOrUpdateAdvertising(Request $request, $slug)
     {
         try {
-            // Validate slug value first
             if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
                 return response()->json([
                     'success' => false,
@@ -76,7 +167,6 @@ class SettingController extends Controller
                 ], 400);
             }
 
-            // Validation rules with conditional logic
             $validated = $request->validate([
                 'link' => [
                     'nullable',
@@ -91,6 +181,7 @@ class SettingController extends Controller
                 'image' => [
                     'nullable',
                     'image',
+                    'max:5120',  // 5MB
                     function ($attribute, $value, $fail) use ($request) {
                         if ($request->hasFile('image') && !is_null($request->input('code'))) {
                             $fail('You cannot submit both code and image.');
@@ -110,32 +201,13 @@ class SettingController extends Controller
 
             $validated['slug'] = $slug;
 
-            // Automatically nullify fields based on the input
+            // Normalize mutually exclusive fields
             if (!empty($validated['code'])) {
                 $validated['link'] = null;
                 $validated['image'] = null;
             } else {
                 $validated['code'] = null;
             }
-
-            // Handle image upload to /public/uploads/Advertisings
-            // if ($request->hasFile('image')) {
-            //     $file = $request->file('image');
-            //     $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-            //     $destination = public_path('uploads/Advertisings');
-
-            //     if (!file_exists($destination)) {
-            //         mkdir($destination, 0755, true);
-            //     }
-
-            //     $file->move($destination, $imageName);
-            //     $validated['image'] = 'uploads/Advertisings/' . $imageName;
-            // }
-
-            // $model = Advertising::updateOrCreate(
-            //     ['slug' => $slug],
-            //     $validated
-            // );
 
             // Use your chosen disk: 'public' for local+CDN, or 's3' for S3/R2+CDN
             $disk = config('filesystems.default', 'public');  // or hardcode 'public' / 's3'
@@ -185,18 +257,18 @@ class SettingController extends Controller
                     'id' => $model->id,
                     'slug' => $model->slug,
                     'link' => $model->link,
-                    'image' => $model->image ? asset($model->image) : null,
-                    'image_url' => $imageUrl,
+                    'image' => $model->image,  // relative path in storage
+                    'image_url' => $imageUrl,  // FULL CDN URL for the frontend
                     'code' => $model->code,
                     'created_at' => $model->created_at,
                     'updated_at' => $model->updated_at,
                 ],
             ], 200);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to store or update advertising.',
-                'error' => $e->getMessage()
+                'error' => app()->environment('production') ? null : $e->getMessage()
             ], 500);
         }
     }
