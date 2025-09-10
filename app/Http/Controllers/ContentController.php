@@ -2762,6 +2762,12 @@ class ContentController extends Controller
                     'data' => null,
                 ], 404);
             }
+
+            // Add extra slug fields
+            $content->cat_slug = $content->category->slug;
+            $content->sub_slug = $content->subcategory->slug;
+            $content->slug = $content->slug;
+
             // Clean image2
             $image2Array = [];
             if (!empty($content->image2)) {
@@ -3117,8 +3123,8 @@ class ContentController extends Controller
                     'status' => $item->status,
                     'meta_title' => $item->meta_title,
                     'slug' => $item->slug,
-                    'cat_slug'=> optional($item->category)->slug,
-                    'sub_slug'=> optional($item->subcategory)->slug,
+                    'cat_slug' => optional($item->category)->slug,
+                    'sub_slug' => optional($item->subcategory)->slug,
                     'meta_description' => $item->meta_description,
                     'likes_count' => (int) $item->likes_count,  // from contents table
                     'shares_count' => (int) $item->shares_count,
