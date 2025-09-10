@@ -2877,7 +2877,136 @@ class ContentController extends Controller
 
     // use Illuminate\Support\Facades\Auth;
 
-    public function indexForSubCategoryForDashboard($cat_id, $sub_id, Request $request)
+    // 10/09/2025 changed
+
+    // public function indexForSubCategoryForDashboard($cat_id, $sub_id, Request $request)
+    // {
+    //     try {
+    //         // Validate input
+    //         $validated = $request->validate([
+    //             'paginate_count' => 'nullable|integer|min:1',
+    //             'search' => 'nullable|string|max:255',
+    //         ]);
+
+    //         $paginate_count = $validated['paginate_count'] ?? 10;
+    //         $search = $validated['search'] ?? null;
+
+    //         // Get authenticated user
+    //         $user = Auth::guard('api')->user();
+
+    //         if (!$user) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Unauthorized.',
+    //             ], Response::HTTP_UNAUTHORIZED);
+    //         }
+
+    //         // // Base query with relationships
+    //         // $query = Content::with(['category', 'subcategory'])
+    //         //     ->where('category_id', $cat_id)
+    //         //     ->where('subcategory_id', $sub_id);
+
+    //         // Base query with relationships
+    //         $query = Content::with(['category', 'subcategory'])
+    //             // filter by CATEGORY NAME (case-insensitive)
+    //             ->whereHas('category', function ($q) use ($cat_id) {
+    //                 // Postgres:
+    //                 $q->where('id', 'ILIKE', urldecode($cat_id));
+    //                 // MySQL alternative:
+    //                 // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
+    //             })
+    //             // filter by SUBCATEGORY NAME (case-insensitive)
+    //             ->whereHas('subcategory', function ($q) use ($sub_id) {
+    //                 // Postgres:
+    //                 $q->where('id', 'ILIKE', urldecode($sub_id));
+    //                 // MySQL alternative:
+    //                 // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+    //             });
+
+    //         // Role-based filtering
+    //         if ($user->role === 'author') {
+    //             $query->where('user_id', $user->id);  // Authors see only their own content
+    //         }
+    //         // Admins and Editors see all content
+
+    //         // Search by heading
+    //         if ($search) {
+    //             $query->where('heading', 'like', '%' . $search . '%');
+    //         }
+
+    //         // Get paginated results
+    //         $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
+
+    //         // Transform each content item
+    //         $transformedData = $contents->getCollection()->transform(function ($item) {
+    //             // Decode image2
+    //             $image2Array = [];
+    //             if (!empty($item->image2)) {
+    //                 if (is_string($item->image2)) {
+    //                     $decoded = json_decode($item->image2, true);
+    //                     $image2Array = is_array($decoded) ? $decoded : [];
+    //                 } elseif (is_array($item->image2)) {
+    //                     $image2Array = $item->image2;
+    //                 }
+    //             }
+
+    //             // Create clean image URLs
+    //             $image2Urls = array_map(function ($img) {
+    //                 if (Str::startsWith($img, ['http://', 'https://'])) {
+    //                     return $img;
+    //                 }
+    //                 $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
+    //                 return url('uploads/content/' . ltrim($cleaned, '/'));
+    //             }, $image2Array);
+
+    //             return [
+    //                 'id' => $item->id,
+    //                 'heading' => $item->heading,
+    //                 'sub_heading' => $item->sub_heading,
+    //                 'author' => $item->author,
+    //                 'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
+    //                 'body1' => $item->body1,
+    //                 'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+    //                 'category_id' => $item->category_id,
+    //                 'subcategory_id' => $item->subcategory_id,
+    //                 'category_name' => optional($item->category)->category_name,
+    //                 'sub_category_name' => optional($item->subcategory)->name,
+    //                 'image1' => $item->image1 ? url($item->image1) : null,
+    //                 'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
+    //                 'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
+    //                 'image2' => $image2Array,
+    //                 'image2_url' => $image2Urls,
+    //                 'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+    //                 'status' => $item->status,
+    //                 'meta_title' => $item->meta_title,
+    //                 'meta_description' => $item->meta_description,
+    //             ];
+    //         });
+
+    //         // Set the transformed data back on paginator
+    //         $contents->setCollection($transformedData);
+
+    //         // Return response
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $contents,
+    //             'current_page' => $contents->currentPage(),
+    //             'total_pages' => $contents->lastPage(),
+    //             'per_page' => $contents->perPage(),
+    //             'total' => $contents->total(),
+    //         ], Response::HTTP_OK);
+    //     } catch (\Exception $e) {
+    //         \Log::error('Error in indexForSubCategoryForDashboard: ' . $e->getMessage());
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to fetch content.',
+    //             'error' => $e->getMessage(),
+    //         ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    //     }
+    // }
+
+    public function indexForSubCategoryForDashboard(string $cat, string $sub, Request $request)
     {
         try {
             // Validate input
@@ -2891,7 +3020,6 @@ class ContentController extends Controller
 
             // Get authenticated user
             $user = Auth::guard('api')->user();
-
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -2899,45 +3027,68 @@ class ContentController extends Controller
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // // Base query with relationships
-            // $query = Content::with(['category', 'subcategory'])
-            //     ->where('category_id', $cat_id)
-            //     ->where('subcategory_id', $sub_id);
+            // Decode route params (allow names or IDs)
+            $catParam = urldecode($cat);
+            $subParam = urldecode($sub);
+            $isCatId = ctype_digit($catParam);
+            $isSubId = ctype_digit($subParam);
+
+            $driver = DB::connection()->getDriverName();
+            $ilikeOp = $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
 
             // Base query with relationships
-            $query = Content::with(['category', 'subcategory'])
-                // filter by CATEGORY NAME (case-insensitive)
-                ->whereHas('category', function ($q) use ($cat_id) {
-                    // Postgres:
-                    $q->where('id', 'ILIKE', urldecode($cat_id));
-                    // MySQL alternative:
-                    // $q->whereRaw('LOWER(category_name) = ?', [mb_strtolower(urldecode($cat_name))]);
-                })
-                // filter by SUBCATEGORY NAME (case-insensitive)
-                ->whereHas('subcategory', function ($q) use ($sub_id) {
-                    // Postgres:
-                    $q->where('id', 'ILIKE', urldecode($sub_id));
-                    // MySQL alternative:
-                    // $q->whereRaw('LOWER(name) = ?', [mb_strtolower(urldecode($sub_name))]);
+            $query = Content::with(['category', 'subcategory']);
+
+            // Filter by category (ID or name)
+            if ($isCatId) {
+                $query->where('category_id', (int) $catParam);
+            } else {
+                $query->whereHas('category', function ($q) use ($catParam, $ilikeOp) {
+                    // Case-insensitive match; for MySQL, LIKE is case-insensitive on ci collations
+                    $q->where('category_name', $ilikeOp, $catParam);
                 });
+            }
+
+            // Filter by subcategory (ID or name)
+            if ($isSubId) {
+                $query->where('subcategory_id', (int) $subParam);
+            } else {
+                $query->whereHas('subcategory', function ($q) use ($subParam, $ilikeOp) {
+                    $q->where('name', $ilikeOp, $subParam);
+                });
+            }
 
             // Role-based filtering
             if ($user->role === 'author') {
                 $query->where('user_id', $user->id);  // Authors see only their own content
             }
-            // Admins and Editors see all content
+            // Admins/Editors see all content
 
-            // Search by heading
+            // Search by heading (case-insensitive)
             if ($search) {
-                $query->where('heading', 'like', '%' . $search . '%');
+                $query->where(function ($q) use ($search, $ilikeOp) {
+                    $q->where('heading', $ilikeOp, '%' . $search . '%');
+                });
             }
 
             // Get paginated results
-            $contents = $query->orderBy('id', 'desc')->paginate($paginate_count);
+            $contents = $query->orderByDesc('id')->paginate($paginate_count);
+
+            // Helper: convert to absolute URL if needed
+            $toAbsolute = function (?string $path, string $prefix = ''): ?string {
+                if (!$path)
+                    return null;
+                if (Str::startsWith($path, ['http://', 'https://'])) {
+                    return $path;
+                }
+                $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $path);
+                $cleaned = ltrim((string) $cleaned, '/');
+                return url(($prefix ? rtrim($prefix, '/') . '/' : '') . $cleaned);
+            };
 
             // Transform each content item
-            $transformedData = $contents->getCollection()->transform(function ($item) {
-                // Decode image2
+            $transformed = $contents->getCollection()->transform(function ($item) use ($toAbsolute) {
+                // Decode image2 to array
                 $image2Array = [];
                 if (!empty($item->image2)) {
                     if (is_string($item->image2)) {
@@ -2948,41 +3099,40 @@ class ContentController extends Controller
                     }
                 }
 
-                // Create clean image URLs
-                $image2Urls = array_map(function ($img) {
-                    if (Str::startsWith($img, ['http://', 'https://'])) {
-                        return $img;
-                    }
-                    $cleaned = preg_replace('/[^A-Za-z0-9\-_.\/]/', '', $img);
-                    return url('uploads/content/' . ltrim($cleaned, '/'));
+                // Create clean image URLs for image2
+                $image2Urls = array_map(function ($img) use ($toAbsolute) {
+                    return $toAbsolute($img, 'uploads/content');
                 }, $image2Array);
+
+                // Normalize tags (letters/digits/commas/spaces only)
+                $tags = $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null;
 
                 return [
                     'id' => $item->id,
                     'heading' => $item->heading,
                     'sub_heading' => $item->sub_heading,
                     'author' => $item->author,
-                    'date' => \Carbon\Carbon::parse($item->date)->format('m-d-Y'),
+                    'date' => optional($item->date)->format('m-d-Y'),
                     'body1' => $item->body1,
-                    'tags' => $item->tags ? preg_replace('/[^a-zA-Z0-9,\s]/', '', $item->tags) : null,
+                    'tags' => $tags,
                     'category_id' => $item->category_id,
                     'subcategory_id' => $item->subcategory_id,
                     'category_name' => optional($item->category)->category_name,
                     'sub_category_name' => optional($item->subcategory)->name,
-                    'image1' => $item->image1 ? url($item->image1) : null,
-                    'advertising_image' => $item->advertising_image ? url($item->advertising_image) : null,
-                    'advertisingLink' => $item->advertisingLink ? url($item->advertisingLink) : null,
+                    'image1' => $toAbsolute($item->image1),
+                    'advertising_image' => $toAbsolute($item->advertising_image),
+                    'advertisingLink' => $toAbsolute($item->advertisingLink),
                     'image2' => $image2Array,
                     'image2_url' => $image2Urls,
-                    'imageLink' => $item->imageLink ? url($item->imageLink) : null,
+                    'imageLink' => $toAbsolute($item->imageLink),
                     'status' => $item->status,
                     'meta_title' => $item->meta_title,
                     'meta_description' => $item->meta_description,
                 ];
             });
 
-            // Set the transformed data back on paginator
-            $contents->setCollection($transformedData);
+            // Put transformed data back on paginator
+            $contents->setCollection($transformed);
 
             // Return response
             return response()->json([
@@ -2993,13 +3143,13 @@ class ContentController extends Controller
                 'per_page' => $contents->perPage(),
                 'total' => $contents->total(),
             ], Response::HTTP_OK);
-        } catch (\Exception $e) {
-            \Log::error('Error in indexForSubCategoryForDashboard: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            \Log::error('Error in indexForSubCategoryForDashboard: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch content.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error.',
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
