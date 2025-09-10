@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Exception;
+use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
 {
@@ -62,65 +63,7 @@ class SettingController extends Controller
         }
     }
 
-    // public function storeOrUpdateAdvertising(Request $request, $slug)
-    // {
-    //     try {
-    //         $validated = $request->validate([
-    //             'link' => 'nullable|string|url',
-    //             'image' => 'nullable|image',
-    //             'code' => 'nullable|string',
-    //         ]);
 
-    //         // Validate slug value
-    //         if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Invalid or missing slug.'
-    //             ], 400);
-    //         }
-
-    //         $validated['slug'] = $slug;
-
-    //         // Handle image upload to /public/uploads/Advertisings
-    //         if ($request->hasFile('image')) {
-    //             $file = $request->file('image');
-    //             $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-    //             $destination = public_path('uploads/Advertisings');
-
-    //             if (!file_exists($destination)) {
-    //                 mkdir($destination, 0755, true);
-    //             }
-
-    //             $file->move($destination, $imageName);
-    //             $validated['image'] = 'uploads/Advertisings/' . $imageName;
-    //         }
-
-    //         $model = Advertising::updateOrCreate(
-    //             ['slug' => $slug],
-    //             $validated
-    //         );
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => $model->wasRecentlyCreated ? 'Advertising created successfully.' : 'Advertising updated successfully.',
-    //             'data' => [
-    //                 'id' => $model->id,
-    //                 'slug' => $model->slug,
-    //                 'link' => $model->link,
-    //                 'image' => $model->image ? asset($model->image) : null,
-    //                 'code' => $model->code,
-    //                 'created_at' => $model->created_at,
-    //                 'updated_at' => $model->updated_at,
-    //             ],
-    //         ], 200);
-    //     } catch (Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to store or update advertising.',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
 
     public function storeOrUpdateAdvertising(Request $request, $slug)
     {
@@ -176,23 +119,64 @@ class SettingController extends Controller
             }
 
             // Handle image upload to /public/uploads/Advertisings
+            // if ($request->hasFile('image')) {
+            //     $file = $request->file('image');
+            //     $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+            //     $destination = public_path('uploads/Advertisings');
+
+            //     if (!file_exists($destination)) {
+            //         mkdir($destination, 0755, true);
+            //     }
+
+            //     $file->move($destination, $imageName);
+            //     $validated['image'] = 'uploads/Advertisings/' . $imageName;
+            // }
+
+            // $model = Advertising::updateOrCreate(
+            //     ['slug' => $slug],
+            //     $validated
+            // );
+
+            // Use your chosen disk: 'public' for local+CDN, or 's3' for S3/R2+CDN
+            $disk = config('filesystems.default', 'public');  // or hardcode 'public' / 's3'
+
+            // Find or create by slug so we can remove old image if needed
+            $model = Advertising::firstOrNew(['slug' => $slug]);
+
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-                $destination = public_path('uploads/Advertisings');
+                $ext = $file->getClientOriginalExtension();
+                $filename = time() . '_advertising.' . $ext;
 
-                if (!file_exists($destination)) {
-                    mkdir($destination, 0755, true);
+                // Folder name in the disk
+                $folder = 'advertisings';
+
+                // If replacing an existing image, delete the old one
+                if ($model->exists && !empty($model->image)) {
+                    // $model->image stores the path relative to the disk root
+                    Storage::disk($disk)->delete($model->image);
                 }
 
-                $file->move($destination, $imageName);
-                $validated['image'] = 'uploads/Advertisings/' . $imageName;
+                // Store the file on the disk; returns the relative path like 'advertisings/1234_advertising.jpg'
+                $storedPath = $file->storeAs($folder, $filename, [
+                    'disk' => $disk,
+                    'visibility' => 'public',
+                ]);
+
+                // Persist only the relative path in DB (portable across disks)
+                $validated['image'] = $storedPath;
+            } elseif ($request->missing('image') && empty($validated['code'])) {
+                // If no new image and no code provided, keep existing image as-is.
+                // If you want to clear image when no file is sent, uncomment:
+                // $validated['image'] = null;
             }
 
-            $model = Advertising::updateOrCreate(
-                ['slug' => $slug],
-                $validated
-            );
+            // Save/Update
+            $model->fill($validated);
+            $model->save();
+
+            // Build the public CDN URL (this reads from the disk config)
+            $imageUrl = $model->image ? Storage::disk($disk)->url($model->image) : null;
 
             return response()->json([
                 'success' => true,
@@ -202,6 +186,7 @@ class SettingController extends Controller
                     'slug' => $model->slug,
                     'link' => $model->link,
                     'image' => $model->image ? asset($model->image) : null,
+                    'image_url' => $imageUrl,
                     'code' => $model->code,
                     'created_at' => $model->created_at,
                     'updated_at' => $model->updated_at,
