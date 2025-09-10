@@ -18,52 +18,6 @@ use Exception;
 
 class SettingController extends Controller
 {
-    // public function getAdvertising($slug)
-    // {
-    //     try {
-    //         // Validate slug input
-    //         if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Invalid or missing slug.'
-    //             ], 400);
-    //         }
-
-    //         // Find the advertising record by slug
-    //         $advertising = Advertising::where('slug', $slug)->first();
-
-    //         if (!$advertising) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Advertising setting not found.'
-    //             ], 404);
-    //         }
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Advertising setting fetched successfully.',
-    //             'data' => [
-    //                 'id' => $advertising->id,
-    //                 'slug' => $advertising->slug,
-    //                 'link' => $advertising->link,
-    //                 'image' => $advertising->image ? asset($advertising->image) : null,
-    //                 'code' => $advertising->code,
-    //                 'image_path' => $advertising->image_url, // relative path in storage
-    //                 'created_at' => $advertising->created_at,
-    //                 'updated_at' => $advertising->updated_at,
-    //             ]
-    //         ], 200);
-    //     } catch (Exception $e) {
-    //         Log::error('Error fetching advertising: ' . $e->getMessage());
-
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to fetch advertising setting.',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
     public function getAdvertising($slug)
     {
         try {
@@ -76,53 +30,44 @@ class SettingController extends Controller
             }
 
             // Find the advertising record by slug
-            $ad = Advertising::where('slug', $slug)->first();
+            $advertising = Advertising::where('slug', $slug)->first();
 
-            if (!$ad) {
+            if (!$advertising) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Advertising setting not found.'
                 ], 404);
             }
 
-            // Build URLs from your configured filesystem disk
-            $disk = config('filesystems.default', 'public');  // or hardcode 'public' / 's3'
-            // We store a relative path in DB (e.g. 'advertisings/169435_advertising.jpg')
-            $imagePath = $ad->image ?: null;
-            $imageUrl = $imagePath ? Storage::disk($disk)->url($imagePath) : null;
-
             return response()->json([
                 'success' => true,
                 'message' => 'Advertising setting fetched successfully.',
                 'data' => [
-                    'id' => $ad->id,
-                    'slug' => $ad->slug,
-                    'link' => $ad->link,
-                    'code' => $ad->code,
-                    // CDN/public URL for frontend consumption
-                    'image' => $imageUrl,
-                    'image_url' => $imageUrl,  // kept for compatibility
-                    // Relative storage path (useful for admin panels / future updates)
-                    'image_path' => $imagePath,
-                    'created_at' => $ad->created_at,
-                    'updated_at' => $ad->updated_at,
+                    'id' => $advertising->id,
+                    'slug' => $advertising->slug,
+                    'link' => $advertising->link,
+                    'image' => $advertising->image ? asset($advertising->image) : null,
+                    'code' => $advertising->code,
+                    'image_path' => $advertising->image_url, // relative path in storage
+                    'created_at' => $advertising->created_at,
+                    'updated_at' => $advertising->updated_at,
                 ]
             ], 200);
-        } catch (\Throwable $e) {
-            Log::error('Error fetching advertising', ['slug' => $slug, 'error' => $e->getMessage()]);
+        } catch (Exception $e) {
+            Log::error('Error fetching advertising: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch advertising setting.',
-                'error' => app()->environment('production') ? null : $e->getMessage()
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    // public function storeOrUpdateAdvertising(Request $request, $slug)
+    // public function getAdvertising($slug)
     // {
     //     try {
-    //         // Validate slug value first
+    //         // Validate slug input
     //         if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
     //             return response()->json([
     //                 'success' => false,
@@ -130,85 +75,46 @@ class SettingController extends Controller
     //             ], 400);
     //         }
 
-    //         // Validation rules with conditional logic
-    //         $validated = $request->validate([
-    //             'link' => [
-    //                 'nullable',
-    //                 'string',
-    //                 'url',
-    //                 function ($attribute, $value, $fail) use ($request) {
-    //                     if (!is_null($value) && !is_null($request->input('code'))) {
-    //                         $fail('You cannot submit both code and link.');
-    //                     }
-    //                 },
-    //             ],
-    //             'image' => [
-    //                 'nullable',
-    //                 'image',
-    //                 function ($attribute, $value, $fail) use ($request) {
-    //                     if ($request->hasFile('image') && !is_null($request->input('code'))) {
-    //                         $fail('You cannot submit both code and image.');
-    //                     }
-    //                 },
-    //             ],
-    //             'code' => [
-    //                 'nullable',
-    //                 'string',
-    //                 function ($attribute, $value, $fail) use ($request) {
-    //                     if (!is_null($value) && ($request->filled('link') || $request->hasFile('image'))) {
-    //                         $fail('You cannot submit code along with link or image.');
-    //                     }
-    //                 },
-    //             ],
-    //         ]);
+    //         // Find the advertising record by slug
+    //         $ad = Advertising::where('slug', $slug)->first();
 
-    //         $validated['slug'] = $slug;
-
-    //         // Automatically nullify fields based on the input
-    //         if (!empty($validated['code'])) {
-    //             $validated['link'] = null;
-    //             $validated['image'] = null;
-    //         } else {
-    //             $validated['code'] = null;
+    //         if (!$ad) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Advertising setting not found.'
+    //             ], 404);
     //         }
 
-    //         // Handle image upload to /public/uploads/Advertisings
-    //         if ($request->hasFile('image')) {
-    //             $file = $request->file('image');
-    //             $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
-    //             $destination = public_path('uploads/Advertisings');
-
-    //             if (!file_exists($destination)) {
-    //                 mkdir($destination, 0755, true);
-    //             }
-
-    //             $file->move($destination, $imageName);
-    //             $validated['image'] = 'uploads/Advertisings/' . $imageName;
-    //         }
-
-    //         $model = Advertising::updateOrCreate(
-    //             ['slug' => $slug],
-    //             $validated
-    //         );
+    //         // Build URLs from your configured filesystem disk
+    //         $disk = config('filesystems.default', 'public');  // or hardcode 'public' / 's3'
+    //         // We store a relative path in DB (e.g. 'advertisings/169435_advertising.jpg')
+    //         $imagePath = $ad->image ?: null;
+    //         $imageUrl = $imagePath ? Storage::disk($disk)->url($imagePath) : null;
 
     //         return response()->json([
     //             'success' => true,
-    //             'message' => $model->wasRecentlyCreated ? 'Advertising created successfully.' : 'Advertising updated successfully.',
+    //             'message' => 'Advertising setting fetched successfully.',
     //             'data' => [
-    //                 'id' => $model->id,
-    //                 'slug' => $model->slug,
-    //                 'link' => $model->link,
-    //                 'image' => $model->image ? asset($model->image) : null,
-    //                 'code' => $model->code,
-    //                 'created_at' => $model->created_at,
-    //                 'updated_at' => $model->updated_at,
-    //             ],
+    //                 'id' => $ad->id,
+    //                 'slug' => $ad->slug,
+    //                 'link' => $ad->link,
+    //                 'code' => $ad->code,
+    //                 // CDN/public URL for frontend consumption
+    //                 'image' => $imageUrl,
+    //                 'image_url' => $imageUrl,  // kept for compatibility
+    //                 // Relative storage path (useful for admin panels / future updates)
+    //                 'image_path' => $imagePath,
+    //                 'created_at' => $ad->created_at,
+    //                 'updated_at' => $ad->updated_at,
+    //             ]
     //         ], 200);
-    //     } catch (Exception $e) {
+    //     } catch (\Throwable $e) {
+    //         Log::error('Error fetching advertising', ['slug' => $slug, 'error' => $e->getMessage()]);
+
     //         return response()->json([
     //             'success' => false,
-    //             'message' => 'Failed to store or update advertising.',
-    //             'error' => $e->getMessage()
+    //             'message' => 'Failed to fetch advertising setting.',
+    //             'error' => app()->environment('production') ? null : $e->getMessage()
     //         ], 500);
     //     }
     // }
@@ -216,6 +122,7 @@ class SettingController extends Controller
     public function storeOrUpdateAdvertising(Request $request, $slug)
     {
         try {
+            // Validate slug value first
             if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
                 return response()->json([
                     'success' => false,
@@ -223,6 +130,7 @@ class SettingController extends Controller
                 ], 400);
             }
 
+            // Validation rules with conditional logic
             $validated = $request->validate([
                 'link' => [
                     'nullable',
@@ -237,7 +145,6 @@ class SettingController extends Controller
                 'image' => [
                     'nullable',
                     'image',
-                    'max:5120',  // 5MB
                     function ($attribute, $value, $fail) use ($request) {
                         if ($request->hasFile('image') && !is_null($request->input('code'))) {
                             $fail('You cannot submit both code and image.');
@@ -257,7 +164,7 @@ class SettingController extends Controller
 
             $validated['slug'] = $slug;
 
-            // Normalize mutually exclusive fields
+            // Automatically nullify fields based on the input
             if (!empty($validated['code'])) {
                 $validated['link'] = null;
                 $validated['image'] = null;
@@ -265,46 +172,24 @@ class SettingController extends Controller
                 $validated['code'] = null;
             }
 
-            // Use your chosen disk: 'public' for local+CDN, or 's3' for S3/R2+CDN
-            $disk = config('filesystems.default', 'public');  // or hardcode 'public' / 's3'
-
-            // Find or create by slug so we can remove old image if needed
-            $model = Advertising::firstOrNew(['slug' => $slug]);
-
+            // Handle image upload to /public/uploads/Advertisings
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $ext = $file->getClientOriginalExtension();
-                $filename = time() . '_advertising.' . $ext;
+                $imageName = time() . '_advertising.' . $file->getClientOriginalExtension();
+                $destination = public_path('uploads/Advertisings');
 
-                // Folder name in the disk
-                $folder = 'advertisings';
-
-                // If replacing an existing image, delete the old one
-                if ($model->exists && !empty($model->image)) {
-                    // $model->image stores the path relative to the disk root
-                    Storage::disk($disk)->delete($model->image);
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0755, true);
                 }
 
-                // Store the file on the disk; returns the relative path like 'advertisings/1234_advertising.jpg'
-                $storedPath = $file->storeAs($folder, $filename, [
-                    'disk' => $disk,
-                    'visibility' => 'public',
-                ]);
-
-                // Persist only the relative path in DB (portable across disks)
-                $validated['image'] = $storedPath;
-            } elseif ($request->missing('image') && empty($validated['code'])) {
-                // If no new image and no code provided, keep existing image as-is.
-                // If you want to clear image when no file is sent, uncomment:
-                // $validated['image'] = null;
+                $file->move($destination, $imageName);
+                $validated['image'] = 'uploads/Advertisings/' . $imageName;
             }
 
-            // Save/Update
-            $model->fill($validated);
-            $model->save();
-
-            // Build the public CDN URL (this reads from the disk config)
-            $imageUrl = $model->image ? Storage::disk($disk)->url($model->image) : null;
+            $model = Advertising::updateOrCreate(
+                ['slug' => $slug],
+                $validated
+            );
 
             return response()->json([
                 'success' => true,
@@ -313,21 +198,136 @@ class SettingController extends Controller
                     'id' => $model->id,
                     'slug' => $model->slug,
                     'link' => $model->link,
-                    'image' => $model->image,  // relative path in storage
-                    'image_url' => $imageUrl,  // FULL CDN URL for the frontend
+                    'image' => $model->image ? asset($model->image) : null,
                     'code' => $model->code,
                     'created_at' => $model->created_at,
                     'updated_at' => $model->updated_at,
                 ],
             ], 200);
-        } catch (\Throwable $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to store or update advertising.',
-                'error' => app()->environment('production') ? null : $e->getMessage()
+                'error' => $e->getMessage()
             ], 500);
         }
     }
+
+    // public function storeOrUpdateAdvertising(Request $request, $slug)
+    // {
+    //     try {
+    //         if (!$slug || !in_array($slug, ['horizontal', 'vertical'])) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Invalid or missing slug.'
+    //             ], 400);
+    //         }
+
+    //         $validated = $request->validate([
+    //             'link' => [
+    //                 'nullable',
+    //                 'string',
+    //                 'url',
+    //                 function ($attribute, $value, $fail) use ($request) {
+    //                     if (!is_null($value) && !is_null($request->input('code'))) {
+    //                         $fail('You cannot submit both code and link.');
+    //                     }
+    //                 },
+    //             ],
+    //             'image' => [
+    //                 'nullable',
+    //                 'image',
+    //                 'max:5120',  // 5MB
+    //                 function ($attribute, $value, $fail) use ($request) {
+    //                     if ($request->hasFile('image') && !is_null($request->input('code'))) {
+    //                         $fail('You cannot submit both code and image.');
+    //                     }
+    //                 },
+    //             ],
+    //             'code' => [
+    //                 'nullable',
+    //                 'string',
+    //                 function ($attribute, $value, $fail) use ($request) {
+    //                     if (!is_null($value) && ($request->filled('link') || $request->hasFile('image'))) {
+    //                         $fail('You cannot submit code along with link or image.');
+    //                     }
+    //                 },
+    //             ],
+    //         ]);
+
+    //         $validated['slug'] = $slug;
+
+    //         // Normalize mutually exclusive fields
+    //         if (!empty($validated['code'])) {
+    //             $validated['link'] = null;
+    //             $validated['image'] = null;
+    //         } else {
+    //             $validated['code'] = null;
+    //         }
+
+    //         // Use your chosen disk: 'public' for local+CDN, or 's3' for S3/R2+CDN
+    //         $disk = config('filesystems.default', 'public');  // or hardcode 'public' / 's3'
+
+    //         // Find or create by slug so we can remove old image if needed
+    //         $model = Advertising::firstOrNew(['slug' => $slug]);
+
+    //         if ($request->hasFile('image')) {
+    //             $file = $request->file('image');
+    //             $ext = $file->getClientOriginalExtension();
+    //             $filename = time() . '_advertising.' . $ext;
+
+    //             // Folder name in the disk
+    //             $folder = 'advertisings';
+
+    //             // If replacing an existing image, delete the old one
+    //             if ($model->exists && !empty($model->image)) {
+    //                 // $model->image stores the path relative to the disk root
+    //                 Storage::disk($disk)->delete($model->image);
+    //             }
+
+    //             // Store the file on the disk; returns the relative path like 'advertisings/1234_advertising.jpg'
+    //             $storedPath = $file->storeAs($folder, $filename, [
+    //                 'disk' => $disk,
+    //                 'visibility' => 'public',
+    //             ]);
+
+    //             // Persist only the relative path in DB (portable across disks)
+    //             $validated['image'] = $storedPath;
+    //         } elseif ($request->missing('image') && empty($validated['code'])) {
+    //             // If no new image and no code provided, keep existing image as-is.
+    //             // If you want to clear image when no file is sent, uncomment:
+    //             // $validated['image'] = null;
+    //         }
+
+    //         // Save/Update
+    //         $model->fill($validated);
+    //         $model->save();
+
+    //         // Build the public CDN URL (this reads from the disk config)
+    //         $imageUrl = $model->image ? Storage::disk($disk)->url($model->image) : null;
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $model->wasRecentlyCreated ? 'Advertising created successfully.' : 'Advertising updated successfully.',
+    //             'data' => [
+    //                 'id' => $model->id,
+    //                 'slug' => $model->slug,
+    //                 'link' => $model->link,
+    //                 'image' => $model->image,  // relative path in storage
+    //                 'image_url' => $imageUrl,  // FULL CDN URL for the frontend
+    //                 'code' => $model->code,
+    //                 'created_at' => $model->created_at,
+    //                 'updated_at' => $model->updated_at,
+    //             ],
+    //         ], 200);
+    //     } catch (\Throwable $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to store or update advertising.',
+    //             'error' => app()->environment('production') ? null : $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     public function getUserContent($user_id)
     {
