@@ -1343,6 +1343,8 @@ class ContentController extends Controller
         }
     }
 
+    
+
     public function HomeContentById($id)
     {
         try {
