@@ -1346,7 +1346,7 @@ class ContentController extends Controller
     public function HomeContentById($id)
     {
         try {
-            $content = Content::where('id', $id)
+            $content = Content::where('slug', $id)
                 ->where('status', 'Approved')
                 ->firstOrFail();
 
