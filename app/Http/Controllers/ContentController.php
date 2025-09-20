@@ -911,7 +911,7 @@ class ContentController extends Controller
     {
         $user = Auth::user();
         $total_content = Content::count();
-        $total_pending_content = Content::where('status', 'Published')->count();
+        $total_pending_content = Content::where('status', 'Draft')->count();
         $total_author = User::where('role', 'author')->count();
         $total_user = User::where('role', 'user')->count();
         $total_subscriber = Subscriber::count();
